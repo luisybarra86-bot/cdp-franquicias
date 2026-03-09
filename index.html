@@ -14,8 +14,14 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .hdr{background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,.25)}
 .hdr h1{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px}.hdr h1 span{color:#FF9F1C}
 .hdr p{color:#8899bb;font-size:12px;margin-top:2px}
-.hdr-badges{display:flex;gap:6px;flex-wrap:wrap}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hbadge{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif}
+.sync-indicator{display:flex;align-items:center;gap:6px;color:#8899bb;font-size:12px;font-family:'Nunito',sans-serif}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#6b7a99}
+.sync-dot.online{background:#22c55e;box-shadow:0 0 6px #22c55e}
+.sync-dot.syncing{background:#FF9F1C;animation:pulse 1s infinite}
+.sync-dot.error{background:#ef4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:0;overflow-x:auto}
 .nav-btn{background:none;border:none;border-bottom:3px solid transparent;padding:14px 18px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s}
 .nav-btn.active{color:var(--text);border-bottom-color:#0f3460}
@@ -37,8 +43,9 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .form-group input:focus,.form-group select:focus{border-color:#0f3460}
 .sec-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--text);margin:18px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)}
 .btn{padding:11px 22px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-primary{background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;box-shadow:0 4px 14px rgba(15,52,96,.3)}
-.btn-primary:hover{transform:translateY(-1px)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
 .btn-excel{background:linear-gradient(135deg,#166534,#22c55e);color:#fff}
 .btn-del{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;padding:6px 12px;font-size:11px}
 .btn-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;align-items:center}
@@ -65,12 +72,11 @@ tr:hover td{background:var(--bg)}
 .r-tab.active{background:var(--white);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .suc-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .sf-btn{padding:7px 14px;border:2px solid var(--border);border-radius:20px;background:var(--white);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;color:var(--muted)}
-.sf-btn.active{color:#fff;border-color:currentColor}
-.sf-btn[data-s="ALL"].active{background:#1a1a2e;border-color:#1a1a2e}
-.sf-btn[data-s="INDEPENDENCIA"].active{background:var(--ind);border-color:var(--ind)}
-.sf-btn[data-s="PERON"].active{background:var(--per);border-color:var(--per)}
-.sf-btn[data-s="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar)}
-.sf-btn[data-s="FLIP"].active{background:var(--fli);border-color:var(--fli)}
+.sf-btn[data-s="ALL"].active{background:#1a1a2e;border-color:#1a1a2e;color:#fff}
+.sf-btn[data-s="INDEPENDENCIA"].active{background:var(--ind);border-color:var(--ind);color:#fff}
+.sf-btn[data-s="PERON"].active{background:var(--per);border-color:var(--per);color:#fff}
+.sf-btn[data-s="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#fff}
+.sf-btn[data-s="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff}
 .week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-bottom:22px}
 .wcard{background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)}
 .wcard-hdr{padding:14px 18px;color:#fff;font-family:'Nunito',sans-serif}
@@ -83,21 +89,35 @@ tr:hover td{background:var(--bg)}
 .empty .ico{font-size:48px;margin-bottom:12px}
 .search-input{padding:9px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;width:200px}
 .search-input:focus{border-color:#0f3460}
+.loading{text-align:center;padding:32px;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:700}
+.loading::after{content:'';display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:#0f3460;border-radius:50%;animation:spin .8s linear infinite;margin-left:10px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}.kpi:nth-child(3){animation-delay:.15s}
 .kpi:nth-child(4){animation-delay:.2s}.kpi:nth-child(5){animation-delay:.25s}.kpi:nth-child(6){animation-delay:.3s}
 </style>
 </head>
 <body>
+
 <div class="hdr">
-  <div><h1>CDP <span>Franquicias</span></h1><p>Sistema de Gestión de Producción</p></div>
-  <div class="hdr-badges">
-    <span class="hbadge" style="background:#FF4B6E;color:#fff">INDEPENDENCIA</span>
-    <span class="hbadge" style="background:#FF9F1C;color:#fff">PERÓN</span>
-    <span class="hbadge" style="background:#2EC4B6;color:#fff">BARRIO SUR</span>
-    <span class="hbadge" style="background:#9B5DE5;color:#fff">FLIP</span>
+  <div>
+    <h1>CDP <span>Franquicias</span></h1>
+    <p>Sistema de Gestión de Producción · Nube</p>
+  </div>
+  <div class="hdr-right">
+    <div class="sync-indicator">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Conectando...</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="hbadge" style="background:#FF4B6E;color:#fff">INDEPENDENCIA</span>
+      <span class="hbadge" style="background:#FF9F1C;color:#fff">PERÓN</span>
+      <span class="hbadge" style="background:#2EC4B6;color:#fff">BARRIO SUR</span>
+      <span class="hbadge" style="background:#9B5DE5;color:#fff">FLIP</span>
+    </div>
   </div>
 </div>
+
 <nav class="nav">
   <button class="nav-btn active" onclick="goTab('cargar',this)">➕ Cargar Día</button>
   <button class="nav-btn" onclick="goTab('registros',this)">📋 Registros</button>
@@ -105,6 +125,7 @@ tr:hover td{background:var(--bg)}
   <button class="nav-btn" onclick="goTab('mensual',this)">📆 Mensual</button>
   <button class="nav-btn" onclick="goTab('graficos',this)">📊 Gráficos</button>
 </nav>
+
 <div class="main">
 
 <!-- CARGAR -->
@@ -139,7 +160,7 @@ tr:hover td{background:var(--bg)}
         <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="guardar()">💾 Guardar registro</button>
+        <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar en la nube</button>
         <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="limpiar()">🗑 Limpiar</button>
       </div>
     </div>
@@ -217,33 +238,75 @@ tr:hover td{background:var(--bg)}
 </div>
 <div class="toast" id="toast"></div>
 
-<script>
-const KEY='cdp_v2';
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCp0PTMPDod1FGDE3nstyHTrpxKfW3HyeM",
+  authDomain: "cdp-franquicias.firebaseapp.com",
+  projectId: "cdp-franquicias",
+  storageBucket: "cdp-franquicias.firebasestorage.app",
+  messagingSenderId: "184138360724",
+  appId: "1:184138360724:web:584aedf6c76059336fd181"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COL = "registros";
+
 const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP'];
 const SC={'INDEPENDENCIA':'#FF4B6E','PERON':'#FF9F1C','BARRIO SUR':'#2EC4B6','FLIP':'#9B5DE5'};
 const SL={'INDEPENDENCIA':'pill-IND','PERON':'pill-PER','BARRIO SUR':'pill-BAR','FLIP':'pill-FLI'};
-let DB=[];try{DB=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}
-let regF='ALL',semV='carne',mesV='carne',CHS={};
+const MN={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
 
-document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+let DB=[];
+let regF='ALL', semV='carne', mesV='carne', CHS={};
 
-function save(){localStorage.setItem(KEY,JSON.stringify(DB))}
+// ── SYNC INDICATOR ──
+function setSyncStatus(status){
+  const dot=document.getElementById('sync-dot');
+  const label=document.getElementById('sync-label');
+  dot.className='sync-dot';
+  if(status==='online'){dot.classList.add('online');label.textContent='Conectado ☁️'}
+  else if(status==='syncing'){dot.classList.add('syncing');label.textContent='Sincronizando...'}
+  else if(status==='error'){dot.classList.add('error');label.textContent='Sin conexión'}
+  else{label.textContent='Conectando...'}
+}
+
+// ── REALTIME LISTENER ──
+const q = query(collection(db, COL), orderBy("fecha","desc"));
+onSnapshot(q, (snapshot) => {
+  DB = snapshot.docs.map(d=>({...d.data(), _id: d.id}));
+  setSyncStatus('online');
+  renderReg();
+  renderGraf();
+  const cur = document.querySelector('.nav-btn.active')?.getAttribute('onclick');
+  if(cur?.includes('semanal')) renderSem();
+  if(cur?.includes('mensual')) renderMes();
+}, (err)=>{
+  setSyncStatus('error');
+  console.error(err);
+});
+
+// ── HELPERS ──
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 function fmt(n){return typeof n==='number'?n.toLocaleString('es-AR'):n}
 function sum(arr,f){return arr.reduce((s,r)=>s+(r[f]||0),0)}
 function groupBy(arr,fn){const m={};arr.forEach(r=>{const k=fn(r);(m[k]=m[k]||[]).push(r)});return m}
 function weekKey(f){const d=new Date(f+'T00:00:00'),dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);return d.toISOString().slice(0,10)}
 function monthKey(f){return f.slice(0,7)}
-const MN={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
 
 function toast(msg,ok=true){
   const t=document.getElementById('toast');
   t.textContent=(ok?'✅ ':'❌ ')+msg;
   t.style.borderLeft='4px solid '+(ok?'#22c55e':'#ef4444');
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);
 }
 
-function goTab(n,btn){
+// ── TABS ──
+window.goTab=function(n,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');btn.classList.add('active');
@@ -253,21 +316,37 @@ function goTab(n,btn){
   if(n==='graficos')renderGraf();
 }
 
-function guardar(){
+// ── FORM ──
+document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+
+window.guardar=async function(){
   const fecha=document.getElementById('f-fecha').value;
   const suc=document.getElementById('f-suc').value;
   if(!fecha){toast('Falta la fecha',false);return}
   if(!suc){toast('Elegí una sucursal',false);return}
-  DB.push({id:Date.now(),fecha,sucursal:suc,
-    ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
-    med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
-    ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
-    ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
-    alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras')});
-  save();toast(`Guardado — ${suc} · ${fecha}`);limpiar();CHS={};
+  const btn=document.getElementById('btn-guardar');
+  btn.disabled=true; btn.textContent='Guardando...';
+  setSyncStatus('syncing');
+  try{
+    await addDoc(collection(db,COL),{
+      fecha, sucursal:suc,
+      ped_kg:num('f-ped-kg'), rec_kg:num('f-rec-kg'), proc_kg:num('f-proc-kg'),
+      med110:num('f-med110'), bol110:num('f-bol110'), med75:num('f-med75'),
+      ped_alita:num('f-ped-alita'), proc_alita:num('f-proc-alita'),
+      ped_pechuga:num('f-ped-pechuga'), proc_pechuga:num('f-proc-pechuga'),
+      alitas:num('f-alitas'), filet:num('f-filet'), popCorns:num('f-popCorns'), tiras:num('f-tiras'),
+      createdAt: new Date().toISOString()
+    });
+    toast(`Guardado en la nube ☁️ — ${suc} · ${fecha}`);
+    limpiar();
+  }catch(e){
+    toast('Error al guardar: '+e.message, false);
+    setSyncStatus('error');
+  }
+  btn.disabled=false; btn.textContent='💾 Guardar en la nube';
 }
 
-function limpiar(){
+window.limpiar=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
@@ -275,30 +354,46 @@ function limpiar(){
   document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
 }
 
-function del(id){if(!confirm('¿Eliminar?'))return;DB=DB.filter(r=>r.id!==id);save();renderReg();CHS={};toast('Eliminado')}
+window.delReg=async function(id){
+  if(!confirm('¿Eliminar este registro de la nube?'))return;
+  try{
+    await deleteDoc(doc(db,COL,id));
+    toast('Registro eliminado');
+  }catch(e){toast('Error: '+e.message,false)}
+}
 
-function setRegF(s,btn){regF=s;document.querySelectorAll('#reg-filter .sf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderReg()}
+// ── REGISTROS ──
+window.setRegF=function(s,btn){
+  regF=s;
+  document.querySelectorAll('#reg-filter .sf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderReg();
+}
 
 function renderReg(){
-  const q=(document.getElementById('reg-search').value||'').toLowerCase();
-  const rows=DB.filter(r=>(regF==='ALL'||r.sucursal===regF)&&(!q||r.fecha.includes(q)||r.sucursal.toLowerCase().includes(q))).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const q=(document.getElementById('reg-search')?.value||'').toLowerCase();
+  const rows=DB.filter(r=>(regF==='ALL'||r.sucursal===regF)&&(!q||r.fecha?.includes(q)||r.sucursal?.toLowerCase().includes(q)));
   const tb=document.getElementById('reg-tbody');
-  if(!rows.length){tb.innerHTML='<tr><td colspan="13"><div class="empty"><div class="ico">📭</div><p>Sin registros. Cargá el primer envío del día.</p></div></td></tr>';document.getElementById('reg-count').textContent='';return}
+  if(!tb)return;
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="13"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>';
+    document.getElementById('reg-count').textContent='';return;
+  }
   tb.innerHTML=rows.map(r=>`<tr>
     <td>${r.fecha}</td><td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
     <td>${r.ped_kg}</td><td>${r.rec_kg}</td><td>${r.proc_kg}</td>
     <td>${r.med110}</td><td>${r.bol110}</td><td>${r.med75}</td>
     <td>${r.alitas}</td><td>${r.filet}</td><td>${r.popCorns}</td><td>${r.tiras}</td>
-    <td><button class="btn btn-del" onclick="del(${r.id})">🗑</button></td>
+    <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
   </tr>`).join('');
   document.getElementById('reg-count').textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
 }
 
-function setSemV(v,btn){semV=v;document.querySelectorAll('#tab-semanal .r-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSem()}
-function setMesV(v,btn){mesV=v;document.querySelectorAll('#tab-mensual .r-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderMes()}
+// ── SEMANAL ──
+window.setSemV=function(v,btn){semV=v;document.querySelectorAll('#tab-semanal .r-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSem()}
 
 function renderSem(){
   const cont=document.getElementById('sem-cont');
+  if(!cont)return;
   if(!DB.length){cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return}
   const byWeek=groupBy(DB,r=>weekKey(r.fecha));
   let html='';
@@ -332,8 +427,12 @@ function renderSem(){
   cont.innerHTML=html;
 }
 
+// ── MENSUAL ──
+window.setMesV=function(v,btn){mesV=v;document.querySelectorAll('#tab-mensual .r-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderMes()}
+
 function renderMes(){
   const cont=document.getElementById('mes-cont');
+  if(!cont)return;
   if(!DB.length){cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return}
   const byM=groupBy(DB,r=>monthKey(r.fecha));
   let html='';
@@ -372,6 +471,7 @@ function renderMes(){
   cont.innerHTML=html;
 }
 
+// ── GRÁFICOS ──
 const COPT={responsive:true,maintainAspectRatio:false,
   plugins:{legend:{labels:{color:'#6b7a99',font:{family:'Nunito',size:11},boxWidth:12,padding:12}}},
   scales:{x:{ticks:{color:'#6b7a99',font:{family:'Nunito Sans',size:10}},grid:{color:'#f1f5ff'},border:{color:'#e2e8f8'}},
@@ -379,14 +479,13 @@ const COPT={responsive:true,maintainAspectRatio:false,
 
 function renderGraf(){
   const kr=document.getElementById('kpi-row');
-  const totC={ped:sum(DB,'ped_kg'),proc:sum(DB,'proc_kg'),med110:sum(DB,'med110')};
-  const totP={alitas:sum(DB,'alitas'),popCorns:sum(DB,'popCorns'),filet:sum(DB,'filet')};
+  if(!kr)return;
   kr.innerHTML=`
-    <div class="kpi" style="--ac:#FF4B6E"><div class="kpi-label">Kg Carne Pedidos</div><div class="kpi-val">${fmt(totC.ped.toFixed(0))}</div><div class="kpi-sub">kg</div></div>
-    <div class="kpi" style="--ac:#FF9F1C"><div class="kpi-label">Kg Carne Procesados</div><div class="kpi-val">${fmt(totC.proc.toFixed(0))}</div><div class="kpi-sub">kg</div></div>
-    <div class="kpi" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 110g</div><div class="kpi-val">${fmt(totC.med110)}</div><div class="kpi-sub">u</div></div>
-    <div class="kpi" style="--ac:#9B5DE5"><div class="kpi-label">Alitas</div><div class="kpi-val">${fmt(totP.alitas)}</div><div class="kpi-sub">u</div></div>
-    <div class="kpi" style="--ac:#F15BB5"><div class="kpi-label">Pop Corns</div><div class="kpi-val">${fmt(totP.popCorns)}</div><div class="kpi-sub">u</div></div>
+    <div class="kpi" style="--ac:#FF4B6E"><div class="kpi-label">Kg Carne Pedidos</div><div class="kpi-val">${fmt(sum(DB,'ped_kg').toFixed(0))}</div><div class="kpi-sub">kg</div></div>
+    <div class="kpi" style="--ac:#FF9F1C"><div class="kpi-label">Kg Carne Procesados</div><div class="kpi-val">${fmt(sum(DB,'proc_kg').toFixed(0))}</div><div class="kpi-sub">kg</div></div>
+    <div class="kpi" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 110g</div><div class="kpi-val">${fmt(sum(DB,'med110'))}</div><div class="kpi-sub">u</div></div>
+    <div class="kpi" style="--ac:#9B5DE5"><div class="kpi-label">Alitas</div><div class="kpi-val">${fmt(sum(DB,'alitas'))}</div><div class="kpi-sub">u</div></div>
+    <div class="kpi" style="--ac:#F15BB5"><div class="kpi-label">Pop Corns</div><div class="kpi-val">${fmt(sum(DB,'popCorns'))}</div><div class="kpi-sub">u</div></div>
     <div class="kpi" style="--ac:#06d6a0"><div class="kpi-label">Registros</div><div class="kpi-val">${DB.length}</div><div class="kpi-sub">días cargados</div></div>`;
   if(!DB.length)return;
   Object.values(CHS).forEach(c=>{try{c.destroy()}catch(e){}});CHS={};
@@ -402,10 +501,11 @@ function renderGraf(){
   ]},options:{...COPT,scales:{...COPT.scales,x:{...COPT.scales.x,stacked:true},y:{...COPT.scales.y,stacked:true}}}});
 }
 
-function exportExcel(){
+// ── EXPORT EXCEL ──
+window.exportExcel=function(){
   if(!DB.length){toast('No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
-  const raw=DB.sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,'Medallón 110':r.med110,'Bolita 110':r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,'Medallón 110':r.med110,'Bolita 110':r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
   const months=[...new Set(DB.map(r=>monthKey(r.fecha)))].sort();
   const mesD=[];months.forEach(m=>{SUCS.forEach(suc=>{const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);if(!rows.length)return;mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')})})});
@@ -414,10 +514,9 @@ function exportExcel(){
   const semD=[];Object.keys(byW).sort().forEach(wk=>{SUCS.forEach(suc=>{const rows=byW[wk].filter(r=>r.sucursal===suc);if(!rows.length)return;semD.push({'Semana':wk,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')})})});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semD),'Resumen Semanal');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Excel descargado');
+  toast('Excel descargado ✅');
 }
 
-renderGraf();
 </script>
 </body>
 </html>
