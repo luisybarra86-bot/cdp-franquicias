@@ -141,9 +141,9 @@ tr:hover td{background:var(--bg)}
       </div>
       <div class="sec-title">🥩 Carne</div>
       <div class="form-grid">
-        <div class="form-group"><label>Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#cc0000">Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Recibido (kg)</label><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#166534">Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Medallón 110g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
         <div class="form-group"><label>Bolita 110g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
         <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0" oninput="calcKg()"></div>
@@ -180,10 +180,10 @@ tr:hover td{background:var(--bg)}
 
       <div class="sec-title">🐔 Pollo</div>
       <div class="form-grid">
-        <div class="form-group"><label>Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#cc0000">Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#166534">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#cc0000">Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#166534">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
         <div class="form-group"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
         <div class="form-group"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
@@ -553,14 +553,125 @@ function renderGraf(){
 window.exportExcel=function(){
   if(!DB.length){toast('No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
+
+  // ── Hoja 1: Registros crudos ──
   const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,'Medallón 110':r.med110,'Bolita 110':r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
-  const months=[...new Set(DB.map(r=>monthKey(r.fecha)))].sort();
-  const mesD=[];months.forEach(m=>{SUCS.forEach(suc=>{const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);if(!rows.length)return;mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')})})});
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
+
+  // ── Hoja 2: Informe Semanal Carne (formato imagen) ──
   const byW=groupBy(DB,r=>weekKey(r.fecha));
-  const semD=[];Object.keys(byW).sort().forEach(wk=>{SUCS.forEach(suc=>{const rows=byW[wk].filter(r=>r.sucursal===suc);if(!rows.length)return;semD.push({'Semana':wk,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')})})});
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semD),'Resumen Semanal');
+  const weeks=Object.keys(byW).sort();
+
+  weeks.forEach(wk=>{
+    const wkEnd=new Date(wk+'T00:00:00');wkEnd.setDate(wkEnd.getDate()+6);
+    const wkLabel=`Semana ${wk} al ${wkEnd.toISOString().slice(0,10)}`;
+    const wkRows=byW[wk];
+
+    // Recolectar todos los días únicos de la semana
+    const dias=[...new Set(wkRows.map(r=>r.fecha))].sort();
+
+    // ── CARNE ──
+    const wsC=[];
+    wsC.push(['Supermercado de la Carne']);
+    wsC.push([]);
+
+    // Fila de encabezados: 4 bloques lado a lado (col 0,2,4,6)
+    // Cada bloque: NombreSuc | Kg
+    const headerRow=[];
+    SUCS.forEach((suc,i)=>{
+      headerRow.push(wkLabel); headerRow.push('');
+      if(i<SUCS.length-1) headerRow.push('');
+    });
+    wsC.push(headerRow);
+
+    // Fila de sub-headers
+    const subRow=[];
+    const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip'};
+    SUCS.forEach(suc=>{subRow.push(SUC_DISPLAY[suc]);subRow.push('Kg');subRow.push('');});
+    wsC.push(subRow);
+
+    // Filas por día
+    dias.forEach(dia=>{
+      const row=[];
+      SUCS.forEach(suc=>{
+        const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
+        row.push(dia);
+        row.push(r?r.ped_kg:0);
+        row.push('');
+      });
+      wsC.push(row);
+    });
+
+    // Fila total
+    const totRow=[];
+    SUCS.forEach(suc=>{
+      const sr=wkRows.filter(r=>r.sucursal===suc);
+      totRow.push('Total');
+      totRow.push(sum(sr,'ped_kg'));
+      totRow.push('');
+    });
+    wsC.push(totRow);
+
+    const sheetNameC=('Carne '+wk).slice(0,31);
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsC),sheetNameC);
+
+    // ── POLLO ──
+    const wsP=[];
+    wsP.push(['La Campana Pollos']);
+    wsP.push([]);
+    const headerRowP=[];
+    SUCS.forEach((suc,i)=>{
+      headerRowP.push(wkLabel);headerRowP.push('');headerRowP.push('');
+      if(i<SUCS.length-1)headerRowP.push('');
+    });
+    wsP.push(headerRowP);
+
+    // sub-header: Suc | Alita | Pechuga
+    const subRowP=[];
+    SUCS.forEach(suc=>{subRowP.push(SUC_DISPLAY[suc]);subRowP.push('Alita');subRowP.push('Pechuga');subRowP.push('');});
+    wsP.push(subRowP);
+
+    // unidades row
+    const unitRow=[];
+    SUCS.forEach(()=>{unitRow.push('');unitRow.push('Kg');unitRow.push('Kg');unitRow.push('');});
+    wsP.push(unitRow);
+
+    dias.forEach(dia=>{
+      const row=[];
+      SUCS.forEach(suc=>{
+        const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
+        row.push(dia);
+        row.push(r?r.ped_alita:0);
+        row.push(r?r.ped_pechuga:0);
+        row.push('');
+      });
+      wsP.push(row);
+    });
+
+    const totRowP=[];
+    SUCS.forEach(suc=>{
+      const sr=wkRows.filter(r=>r.sucursal===suc);
+      totRowP.push('Total');
+      totRowP.push(sum(sr,'ped_alita'));
+      totRowP.push(sum(sr,'ped_pechuga'));
+      totRowP.push('');
+    });
+    wsP.push(totRowP);
+
+    const sheetNameP=('Pollo '+wk).slice(0,31);
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsP),sheetNameP);
+  });
+
+  // ── Hoja Resumen Mensual ──
+  const months=[...new Set(DB.map(r=>monthKey(r.fecha)))].sort();
+  const mesD=[];
+  months.forEach(m=>{SUCS.forEach(suc=>{
+    const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
+    if(!rows.length)return;
+    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+  })});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
+
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('Excel descargado ✅');
 }
