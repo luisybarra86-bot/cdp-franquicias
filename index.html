@@ -93,6 +93,7 @@ tr:hover td{background:var(--bg)}
 .loading::after{content:'';display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:#0f3460;border-radius:50%;animation:spin .8s linear infinite;margin-left:10px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 .kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.1s}.kpi:nth-child(3){animation-delay:.15s}
 .kpi:nth-child(4){animation-delay:.2s}.kpi:nth-child(5){animation-delay:.25s}.kpi:nth-child(6){animation-delay:.3s}
 </style>
@@ -266,12 +267,47 @@ tr:hover td{background:var(--bg)}
   </div>
 </div>
 
+
+<!-- PIN MODAL -->
+<div id="pin-modal" style="display:none;position:fixed;inset:0;background:rgba(10,10,30,0.7);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:36px 32px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:36px;margin-bottom:10px">🔐</div>
+    <div style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:#1a1a2e;margin-bottom:6px">Acceso restringido</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:22px">Ingresá el PIN para continuar</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px" id="pin-dots">
+      <div id="pd0" style="width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--border);transition:all .2s"></div>
+      <div id="pd1" style="width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--border);transition:all .2s"></div>
+      <div id="pd2" style="width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--border);transition:all .2s"></div>
+      <div id="pd3" style="width:14px;height:14px;border-radius:50%;background:var(--border);border:2px solid var(--border);transition:all .2s"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <button onclick="pinKey('1')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">1</button>
+      <button onclick="pinKey('2')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">2</button>
+      <button onclick="pinKey('3')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">3</button>
+      <button onclick="pinKey('4')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">4</button>
+      <button onclick="pinKey('5')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">5</button>
+      <button onclick="pinKey('6')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">6</button>
+      <button onclick="pinKey('7')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">7</button>
+      <button onclick="pinKey('8')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">8</button>
+      <button onclick="pinKey('9')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">9</button>
+      <div></div>
+      <button onclick="pinKey('0')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;cursor:pointer">0</button>
+      <button onclick="pinKey('BORRAR')" style="padding:16px;border-radius:12px;border:2px solid #e2e8f8;background:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:#ef4444;cursor:pointer">⌫</button>
+    </div>
+    <div id="pin-error" style="color:#ef4444;font-size:13px;font-weight:700;min-height:20px;margin-bottom:10px"></div>
+    <button onclick="pinCancel()" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer">Cancelar</button>
+  </div>
+</div>
+
 <!-- MANO DE OBRA -->
 <div id="tab-manoobra" class="panel">
 
   <!-- Precio por kg -->
   <div class="card" style="margin-bottom:18px">
-    <div class="card-head"><span class="card-title">💲 Precio del servicio por kg</span></div>
+    <div class="card-head">
+      <span class="card-title">💲 Precio del servicio por kg</span>
+      <button class="btn btn-excel" onclick="exportManoObra()">⬇ Descargar Excel</button>
+    </div>
     <div class="card-body">
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <div class="form-group" style="margin:0;min-width:220px">
@@ -389,8 +425,18 @@ function toast(msg,ok=true){
   t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);
 }
 
-// ── TABS ──
+// ── PIN ──
+const PIN_CODE='2799';
+let pinBuffer='';
+let pinTargetBtn=null;
+let pinUnlocked=false;
+
 window.goTab=function(n,btn){
+  if(n==='manoobra'&&!pinUnlocked){
+    pinTargetBtn=btn;
+    openPin();
+    return;
+  }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');btn.classList.add('active');
@@ -399,6 +445,104 @@ window.goTab=function(n,btn){
   if(n==='mensual')renderMes();
   if(n==='graficos')renderGraf();
   if(n==='manoobra')renderManoObra();
+}
+
+function openPin(){
+  pinBuffer='';
+  document.getElementById('pin-error').textContent='';
+  updatePinDots();
+  const m=document.getElementById('pin-modal');
+  m.style.display='flex';
+}
+
+window.pinCancel=function(){
+  document.getElementById('pin-modal').style.display='none';
+  pinBuffer='';
+  pinTargetBtn=null;
+}
+
+window.pinKey=function(k){
+  if(k==='BORRAR'||k==='⌫'){pinBuffer=pinBuffer.slice(0,-1);}
+  else if(k===''||pinBuffer.length>=4){}
+  else{pinBuffer+=k;}
+  updatePinDots();
+  document.getElementById('pin-error').textContent='';
+  if(pinBuffer.length===4){
+    if(pinBuffer===PIN_CODE){
+      pinUnlocked=true;
+      document.getElementById('pin-modal').style.display='none';
+      if(pinTargetBtn) goTab('manoobra',pinTargetBtn);
+      pinBuffer='';
+    }else{
+      document.getElementById('pin-error').textContent='PIN incorrecto. Intentá de nuevo.';
+      pinBuffer='';
+      updatePinDots();
+      // shake animation
+      const modal=document.querySelector('#pin-modal > div');
+      modal.style.animation='shake .4s ease';
+      setTimeout(()=>modal.style.animation='',400);
+    }
+  }
+}
+
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(i<pinBuffer.length){d.style.background='#0f3460';d.style.borderColor='#0f3460';}
+    else{d.style.background='var(--border)';d.style.borderColor='var(--border)';}
+  }
+}
+
+// ── EXPORT MANO DE OBRA ──
+window.exportManoObra=function(){
+  const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
+  if(!DB.length){toast('No hay datos para exportar',false);return}
+  const wb=XLSX.utils.book_new();
+
+  // Hoja resumen por sucursal
+  const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
+  DB.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
+  const resumen=SUCS.map(suc=>({
+    'Sucursal':SUC_NAMES[suc],
+    'Kg Procesados Pollo':+kgSuc[suc].toFixed(2),
+    'Precio x Kg ($)':precio,
+    'Costo Total ($)':+(kgSuc[suc]*precio).toFixed(2)
+  }));
+  const totKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
+  resumen.push({'Sucursal':'TOTAL','Kg Procesados Pollo':+totKg.toFixed(2),'Precio x Kg ($)':precio,'Costo Total ($)':+(totKg*precio).toFixed(2)});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resumen),'Resumen por Sucursal');
+
+  // Hoja detalle semanal
+  const byW=groupBy(DB,r=>weekKey(r.fecha));
+  const semRows=[];
+  Object.keys(byW).sort().forEach(wk=>{
+    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
+    const row={'Semana':wk,'Semana hasta':wkE.toISOString().slice(0,10)};
+    let totS=0;
+    SUCS.forEach(suc=>{
+      const rows=byW[wk].filter(r=>r.sucursal===suc);
+      const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
+      row[SUC_NAMES[suc]+' kg']=+kg.toFixed(2);
+      row[SUC_NAMES[suc]+' $']=+(kg*precio).toFixed(2);
+      totS+=kg;
+    });
+    row['Total $']=+(totS*precio).toFixed(2);
+    semRows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
+
+  // Hoja detalle diario
+  const diarRows=DB.map(r=>({
+    'Fecha':r.fecha,'Sucursal':r.sucursal,
+    'Proc. Alita kg':r.proc_alita||0,'Proc. Pechuga kg':r.proc_pechuga||0,
+    'Total kg procesado':+((r.proc_alita||0)+(r.proc_pechuga||0)).toFixed(2),
+    'Precio x Kg ($)':precio,
+    'Costo ($)':+(((r.proc_alita||0)+(r.proc_pechuga||0))*precio).toFixed(2)
+  })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(diarRows),'Detalle Diario');
+
+  XLSX.writeFile(wb,`CDP_ManoObra_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Excel mano de obra descargado ✅');
 }
 
 // ── MANO DE OBRA ──
