@@ -861,7 +861,7 @@ window.exportExcel=function(){
     // Fila de sub-headers
     const subRow=[];
     const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip'};
-    SUCS.forEach(suc=>{subRow.push(SUC_DISPLAY[suc]);subRow.push('Kg');subRow.push('');});
+    SUCS.forEach(suc=>{subRow.push(SUC_DISPLAY[suc]);subRow.push('Kg Procesado');subRow.push('');});
     wsC.push(subRow);
 
     // Filas por día
@@ -870,7 +870,7 @@ window.exportExcel=function(){
       SUCS.forEach(suc=>{
         const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
         row.push(dia);
-        row.push(r?r.ped_kg:0);
+        row.push(r ? r.proc_kg : 0);
         row.push('');
       });
       wsC.push(row);
@@ -881,7 +881,7 @@ window.exportExcel=function(){
     SUCS.forEach(suc=>{
       const sr=wkRows.filter(r=>r.sucursal===suc);
       totRow.push('Total');
-      totRow.push(sum(sr,'ped_kg'));
+      totRow.push(sum(sr,'proc_kg'));
       totRow.push('');
     });
     wsC.push(totRow);
@@ -902,7 +902,7 @@ window.exportExcel=function(){
 
     // sub-header: Suc | Alita | Pechuga
     const subRowP=[];
-    SUCS.forEach(suc=>{subRowP.push(SUC_DISPLAY[suc]);subRowP.push('Alita');subRowP.push('Pechuga');subRowP.push('');});
+    SUCS.forEach(suc=>{subRowP.push(SUC_DISPLAY[suc]);subRowP.push('Alita Proc.');subRowP.push('Pechuga Proc.');subRowP.push('');});
     wsP.push(subRowP);
 
     // unidades row
@@ -915,8 +915,8 @@ window.exportExcel=function(){
       SUCS.forEach(suc=>{
         const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
         row.push(dia);
-        row.push(r?r.ped_alita:0);
-        row.push(r?r.ped_pechuga:0);
+        row.push(r ? r.proc_alita : 0);
+        row.push(r ? r.proc_pechuga : 0);
         row.push('');
       });
       wsP.push(row);
@@ -926,8 +926,8 @@ window.exportExcel=function(){
     SUCS.forEach(suc=>{
       const sr=wkRows.filter(r=>r.sucursal===suc);
       totRowP.push('Total');
-      totRowP.push(sum(sr,'ped_alita'));
-      totRowP.push(sum(sr,'ped_pechuga'));
+      totRowP.push(sum(sr,'proc_alita'));
+      totRowP.push(sum(sr,'proc_pechuga'));
       totRowP.push('');
     });
     wsP.push(totRowP);
