@@ -414,6 +414,7 @@ onSnapshot(q, (snapshot) => {
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 function fmt(n){return typeof n==='number'?n.toLocaleString('es-AR'):n}
 function sum(arr,f){return arr.reduce((s,r)=>s+(r[f]||0),0)}
+function sumR(arr,f){return +arr.reduce((s,r)=>s+(r[f]||0),0).toFixed(2)}
 function groupBy(arr,fn){const m={};arr.forEach(r=>{const k=fn(r);(m[k]=m[k]||[]).push(r)});return m}
 function weekKey(f){const d=new Date(f+'T00:00:00'),dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);return d.toISOString().slice(0,10)}
 function monthKey(f){return f.slice(0,7)}
@@ -864,13 +865,14 @@ window.exportExcel=function(){
     SUCS.forEach(suc=>{subRow.push(SUC_DISPLAY[suc]);subRow.push('Kg Procesado');subRow.push('');});
     wsC.push(subRow);
 
-    // Filas por día
+    // Filas por día — sumar TODOS los registros del día por sucursal
     dias.forEach(dia=>{
       const row=[];
       SUCS.forEach(suc=>{
-        const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
+        const recs=wkRows.filter(x=>x.fecha===dia&&x.sucursal===suc);
+        const totalKg=recs.reduce((s,r)=>s+(r.proc_kg||0),0);
         row.push(dia);
-        row.push(r ? r.proc_kg : 0);
+        row.push(+totalKg.toFixed(2));
         row.push('');
       });
       wsC.push(row);
@@ -881,7 +883,7 @@ window.exportExcel=function(){
     SUCS.forEach(suc=>{
       const sr=wkRows.filter(r=>r.sucursal===suc);
       totRow.push('Total');
-      totRow.push(sum(sr,'proc_kg'));
+      totRow.push(+sum(sr,'proc_kg').toFixed(1));
       totRow.push('');
     });
     wsC.push(totRow);
@@ -913,10 +915,10 @@ window.exportExcel=function(){
     dias.forEach(dia=>{
       const row=[];
       SUCS.forEach(suc=>{
-        const r=wkRows.find(x=>x.fecha===dia&&x.sucursal===suc);
+        const recs=wkRows.filter(x=>x.fecha===dia&&x.sucursal===suc);
         row.push(dia);
-        row.push(r ? r.proc_alita : 0);
-        row.push(r ? r.proc_pechuga : 0);
+        row.push(+(recs.reduce((s,r)=>s+(r.proc_alita||0),0)).toFixed(2));
+        row.push(+(recs.reduce((s,r)=>s+(r.proc_pechuga||0),0)).toFixed(2));
         row.push('');
       });
       wsP.push(row);
@@ -926,8 +928,8 @@ window.exportExcel=function(){
     SUCS.forEach(suc=>{
       const sr=wkRows.filter(r=>r.sucursal===suc);
       totRowP.push('Total');
-      totRowP.push(sum(sr,'proc_alita'));
-      totRowP.push(sum(sr,'proc_pechuga'));
+      totRowP.push(+sum(sr,'proc_alita').toFixed(2));
+      totRowP.push(+sum(sr,'proc_pechuga').toFixed(2));
       totRowP.push('');
     });
     wsP.push(totRowP);
