@@ -755,7 +755,6 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
         <div class="form-group"><label style="color:#22c55e">Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Medallón 90g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
         <div class="form-group"><label>Bolita 90g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
-        <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0" oninput="calcKg()"></div>
       </div>
 
       <!-- CALCULADORA KG -->
@@ -772,11 +771,6 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
           <span class="calc-lbl" style="color:var(--per)">Bol. 90gr</span>
           <span class="calc-q" id="calc-q-bol110">0</span>
           <span class="calc-kg" id="calc-kg-bol110">0.000</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-lbl" style="color:var(--bar)">Med. 75gr</span>
-          <span class="calc-q" id="calc-q-med75">0</span>
-          <span class="calc-kg" id="calc-kg-med75">0.000</span>
         </div>
         <div class="calc-row total">
           <span class="calc-lbl" style="font-weight:700">TOTAL</span>
@@ -828,7 +822,7 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
       <table>
         <thead><tr>
           <th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th>
-          <th>Med 110</th><th>Bol 110</th><th>Med 75</th>
+          <th>Med 110</th><th>Bol 110</th>
           <th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>
         </tr></thead>
         <tbody id="reg-tbody"></tbody>
@@ -1108,15 +1102,12 @@ function updatePinDots(){
 window.calcKg=function(){
   const m110=parseFloat(document.getElementById('f-med110').value)||0;
   const b110=parseFloat(document.getElementById('f-bol110').value)||0;
-  const m75 =parseFloat(document.getElementById('f-med75').value)||0;
-  const kgM110=(m110*90)/1000, kgB110=(b110*90)/1000, kgM75=(m75*75)/1000;
-  const total=kgM110+kgB110+kgM75;
+  const kgM110=(m110*90)/1000, kgB110=(b110*90)/1000;
+  const total=kgM110+kgB110;
   document.getElementById('calc-q-med110').textContent=m110;
   document.getElementById('calc-q-bol110').textContent=b110;
-  document.getElementById('calc-q-med75').textContent=m75;
   document.getElementById('calc-kg-med110').textContent=kgM110.toFixed(3);
   document.getElementById('calc-kg-bol110').textContent=kgB110.toFixed(3);
-  document.getElementById('calc-kg-med75').textContent=kgM75.toFixed(3);
   document.getElementById('calc-total').textContent=total.toFixed(3);
 }
 
@@ -1135,7 +1126,7 @@ window.guardar=async function(){
     await addDoc(collection(db,COL),{
       fecha,sucursal:suc,
       ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
-      med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
+      med110:num('f-med110'),bol110:num('f-bol110'),
       ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
       ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
@@ -1151,7 +1142,7 @@ window.guardar=async function(){
 }
 
 window.limpiar=function(){
-  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
+  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
@@ -1187,7 +1178,7 @@ window.renderReg=function(){
     <td>${r.fecha}</td>
     <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
     <td>${r.ped_kg||0}</td><td>${r.rec_kg||0}</td><td>${r.proc_kg||0}</td>
-    <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
+    <td>${r.med110||0}</td><td>${r.bol110||0}</td>
     <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
     <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
   </tr>`).join('');
@@ -1227,7 +1218,6 @@ function renderSem(){
           <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v">${sum(rows,'proc_kg').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Medallón 110g</span><span class="wstat-v">${fmt(sum(rows,'med110'))}</span></div>
           <div class="wstat"><span class="wstat-l">Bolita 110g</span><span class="wstat-v">${fmt(sum(rows,'bol110'))}</span></div>
-          <div class="wstat"><span class="wstat-l">Medallón 75g</span><span class="wstat-v">${fmt(sum(rows,'med75'))}</span></div>
         </div></div>`;
       } else {
         html+=`<div class="wcard">
@@ -1279,7 +1269,7 @@ function renderMes(){
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Sucursal</th><th>Días</th><th>Pedido kg</th><th>Recibido kg</th><th>Procesado kg</th><th>Med 110</th><th>Bol 110</th><th>Med 75</th><th>Eficiencia</th></tr></thead>
+        <thead><tr><th>Sucursal</th><th>Días</th><th>Pedido kg</th><th>Recibido kg</th><th>Procesado kg</th><th>Med 110</th><th>Bol 110</th><th>Eficiencia</th></tr></thead>
         <tbody>${SUCS.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
           const ped=sum(sr,'ped_kg'),proc=sum(sr,'proc_kg'),eff=ped>0?((proc/ped)*100).toFixed(1):'—';
@@ -1287,7 +1277,7 @@ function renderMes(){
             <td><span class="pill ${SL[suc]}">${suc}</span></td>
             <td>${sr.length}</td><td>${ped.toFixed(1)}</td>
             <td>${sum(sr,'rec_kg').toFixed(1)}</td><td>${proc.toFixed(1)}</td>
-            <td>${fmt(sum(sr,'med110'))}</td><td>${fmt(sum(sr,'bol110'))}</td><td>${fmt(sum(sr,'med75'))}</td>
+            <td>${fmt(sum(sr,'med110'))}</td><td>${fmt(sum(sr,'bol110'))}</td>
             <td class="${parseFloat(eff)>=98?'eff-ok':'eff-warn'}">${eff}%</td>
           </tr>`;
         }).join('')}</tbody>
@@ -1411,7 +1401,7 @@ window.renderManoObra=function(){
 window.exportExcel=function(){
   if(!DB.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
-  const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,'Medallón 110':r.med110,'Bolita 110':r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,'Medallón 110':r.med110,'Bolita 110':r.bol110,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
   const byW=groupBy(DB,r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).sort();
@@ -1447,7 +1437,7 @@ window.exportExcel=function(){
   const mesD=[];
   months.forEach(m=>{SUCS.forEach(suc=>{
     const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);if(!rows.length)return;
-    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 110':sum(rows,'med110'),'Bolita 110':sum(rows,'bol110'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
