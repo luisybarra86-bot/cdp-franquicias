@@ -73,6 +73,35 @@
   --pin-btn-border:#2C1218;
 }
 
+[data-theme="light"] {
+  --bg:#F0F4FF;
+  --surface:#ffffff;
+  --surface2:#f5f7ff;
+  --border:#e2e8f8;
+  --border2:#d0d8f0;
+  --text:#1a1a2e;
+  --text2:#4a5580;
+  --text3:#8899bb;
+  --accent:#FF9F1C;
+  --accent2:#FF4B6E;
+  --hdr-bg:linear-gradient(135deg,#1a1a2e,#0f3460);
+  --nav-bg:#ffffff;
+  --card-shadow:0 4px 24px rgba(0,0,0,.08);
+  --pill-bg:rgba(0,0,0,.04);
+  --kpi-val:#1a1a2e;
+  --input-bg:#ffffff;
+  --tbl-head:#1a1a2e;
+  --tbl-even:rgba(0,0,0,.02);
+  --tbl-hover:rgba(255,159,28,.06);
+  --empty-ico:rgba(0,0,0,.08);
+  --scrollbar:#e2e8f8;
+  --modal-bg:#ffffff;
+  --pin-btn-bg:#f5f7ff;
+  --pin-btn-border:#e2e8f8;
+  --toast-bg:#1a1a2e;
+  --toast-text:#ffffff;
+}
+
 /* ── RESET ──────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -684,6 +713,7 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
     <div class="theme-toggle">
       <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')" title="Tema oscuro">🌑</button>
       <button class="theme-btn active" id="theme-red" onclick="setTheme('red')" title="Tema Rojo CDP">🔴</button>
+      <button class="theme-btn" id="theme-light" onclick="setTheme('light')" title="Tema claro">☀️</button>
     </div>
   </div>
 </header>
@@ -723,8 +753,8 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
         <div class="form-group"><label style="color:var(--accent2)">Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Recibido (kg)</label><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label style="color:#22c55e">Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Medallón 110g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
-        <div class="form-group"><label>Bolita 110g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
+        <div class="form-group"><label>Medallón 90g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
+        <div class="form-group"><label>Bolita 90g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
         <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0" oninput="calcKg()"></div>
       </div>
 
@@ -734,12 +764,12 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
           <span>Tipo</span><span style="text-align:center">Cantidad</span><span>Kg equiv.</span>
         </div>
         <div class="calc-row">
-          <span class="calc-lbl" style="color:var(--ind)">Med. 110gr</span>
+          <span class="calc-lbl" style="color:var(--ind)">Med. 90gr</span>
           <span class="calc-q" id="calc-q-med110">0</span>
           <span class="calc-kg" id="calc-kg-med110">0.000</span>
         </div>
         <div class="calc-row">
-          <span class="calc-lbl" style="color:var(--per)">Bol. 110gr</span>
+          <span class="calc-lbl" style="color:var(--per)">Bol. 90gr</span>
           <span class="calc-q" id="calc-q-bol110">0</span>
           <span class="calc-kg" id="calc-kg-bol110">0.000</span>
         </div>
@@ -931,6 +961,7 @@ function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.getElementById('theme-dark').classList.toggle('active',t==='dark');
   document.getElementById('theme-red').classList.toggle('active',t==='red');
+  document.getElementById('theme-light').classList.toggle('active',t==='light');
   localStorage.setItem('cdp-theme',t);
   // Re-render charts con nueva paleta
   setTimeout(()=>{ if(window.renderGraf) renderGraf(); },50);
@@ -942,6 +973,7 @@ function setTheme(t){
   document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('theme-dark').classList.toggle('active',saved==='dark');
     document.getElementById('theme-red').classList.toggle('active',saved==='red');
+    document.getElementById('theme-light').classList.toggle('active',saved==='light');
   });
 })();
 </script>
@@ -1077,7 +1109,7 @@ window.calcKg=function(){
   const m110=parseFloat(document.getElementById('f-med110').value)||0;
   const b110=parseFloat(document.getElementById('f-bol110').value)||0;
   const m75 =parseFloat(document.getElementById('f-med75').value)||0;
-  const kgM110=(m110*110)/1000, kgB110=(b110*110)/1000, kgM75=(m75*75)/1000;
+  const kgM110=(m110*90)/1000, kgB110=(b110*90)/1000, kgM75=(m75*75)/1000;
   const total=kgM110+kgB110+kgM75;
   document.getElementById('calc-q-med110').textContent=m110;
   document.getElementById('calc-q-bol110').textContent=b110;
