@@ -688,6 +688,15 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
 .eff-ok{color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:700}
 .eff-warn{color:var(--per);font-family:'JetBrains Mono',monospace;font-weight:700}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF9F1C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CDP">
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/cdp-franquicias/sw.js');
+}
+</script>
 </head>
 <body>
 

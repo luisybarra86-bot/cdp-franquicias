@@ -1,0 +1,22 @@
+{
+  "name": "CDP Franquicias",
+  "short_name": "CDP",
+  "description": "Sistema de Gestión de Producción",
+  "start_url": "/cdp-franquicias/",
+  "display": "standalone",
+  "background_color": "#0D0D14",
+  "theme_color": "#FF9F1C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
