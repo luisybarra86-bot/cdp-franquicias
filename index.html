@@ -1272,7 +1272,9 @@ function renderSem(){
             <h4 style="color:${col}">${SUC_NAMES[suc]}</h4>
             <p>${rows.length} día${rows.length!==1?'s':''}</p>
           </div><div class="wcard-body">
-          <div class="wstat"><span class="wstat-l">Ped. Alita kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'ped_alita').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Proc. Alita kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_alita').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Proc. Pechuga kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_pechuga').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Ped. Alita kg</span><span class="wstat-v">${sum(rows,'ped_alita').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Ped. Pechuga kg</span><span class="wstat-v">${sum(rows,'ped_pechuga').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Alitas</span><span class="wstat-v">${fmt(sum(rows,'alitas'))}</span></div>
           <div class="wstat"><span class="wstat-l">Filet</span><span class="wstat-v">${fmt(sum(rows,'filet'))}</span></div>
