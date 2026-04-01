@@ -1494,7 +1494,7 @@ window.exportExcel=function(){
     const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
     if(!rows.length)return;
     const gramajeM=(rows[0]?.fecha||'')>=FECHA_CORTE?'90g':'110g';
-    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
