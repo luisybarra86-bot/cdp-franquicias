@@ -764,6 +764,7 @@ if('serviceWorker' in navigator){
         <div class="form-group"><label style="color:#22c55e">Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Medallón 90g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
         <div class="form-group"><label>Bolita 90g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
+        <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0"></div>
       </div>
 
       <!-- CALCULADORA KG -->
@@ -791,13 +792,35 @@ if('serviceWorker' in navigator){
       <div class="sec-title">🐔 Pollo</div>
       <div class="form-grid">
         <div class="form-group"><label style="color:var(--accent2)">Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#22c55e">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
         <div class="form-group"><label style="color:var(--accent2)">Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#22c55e">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
         <div class="form-group"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
         <div class="form-group"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
         <div class="form-group"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
         <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
+      </div>
+
+      <!-- CALCULADORA POLLO KG -->
+      <div class="calc-box">
+        <div class="calc-head">
+          <span>Tipo</span><span style="text-align:center"></span><span>Kg procesados</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-lbl" style="color:var(--bar)">Alita</span>
+          <span class="calc-q"></span>
+          <span class="calc-kg" id="calc-kg-alita">0.000</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-lbl" style="color:var(--fli)">Pechuga</span>
+          <span class="calc-q"></span>
+          <span class="calc-kg" id="calc-kg-pechuga">0.000</span>
+        </div>
+        <div class="calc-row total">
+          <span class="calc-lbl" style="font-weight:700">TOTAL</span>
+          <span></span>
+          <span class="calc-total-val" id="calc-total-pollo">0.000</span>
+        </div>
       </div>
 
       <div class="btn-row">
@@ -1124,6 +1147,15 @@ window.calcKg=function(){
   document.getElementById('calc-total').textContent=total.toFixed(3);
 }
 
+window.calcPollo=function(){
+  const alita=parseFloat(document.getElementById('f-proc-alita').value)||0;
+  const pechuga=parseFloat(document.getElementById('f-proc-pechuga').value)||0;
+  const total=alita+pechuga;
+  document.getElementById('calc-kg-alita').textContent=alita.toFixed(3);
+  document.getElementById('calc-kg-pechuga').textContent=pechuga.toFixed(3);
+  document.getElementById('calc-total-pollo').textContent=total.toFixed(3);
+}
+
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
 
@@ -1139,7 +1171,7 @@ window.guardar=async function(){
     await addDoc(collection(db,COL),{
       fecha,sucursal:suc,
       ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
-      med110:num('f-med110'),bol110:num('f-bol110'),
+      med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
       ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
       ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
@@ -1155,7 +1187,7 @@ window.guardar=async function(){
 }
 
 window.limpiar=function(){
-  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110',
+  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
@@ -1294,6 +1326,7 @@ function renderMes(){
             <td>${sr.length}</td><td>${ped.toFixed(1)}</td>
             <td>${sum(sr,'rec_kg').toFixed(1)}</td><td>${proc.toFixed(1)}</td>
             <td>${fmt(sum(sr,'med110'))}</td><td>${fmt(sum(sr,'bol110'))}</td>
+            <td>${fmt(sum(sr,'med75'))}</td>
             <td class="${parseFloat(eff)>=98?'eff-ok':'eff-warn'}">${eff}%</td>
           </tr>`;
         }).join('')}</tbody>
