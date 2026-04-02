@@ -893,7 +893,6 @@ if('serviceWorker' in navigator){
   <div class="kpi-row" id="kpi-row"></div>
   <div class="charts-grid">
     <div class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--ind)"></span>Carne Procesada — Mensual por Sucursal (kg)</div><div class="ch-wrap"><canvas id="ch1"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title"><span class="dot" style="background:var(--per)"></span>Total Carne Procesada por Sucursal</div><div class="ch-wrap"><canvas id="ch2"></canvas></div></div>
     <div class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--fli)"></span>Productos Pollo por Sucursal</div><div class="ch-wrap"><canvas id="ch4"></canvas></div></div>
   </div>
 </div>
@@ -1390,15 +1389,13 @@ window.renderGraf=function(){
     <div class="kpi" style="--ac:#7B2FBE"><div class="kpi-label">Kg Alita Procesado</div><div class="kpi-val">${sum(DB,'proc_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi" style="--ac:#F15BB5"><div class="kpi-label">Kg Pechuga Pedido</div><div class="kpi-val">${sum(DB,'ped_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi" style="--ac:#C9184A"><div class="kpi-label">Kg Pechuga Procesado</div><div class="kpi-val">${sum(DB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#FF4B6E"><div class="kpi-label">Alitas</div><div class="kpi-val">${fmt(sum(DB,'alitas'))}</div><div class="kpi-sub">unidades</div></div>
-    <div class="kpi" style="--ac:#FF9F1C"><div class="kpi-label">Pop Corns</div><div class="kpi-val">${fmt(sum(DB,'popCorns'))}</div><div class="kpi-sub">unidades</div></div>
-    <div class="kpi" style="--ac:#2EC4B6"><div class="kpi-label">Tiras</div><div class="kpi-val">${fmt(sum(DB,'tiras'))}</div><div class="kpi-sub">unidades</div></div>`;
+    `;
   if(!DB.length)return;
   Object.values(CHS).forEach(c=>{try{c.destroy()}catch(e){}});CHS={};
   const COPT=getChartDefaults();
   const months=[...new Set(DB.map(r=>monthKey(r.fecha)))].sort();
   CHS.c1=new Chart(document.getElementById('ch1'),{type:'bar',data:{labels:months,datasets:SUCS.map(s=>({label:SUC_NAMES[s],data:months.map(m=>sum(DB.filter(r=>r.sucursal===s&&monthKey(r.fecha)===m),'proc_kg')),backgroundColor:SC[s]+'99',borderColor:SC[s],borderWidth:1.5,borderRadius:6,borderSkipped:false}))},options:COPT});
-  CHS.c2=new Chart(document.getElementById('ch2'),{type:'bar',data:{labels:SUCS.map(s=>SUC_NAMES[s]),datasets:[{label:'Procesado kg',data:SUCS.map(s=>sum(DB.filter(r=>r.sucursal===s),'proc_kg')),backgroundColor:SUCS.map(s=>SC[s]+'99'),borderColor:SUCS.map(s=>SC[s]),borderWidth:1.5,borderRadius:8,borderSkipped:false}]},options:{...COPT,indexAxis:'y',plugins:{legend:{display:false}}}});
+
   CHS.c4=new Chart(document.getElementById('ch4'),{type:'bar',data:{labels:SUCS.map(s=>SUC_NAMES[s]),datasets:[
     {label:'Alitas',data:SUCS.map(s=>sum(DB.filter(r=>r.sucursal===s),'alitas')),backgroundColor:'#FF4B6E99',borderColor:'#FF4B6E',borderWidth:1.5,borderRadius:4},
     {label:'Filet',data:SUCS.map(s=>sum(DB.filter(r=>r.sucursal===s),'filet')),backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5},
