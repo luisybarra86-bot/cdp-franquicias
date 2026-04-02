@@ -1336,20 +1336,23 @@ function renderMes(){
     } else {
       html+=`<div class="kpi-row" style="margin-bottom:14px">${SUCS.map(suc=>{
         const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+        const kgProc=(sum(sr,'proc_alita')+sum(sr,'proc_pechuga'));
         return`<div class="kpi" style="--ac:${SC[suc]}">
           <div class="kpi-label">${SUC_NAMES[suc]}</div>
-          <div class="kpi-val">${fmt(sum(sr,'alitas'))}</div>
-          <div class="kpi-sub">alitas · ${sr.length} días</div>
+          <div class="kpi-val">${kgProc.toFixed(1)}</div>
+          <div class="kpi-sub">kg proc · ${sr.length} días</div>
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Sucursal</th><th>Días</th><th>Ped. Alita kg</th><th>Ped. Pechuga kg</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th></tr></thead>
+        <thead><tr><th>Sucursal</th><th>Días</th><th>Ped. Alita kg</th><th>Ped. Pechuga kg</th><th>Proc. kg</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th></tr></thead>
         <tbody>${SUCS.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+          const kgProc=(sum(sr,'proc_alita')+sum(sr,'proc_pechuga'));
           return`<tr>
             <td><span class="pill ${SL[suc]}">${suc}</span></td>
             <td>${sr.length}</td>
             <td>${sum(sr,'ped_alita').toFixed(1)}</td><td>${sum(sr,'ped_pechuga').toFixed(1)}</td>
+            <td><strong>${kgProc.toFixed(1)}</strong></td>
             <td>${fmt(sum(sr,'alitas'))}</td><td>${fmt(sum(sr,'filet'))}</td>
             <td>${fmt(sum(sr,'popCorns'))}</td><td>${fmt(sum(sr,'tiras'))}</td>
           </tr>`;
