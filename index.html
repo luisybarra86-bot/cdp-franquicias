@@ -801,28 +801,6 @@ if('serviceWorker' in navigator){
         <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
       </div>
 
-      <!-- CALCULADORA POLLO KG -->
-      <div class="calc-box">
-        <div class="calc-head">
-          <span>Tipo</span><span style="text-align:center"></span><span>Kg procesados</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-lbl" style="color:var(--bar)">Alita</span>
-          <span class="calc-q"></span>
-          <span class="calc-kg" id="calc-kg-alita">0.000</span>
-        </div>
-        <div class="calc-row">
-          <span class="calc-lbl" style="color:var(--fli)">Pechuga</span>
-          <span class="calc-q"></span>
-          <span class="calc-kg" id="calc-kg-pechuga">0.000</span>
-        </div>
-        <div class="calc-row total">
-          <span class="calc-lbl" style="font-weight:700">TOTAL</span>
-          <span></span>
-          <span class="calc-total-val" id="calc-total-pollo">0.000</span>
-        </div>
-      </div>
-
       <div class="btn-row">
         <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar en la nube</button>
         <button class="btn btn-ghost" onclick="limpiar()">✕ Limpiar</button>
