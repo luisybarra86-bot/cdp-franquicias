@@ -316,10 +316,10 @@ body{
   color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;
 }
 .form-group input,.form-group select{
-  width:100%;padding:10px 13px;
+  width:100%;padding:7px 10px;
   border:1px solid var(--border2);
-  border-radius:10px;
-  font-family:'DM Sans',sans-serif;font-size:14px;
+  border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:13px;
   color:var(--text);
   background:var(--input-bg);
   outline:none;
@@ -336,14 +336,51 @@ body{
 
 .sec-title{
   font-family:'JetBrains Mono',monospace;
-  font-weight:600;font-size:11px;
-  color:var(--text3);
-  margin:22px 0 12px;
-  padding-bottom:8px;
-  border-bottom:1px solid var(--border);
-  letter-spacing:1px;
+  font-weight:700;font-size:11px;
+  color:var(--text);
+  margin:20px 0 12px;
+  padding:8px 14px;
+  letter-spacing:1.5px;
   text-transform:uppercase;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
+.sec-title-carne{
+  background:rgba(255,75,110,.12);
+  border-left:3px solid #FF4B6E;
+  color:#FF4B6E;
+}
+.sec-title-pollo{
+  background:rgba(46,196,182,.12);
+  border-left:3px solid #2EC4B6;
+  color:#2EC4B6;
+}
+/* ── KPI compacto en gráficos ── */
+.kpi-sm .kpi-val{font-size:26px}
+.kpi-sm{padding:14px 14px}
+/* ── separador carne/pollo en gráficos ── */
+.kpi-section-label{
+  grid-column:1/-1;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;
+  padding:6px 12px;
+  border-radius:6px;
+  margin-bottom:-4px;
+}
+.kpi-section-label.carne{background:rgba(255,75,110,.1);color:#FF4B6E;border-left:3px solid #FF4B6E}
+.kpi-section-label.pollo{background:rgba(155,93,229,.1);color:#9B5DE5;border-left:3px solid #9B5DE5}
+/* ── separador en registros por sucursal ── */
+.reg-section-hdr{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:8px 16px;
+  margin-top:16px;margin-bottom:0;
+}
+.reg-section-hdr.carne{background:rgba(255,75,110,.1);color:#FF4B6E;border-left:3px solid #FF4B6E;border-radius:6px 6px 0 0}
+.reg-section-hdr.pollo{background:rgba(155,93,229,.1);color:#9B5DE5;border-left:3px solid #9B5DE5;border-radius:6px 6px 0 0}
 
 /* ── CALCULADORA ─────────────────────────────────────────── */
 .calc-box{
@@ -757,7 +794,7 @@ if('serviceWorker' in navigator){
         </div>
       </div>
 
-      <div class="sec-title">🥩 Carne</div>
+      <div class="sec-title sec-title-carne">🥩 Carne</div>
       <div class="form-grid">
         <div class="form-group"><label style="color:var(--accent2)">Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
         <div class="form-group"><label>Recibido (kg)</label><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
@@ -767,8 +804,20 @@ if('serviceWorker' in navigator){
         <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0"></div>
       </div>
 
-      <!-- CALCULADORA KG -->
-      <div class="calc-box">
+      <div class="sec-title sec-title-pollo">🐔 Pollo</div>
+      <div class="form-grid">
+        <div class="form-group"><label style="color:var(--accent2)">Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#22c55e">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
+        <div class="form-group"><label style="color:var(--accent2)">Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
+        <div class="form-group"><label style="color:#22c55e">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
+        <div class="form-group"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
+      </div>
+
+      <!-- CALCULADORA KG — al final -->
+      <div class="calc-box" style="margin-top:20px">
         <div class="calc-head">
           <span>Tipo</span><span style="text-align:center">Cantidad</span><span>Kg equiv.</span>
         </div>
@@ -787,18 +836,6 @@ if('serviceWorker' in navigator){
           <span></span>
           <span class="calc-total-val" id="calc-total">0.000</span>
         </div>
-      </div>
-
-      <div class="sec-title">🐔 Pollo</div>
-      <div class="form-grid">
-        <div class="form-group"><label style="color:var(--accent2)">Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-        <div class="form-group"><label style="color:var(--accent2)">Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-        <div class="form-group"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
       </div>
 
       <div class="btn-row">
@@ -1191,20 +1228,84 @@ window.setRegF=function(s,btn){
 window.renderReg=function(){
   const q=(document.getElementById('reg-search')?.value||'').toLowerCase();
   const rows=DB.filter(r=>(regF==='ALL'||r.sucursal===regF)&&(!q||r.fecha?.includes(q)||r.sucursal?.toLowerCase().includes(q)));
+  const tblWrap=document.getElementById('reg-tbody')?.closest('.tbl-wrap');
   const tb=document.getElementById('reg-tbody');
   if(!tb)return;
   if(!rows.length){
     tb.innerHTML=`<tr><td colspan="13"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
-    document.getElementById('reg-count').textContent='';return;
+    document.getElementById('reg-count').textContent='';
+    // reset encabezados
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    return;
   }
-  tb.innerHTML=rows.map(r=>`<tr>
-    <td>${r.fecha}</td>
-    <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
-    <td>${r.ped_kg||0}</td><td>${r.rec_kg||0}</td><td>${r.proc_kg||0}</td>
-    <td>${r.med110||0}</td><td>${r.bol110||0}</td>
-    <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
-    <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
-  </tr>`).join('');
+
+  if(regF==='ALL'){
+    // Vista combinada — tabla unificada
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    tb.innerHTML=rows.map(r=>`<tr>
+      <td>${r.fecha}</td>
+      <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
+      <td>${r.ped_kg||0}</td><td>${r.rec_kg||0}</td><td>${r.proc_kg||0}</td>
+      <td>${r.med110||0}</td><td>${r.bol110||0}</td>
+      <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
+      <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
+    </tr>`).join('');
+  } else {
+    // Vista por sucursal — tablas separadas carne / pollo
+    const sucNombre = SUC_NAMES[regF] || regF;
+    const col = SC[regF] || 'var(--accent)';
+    // Ocultar la tabla original y mostrar las dos nuevas
+    document.querySelector('#tab-registros thead tr').innerHTML='';
+    tb.innerHTML='';
+    // Inyectar en el contenedor padre
+    const container = tblWrap?.parentElement || document.getElementById('tab-registros').querySelector('.card');
+    let split = document.getElementById('reg-split');
+    if(!split){
+      split = document.createElement('div');
+      split.id = 'reg-split';
+      tblWrap.insertAdjacentElement('afterend', split);
+    }
+    split.innerHTML=`
+      <div class="reg-section-hdr carne">🥩 Carne — ${sucNombre}</div>
+      <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px;margin-bottom:18px">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90g</th><th>Bol 90g</th><th>Med 75g</th><th></th>
+          </tr></thead>
+          <tbody>${rows.map(r=>`<tr>
+            <td>${r.fecha}</td>
+            <td style="color:#FF4B6E;font-weight:600">${r.ped_kg||0}</td>
+            <td>${r.rec_kg||0}</td>
+            <td style="color:#22c55e;font-weight:600">${r.proc_kg||0}</td>
+            <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
+            <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="reg-section-hdr pollo">🐔 Pollo — ${sucNombre}</div>
+      <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Ped. Alita</th><th>Proc. Alita</th><th>Ped. Pechuga</th><th>Proc. Pechuga</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th>
+          </tr></thead>
+          <tbody>${rows.map(r=>`<tr>
+            <td>${r.fecha}</td>
+            <td style="color:#FF4B6E;font-weight:600">${r.ped_alita||0}</td>
+            <td style="color:#22c55e;font-weight:600">${r.proc_alita||0}</td>
+            <td style="color:#FF4B6E;font-weight:600">${r.ped_pechuga||0}</td>
+            <td style="color:#22c55e;font-weight:600">${r.proc_pechuga||0}</td>
+            <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+    tblWrap.style.display = 'none';
+  }
+
+  // Mostrar/ocultar la tabla original según modo
+  if(tblWrap) tblWrap.style.display = regF==='ALL' ? '' : 'none';
+  const split = document.getElementById('reg-split');
+  if(split) split.style.display = regF==='ALL' ? 'none' : '';
+
   document.getElementById('reg-count').textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
 }
 
@@ -1363,14 +1464,16 @@ window.renderGraf=function(){
   const kr=document.getElementById('kpi-row');
   if(!kr)return;
   kr.innerHTML=`
-    <div class="kpi" style="--ac:#FF4B6E"><div class="kpi-label">Kg Carne Pedido</div><div class="kpi-val">${sum(DB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#FF9F1C"><div class="kpi-label">Kg Carne Procesado</div><div class="kpi-val">${sum(DB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(DB,'med110'))}</div><div class="kpi-sub">unidades</div></div>
-    <div class="kpi" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(DB,'bol110'))}</div><div class="kpi-sub">unidades</div></div>
-    <div class="kpi" style="--ac:#9B5DE5"><div class="kpi-label">Kg Alita Pedido</div><div class="kpi-val">${sum(DB,'ped_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#7B2FBE"><div class="kpi-label">Kg Alita Procesado</div><div class="kpi-val">${sum(DB,'proc_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#F15BB5"><div class="kpi-label">Kg Pechuga Pedido</div><div class="kpi-val">${sum(DB,'ped_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi" style="--ac:#C9184A"><div class="kpi-label">Kg Pechuga Procesado</div><div class="kpi-val">${sum(DB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi-section-label carne">🥩 Carne</div>
+    <div class="kpi kpi-sm" style="--ac:#FF4B6E"><div class="kpi-label">Kg Pedido</div><div class="kpi-val">${sum(DB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#FF9F1C"><div class="kpi-label">Kg Procesado</div><div class="kpi-val">${sum(DB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(DB,'med110'))}</div><div class="kpi-sub">unidades</div></div>
+    <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(DB,'bol110'))}</div><div class="kpi-sub">unidades</div></div>
+    <div class="kpi-section-label pollo" style="margin-top:8px">🐔 Pollo</div>
+    <div class="kpi kpi-sm" style="--ac:#9B5DE5"><div class="kpi-label">Alita Pedido</div><div class="kpi-val">${sum(DB,'ped_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#7B2FBE"><div class="kpi-label">Alita Procesado</div><div class="kpi-val">${sum(DB,'proc_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#F15BB5"><div class="kpi-label">Pechuga Pedido</div><div class="kpi-val">${sum(DB,'ped_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#C9184A"><div class="kpi-label">Pechuga Procesado</div><div class="kpi-val">${sum(DB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     `;
   if(!DB.length)return;
   Object.values(CHS).forEach(c=>{try{c.destroy()}catch(e){}});CHS={};
