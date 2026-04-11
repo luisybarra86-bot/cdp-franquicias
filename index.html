@@ -1547,8 +1547,8 @@ window.exportExcel=function(){
   const gramajeExcel=fechaReciente>=FECHA_CORTE?'90g':'110g';
   const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
-  const byW=groupBy(DB,r=>weekKey(r.fecha));
-  const weeks=Object.keys(byW).sort();
+  const byW=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
   weeks.forEach(wk=>{
     const wkEnd=new Date(wk+'T00:00:00');wkEnd.setDate(wkEnd.getDate()+6);
     const wkLabel=`Semana ${wk} al ${wkEnd.toISOString().slice(0,10)}`;
@@ -1577,7 +1577,7 @@ window.exportExcel=function(){
     const totRowP=[];SUCS.forEach(suc=>{const sr=wkRows.filter(r=>r.sucursal===suc);totRowP.push('Total');totRowP.push(+sum(sr,'proc_alita').toFixed(2));totRowP.push(+sum(sr,'proc_pechuga').toFixed(2));totRowP.push('');});wsP.push(totRowP);
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsP),('Pollo '+wk).slice(0,31));
   });
-  const months=[...new Set(DB.map(r=>monthKey(r.fecha)))].sort();
+  const months=[...new Set(DB.filter(r=>monthKey(r.fecha)).map(r=>monthKey(r.fecha)))].filter(m=>m&&m!=='null').sort();
   const mesD=[];
   months.forEach(m=>{SUCS.forEach(suc=>{
     const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
@@ -1600,9 +1600,9 @@ window.exportManoObra=function(){
   const totKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
   resumen.push({'Sucursal':'TOTAL','Kg Procesados Pollo':+totKg.toFixed(2),'Precio x Kg ($)':precio,'Costo Total ($)':+(totKg*precio).toFixed(2)});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resumen),'Resumen por Sucursal');
-  const byW=groupBy(DB,r=>weekKey(r.fecha));
+  const byW=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const semRows=[];
-  Object.keys(byW).sort().forEach(wk=>{
+  Object.keys(byW).filter(wk=>wk&&wk!=='null').sort().forEach(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
     const row={'Semana':wk,'Hasta':wkE.toISOString().slice(0,10)};
     let totS=0;
