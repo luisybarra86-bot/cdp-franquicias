@@ -1083,8 +1083,8 @@ const ARS = n=>'$\u00a0'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maxim
 function fmt(n){return typeof n==='number'?n.toLocaleString('es-AR'):n}
 function sum(arr,f){return arr.reduce((s,r)=>s+(r[f]||0),0)}
 function groupBy(arr,fn){const m={};arr.forEach(r=>{const k=fn(r);(m[k]=m[k]||[]).push(r)});return m}
-function weekKey(f){const d=new Date(f+'T00:00:00'),dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);return d.toISOString().slice(0,10)}
-function monthKey(f){return f.slice(0,7)}
+function weekKey(f){if(!f||typeof f!=='string')return null;const d=new Date(f+'T00:00:00');if(isNaN(d.getTime()))return null;const dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);return d.toISOString().slice(0,10)}
+function monthKey(f){return(f&&typeof f==='string'&&f.length>=7)?f.slice(0,7):null}
 
 function toast(msg,ok=true){
   const t=document.getElementById('toast');
@@ -1322,7 +1322,7 @@ function renderSem(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
   }
-  const byWeek=groupBy(DB,r=>weekKey(r.fecha));
+  const byWeek=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   let html='';
   Object.keys(byWeek).sort().reverse().forEach(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
@@ -1380,7 +1380,7 @@ function renderMes(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
   }
-  const byM=groupBy(DB,r=>monthKey(r.fecha));
+  const byM=groupBy(DB.filter(r=>monthKey(r.fecha)),r=>monthKey(r.fecha));
   let html='';
   Object.keys(byM).sort().reverse().forEach(mk=>{
     const [yr,mo]=mk.split('-');
