@@ -1083,7 +1083,7 @@ const ARS = n=>'$\u00a0'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maxim
 function fmt(n){return typeof n==='number'?n.toLocaleString('es-AR'):n}
 function sum(arr,f){return arr.reduce((s,r)=>s+(r[f]||0),0)}
 function groupBy(arr,fn){const m={};arr.forEach(r=>{const k=fn(r);(m[k]=m[k]||[]).push(r)});return m}
-function weekKey(f){if(!f||typeof f!=='string')return null;const d=new Date(f+'T00:00:00');if(isNaN(d.getTime()))return null;const dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);return d.toISOString().slice(0,10)}
+function weekKey(f){try{if(!f||typeof f!=='string')return null;const d=new Date(f+'T00:00:00');if(isNaN(d.getTime()))return null;const dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);if(isNaN(d.getTime()))return null;return d.toISOString().slice(0,10)}catch(e){return null}}
 function monthKey(f){return(f&&typeof f==='string'&&f.length>=7)?f.slice(0,7):null}
 
 function toast(msg,ok=true){
