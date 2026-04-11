@@ -886,7 +886,12 @@ if('serviceWorker' in navigator){
       <button class="r-tab active" onclick="setSemV('carne',this)">🥩 Carne</button>
       <button class="r-tab" onclick="setSemV('pollo',this)">🐔 Pollo</button>
     </div>
-    <button class="btn btn-excel" onclick="exportExcel()">↓ Excel</button>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <input type="date" id="sem-desde" class="search-input" style="width:135px" title="Desde">
+      <span style="color:var(--text3);font-size:11px">→</span>
+      <input type="date" id="sem-hasta" class="search-input" style="width:135px" title="Hasta">
+      <button class="btn btn-excel" onclick="exportExcel('sem-desde','sem-hasta')">↓ Excel</button>
+    </div>
   </div>
   <div id="sem-cont"></div>
 </div>
@@ -898,7 +903,12 @@ if('serviceWorker' in navigator){
       <button class="r-tab active" onclick="setMesV('carne',this)">🥩 Carne</button>
       <button class="r-tab" onclick="setMesV('pollo',this)">🐔 Pollo</button>
     </div>
-    <button class="btn btn-excel" onclick="exportExcel()">↓ Excel</button>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <input type="date" id="mes-desde" class="search-input" style="width:135px" title="Desde">
+      <span style="color:var(--text3);font-size:11px">→</span>
+      <input type="date" id="mes-hasta" class="search-input" style="width:135px" title="Hasta">
+      <button class="btn btn-excel" onclick="exportExcel('mes-desde','mes-hasta')">↓ Excel</button>
+    </div>
   </div>
   <div id="mes-cont"></div>
 </div>
@@ -917,7 +927,12 @@ if('serviceWorker' in navigator){
   <div class="card" style="margin-bottom:18px">
     <div class="card-head">
       <span class="card-title">Precio del servicio por kg</span>
-      <button class="btn btn-excel" onclick="exportManoObra()">↓ Excel</button>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input type="date" id="mo-desde" class="search-input" style="width:135px" title="Desde">
+        <span style="color:var(--text3);font-size:11px">→</span>
+        <input type="date" id="mo-hasta" class="search-input" style="width:135px" title="Hasta">
+        <button class="btn btn-excel" onclick="exportManoObra()">↓ Excel</button>
+      </div>
     </div>
     <div class="card-body">
       <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
@@ -1538,16 +1553,19 @@ window.renderManoObra=function(){
 }
 
 // ── EXPORT EXCEL ──
-window.exportExcel=function(){
-  if(!DB.length){toast('❌ No hay datos para exportar',false);return}
+window.exportExcel=function(desdeId,hastaId){
+  const desde=desdeId?(document.getElementById(desdeId)?.value||''):'';
+  const hasta=hastaId?(document.getElementById(hastaId)?.value||''):'';
+  const DATA=DB.filter(r=>{if(!r.fecha)return false;if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
+  if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
 
   // ── Hoja 1: Registros crudos ──
-  const fechaReciente=DB.reduce((max,r)=>r.fecha>max?r.fecha:max,'');
+  const fechaReciente=DATA.reduce((max,r)=>r.fecha>max?r.fecha:max,'');
   const gramajeExcel=fechaReciente>=FECHA_CORTE?'90g':'110g';
-  const raw=DB.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  const raw=DATA.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
-  const byW=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
   weeks.forEach(wk=>{
     const wkEnd=new Date(wk+'T00:00:00');wkEnd.setDate(wkEnd.getDate()+6);
@@ -1577,10 +1595,10 @@ window.exportExcel=function(){
     const totRowP=[];SUCS.forEach(suc=>{const sr=wkRows.filter(r=>r.sucursal===suc);totRowP.push('Total');totRowP.push(+sum(sr,'proc_alita').toFixed(2));totRowP.push(+sum(sr,'proc_pechuga').toFixed(2));totRowP.push('');});wsP.push(totRowP);
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsP),('Pollo '+wk).slice(0,31));
   });
-  const months=[...new Set(DB.filter(r=>monthKey(r.fecha)).map(r=>monthKey(r.fecha)))].filter(m=>m&&m!=='null').sort();
+  const months=[...new Set(DATA.filter(r=>monthKey(r.fecha)).map(r=>monthKey(r.fecha)))].filter(m=>m&&m!=='null').sort();
   const mesD=[];
   months.forEach(m=>{SUCS.forEach(suc=>{
-    const rows=DB.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
+    const rows=DATA.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
     if(!rows.length)return;
     const gramajeM=(rows[0]?.fecha||'')>=FECHA_CORTE?'90g':'110g';
     mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
@@ -1592,15 +1610,18 @@ window.exportExcel=function(){
 
 window.exportManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
-  if(!DB.length){toast('❌ No hay datos para exportar',false);return}
+  const moDesde=document.getElementById('mo-desde')?.value||'';
+  const moHasta=document.getElementById('mo-hasta')?.value||'';
+  const DATA=DB.filter(r=>{if(!r.fecha)return false;if(moDesde&&r.fecha<moDesde)return false;if(moHasta&&r.fecha>moHasta)return false;return true;});
+  if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
   const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
-  DB.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
+  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
   const resumen=SUCS.map(suc=>({'Sucursal':SUC_NAMES[suc],'Kg Procesados Pollo':+kgSuc[suc].toFixed(2),'Precio x Kg ($)':precio,'Costo Total ($)':+(kgSuc[suc]*precio).toFixed(2)}));
   const totKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
   resumen.push({'Sucursal':'TOTAL','Kg Procesados Pollo':+totKg.toFixed(2),'Precio x Kg ($)':precio,'Costo Total ($)':+(totKg*precio).toFixed(2)});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resumen),'Resumen por Sucursal');
-  const byW=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const semRows=[];
   Object.keys(byW).filter(wk=>wk&&wk!=='null').sort().forEach(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
