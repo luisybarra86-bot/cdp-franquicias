@@ -1286,7 +1286,7 @@ window.renderReg=function(){
       <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ped. Alita</th><th>Proc. Alita</th><th>Ped. Pechuga</th><th>Proc. Pechuga</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th>
+            <th>Fecha</th><th>Ped. Alita</th><th>Proc. Alita</th><th>Ped. Pechuga</th><th>Proc. Pechuga</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th></th>
           </tr></thead>
           <tbody>${rows.map(r=>`<tr>
             <td>${r.fecha}</td>
@@ -1295,6 +1295,7 @@ window.renderReg=function(){
             <td style="color:#FF4B6E;font-weight:600">${r.ped_pechuga||0}</td>
             <td style="color:#22c55e;font-weight:600">${r.proc_pechuga||0}</td>
             <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
+            <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
           </tr>`).join('')}</tbody>
         </table>
       </div>`;
