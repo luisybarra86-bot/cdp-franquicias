@@ -928,9 +928,9 @@ if('serviceWorker' in navigator){
     <div class="card-head">
       <span class="card-title">Precio del servicio por kg</span>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <input type="date" id="mo-desde" class="search-input" style="width:135px" title="Desde">
+        <input type="date" id="mo-desde" class="search-input" style="width:135px" title="Desde" onchange="renderManoObra()">
         <span style="color:var(--text3);font-size:11px">→</span>
-        <input type="date" id="mo-hasta" class="search-input" style="width:135px" title="Hasta">
+        <input type="date" id="mo-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderManoObra()">
         <button class="btn btn-excel" onclick="exportManoObra()">↓ Excel</button>
       </div>
     </div>
@@ -1100,6 +1100,9 @@ function sum(arr,f){return arr.reduce((s,r)=>s+(r[f]||0),0)}
 function groupBy(arr,fn){const m={};arr.forEach(r=>{const k=fn(r);(m[k]=m[k]||[]).push(r)});return m}
 function weekKey(f){try{if(!f||typeof f!=='string')return null;const d=new Date(f+'T00:00:00');if(isNaN(d.getTime()))return null;const dy=d.getDay()||7;d.setDate(d.getDate()-dy+1);if(isNaN(d.getTime()))return null;return d.toISOString().slice(0,10)}catch(e){return null}}
 function monthKey(f){return(f&&typeof f==='string'&&f.length>=7)?f.slice(0,7):null}
+function filterByDate(arr,desde='',hasta=''){
+  return arr.filter(r=>{if(!r.fecha)return false;if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
+}
 
 function toast(msg,ok=true){
   const t=document.getElementById('toast');
@@ -1508,16 +1511,28 @@ window.renderGraf=function(){
 // ── MANO DE OBRA ──
 window.renderManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
+  const moDesde=document.getElementById('mo-desde')?.value||'';
+  const moHasta=document.getElementById('mo-hasta')?.value||'';
+  const DATA=filterByDate(DB,moDesde,moHasta);
   const cards=document.getElementById('mo-cards');
   const tbody=document.getElementById('mo-tbody');
   const periodo=document.getElementById('mo-periodo');
   if(!cards||!tbody)return;
   const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
-  DB.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
+  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
   const totalKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
-  if(DB.length){const fechas=DB.map(r=>r.fecha).sort();periodo.textContent=`${fechas[0]} → ${fechas[fechas.length-1]}`}
+  if(DATA.length){
+    const fechas=DATA.map(r=>r.fecha).sort();
+    periodo.textContent=`${fechas[0]} → ${fechas[fechas.length-1]}`;
+  }else{
+    periodo.textContent=moDesde||moHasta?`${moDesde||'Inicio'} → ${moHasta||'Hoy'}`:'';
+  }
   if(!precio){
     cards.innerHTML='<div class="empty"><div class="ico">💰</div><p>Ingresá el precio por kg para ver los cálculos.</p></div>';
+    tbody.innerHTML='';return;
+  }
+  if(!DATA.length){
+    cards.innerHTML='<div class="empty"><div class="ico">📅</div><p>No hay registros en el rango de fechas seleccionado.</p></div>';
     tbody.innerHTML='';return;
   }
   cards.innerHTML=`<div class="mo-cards-grid">${SUCS.map(suc=>{
@@ -1538,8 +1553,8 @@ window.renderManoObra=function(){
     </div>
     <div class="mo-total-val">${ARS(totalKg*precio)}</div>
   </div>`;
-  const byW=groupBy(DB,r=>weekKey(r.fecha));
-  const weeks=Object.keys(byW).sort();
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
   tbody.innerHTML=weeks.map(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
     const cols=SUCS.map(suc=>{
@@ -1556,7 +1571,7 @@ window.renderManoObra=function(){
 window.exportExcel=function(desdeId,hastaId){
   const desde=desdeId?(document.getElementById(desdeId)?.value||''):'';
   const hasta=hastaId?(document.getElementById(hastaId)?.value||''):'';
-  const DATA=DB.filter(r=>{if(!r.fecha)return false;if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
+  const DATA=filterByDate(DB,desde,hasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
 
@@ -1612,7 +1627,7 @@ window.exportManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
   const moDesde=document.getElementById('mo-desde')?.value||'';
   const moHasta=document.getElementById('mo-hasta')?.value||'';
-  const DATA=DB.filter(r=>{if(!r.fecha)return false;if(moDesde&&r.fecha<moDesde)return false;if(moHasta&&r.fecha>moHasta)return false;return true;});
+  const DATA=filterByDate(DB,moDesde,moHasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
   const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
