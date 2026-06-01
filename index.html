@@ -772,6 +772,7 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('mensual',this)">Mensual</button>
   <button class="nav-btn" onclick="goTab('graficos',this)">Gráficos</button>
   <button class="nav-btn" onclick="goTab('manoobra',this)">Mano de Obra</button>
+  <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
 </nav>
 
 <div class="main">
@@ -973,6 +974,57 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- COBRO -->
+<div id="tab-cobro" class="panel">
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-head">
+      <span class="card-title">💳 Cobro — Pollo procesado por kg</span>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input type="date" id="co-desde" class="search-input" style="width:135px" title="Desde" onchange="renderCobro()">
+        <span style="color:var(--text3);font-size:11px">→</span>
+        <input type="date" id="co-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderCobro()">
+        <button class="btn btn-excel" onclick="exportCobro()">↓ Excel</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+        <div class="form-group" style="margin:0;min-width:240px">
+          <label>Precio de venta por kg ($ ARS)</label>
+          <input type="number" id="co-precio" min="0" step="0.01" placeholder="Ej: 2800" oninput="renderCobro()">
+        </div>
+        <div style="font-size:12px;color:var(--text3);padding-bottom:12px">← Ingresá el precio y los totales se calculan automáticamente</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">🐔 Total a cobrar por sucursal</span>
+      <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="co-periodo"></span>
+    </div>
+    <div class="card-body" id="co-cards">
+      <div class="empty"><div class="ico">💰</div><p>Ingresá un precio por kg para ver los totales.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-title">Detalle semanal por sucursal</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Semana</th>
+          <th style="color:var(--ind)">IND kg</th><th style="color:var(--ind)">IND $</th>
+          <th style="color:var(--per)">PER kg</th><th style="color:var(--per)">PER $</th>
+          <th style="color:var(--bar)">BAR kg</th><th style="color:var(--bar)">BAR $</th>
+          <th style="color:var(--fli)">FLIP kg</th><th style="color:var(--fli)">FLIP $</th>
+          <th>Total $</th>
+        </tr></thead>
+        <tbody id="co-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- TOAST -->
@@ -1039,7 +1091,7 @@ const FECHA_CORTE = '2026-03-23';
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCp0PTMPDod1FGDE3nstyHTrpxKfW3HyeM",
@@ -1087,6 +1139,7 @@ onSnapshot(q, (snap)=>{
   if(cur.includes('semanal')) renderSem();
   if(cur.includes('mensual')) renderMes();
   if(cur.includes('manoobra')) renderManoObra();
+  if(cur.includes('cobro')) renderCobro();
 }, err=>{
   setSyncStatus('error');
   console.error(err);
@@ -1114,10 +1167,19 @@ function toast(msg,ok=true){
 
 // ── PIN ──
 const PIN_CODE='2799';
-let pinBuffer='', pinTargetBtn=null, pinUnlocked=false;
+let pinBuffer='', pinTargetBtn=null, pinTargetTab='', pinUnlocked=false;
+
+document.addEventListener('keydown',function(e){
+  const modal=document.getElementById('pin-modal');
+  if(modal&&modal.style.display==='flex'){
+    if(e.key>='0'&&e.key<='9'){e.preventDefault();pinKey(e.key);}
+    else if(e.key==='Backspace'){e.preventDefault();pinKey('BORRAR');}
+    else if(e.key==='Escape'){e.preventDefault();pinCancel();}
+  }
+});
 
 window.goTab=function(n,btn){
-  if(n==='manoobra'&&!pinUnlocked){pinTargetBtn=btn;openPin();return;}
+  if((n==='manoobra'||n==='cobro')&&!pinUnlocked){pinTargetBtn=btn;pinTargetTab=n;openPin();return;}
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
@@ -1127,6 +1189,7 @@ window.goTab=function(n,btn){
   if(n==='mensual')renderMes();
   if(n==='graficos')renderGraf();
   if(n==='manoobra')renderManoObra();
+  if(n==='cobro')renderCobro();
 }
 
 function openPin(){
@@ -1148,7 +1211,7 @@ window.pinKey=function(k){
     if(pinBuffer===PIN_CODE){
       pinUnlocked=true;
       document.getElementById('pin-modal').style.display='none';
-      if(pinTargetBtn) goTab('manoobra',pinTargetBtn);
+      if(pinTargetBtn) goTab(pinTargetTab||'manoobra',pinTargetBtn);
       pinBuffer='';
     } else {
       document.getElementById('pin-error').textContent='PIN incorrecto. Intentá de nuevo.';
@@ -1201,14 +1264,15 @@ window.guardar=async function(){
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   setSyncStatus('syncing');
   try{
-    await addDoc(collection(db,COL),{
+    await setDoc(doc(db,COL,`${suc}_${fecha}`),{
       fecha,sucursal:suc,
       ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
       med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
       ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
       ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
-      createdAt:new Date().toISOString()
+      createdAt:new Date().toISOString(),
+      source:'web'
     });
     toast(`✅ Guardado — ${SUC_NAMES[suc]} · ${fecha}`);
     limpiar();
@@ -1621,6 +1685,88 @@ window.exportExcel=function(desdeId,hastaId){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('✅ Excel descargado');
+}
+
+// ── COBRO ──
+window.renderCobro=function(){
+  const precio=parseFloat(document.getElementById('co-precio')?.value)||0;
+  const coDesde=document.getElementById('co-desde')?.value||'';
+  const coHasta=document.getElementById('co-hasta')?.value||'';
+  const DATA=filterByDate(DB,coDesde,coHasta);
+  const cards=document.getElementById('co-cards');
+  const tbody=document.getElementById('co-tbody');
+  const periodo=document.getElementById('co-periodo');
+  if(!cards||!tbody)return;
+  const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
+  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
+  const totalKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
+  if(DATA.length){const fechas=DATA.map(r=>r.fecha).sort();periodo.textContent=`${fechas[0]} → ${fechas[fechas.length-1]}`;}
+  else{periodo.textContent=coDesde||coHasta?`${coDesde||'Inicio'} → ${coHasta||'Hoy'}`:''}
+  if(!precio){
+    cards.innerHTML='<div class="empty"><div class="ico">💰</div><p>Ingresá el precio por kg para ver los totales.</p></div>';
+    tbody.innerHTML='';return;
+  }
+  if(!DATA.length){
+    cards.innerHTML='<div class="empty"><div class="ico">📅</div><p>No hay registros en el rango de fechas seleccionado.</p></div>';
+    tbody.innerHTML='';return;
+  }
+  cards.innerHTML=`<div class="mo-cards-grid">${SUCS.map(suc=>{
+    const kg=kgSuc[suc],total=kg*precio;
+    return`<div class="mo-card" style="--ac:${SC[suc]}">
+      <div class="mo-card-label">${SUC_NAMES[suc]}</div>
+      <div class="mo-card-kg">${kg.toFixed(2)}</div>
+      <div class="mo-card-unit">kg procesados</div>
+      <hr class="mo-card-divider">
+      <div class="mo-card-cost-label">Total a cobrar</div>
+      <div class="mo-card-cost">${ARS(total)}</div>
+    </div>`;
+  }).join('')}</div>
+  <div class="mo-total-bar">
+    <div>
+      <div class="mo-total-label">Total general pollo procesado</div>
+      <div class="mo-total-sub">${totalKg.toFixed(2)} kg × ${ARS(precio)}/kg</div>
+    </div>
+    <div class="mo-total-val">${ARS(totalKg*precio)}</div>
+  </div>`;
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
+  tbody.innerHTML=weeks.map(wk=>{
+    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
+    const cols=SUCS.map(suc=>{
+      const rows=byW[wk].filter(r=>r.sucursal===suc);
+      const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
+      return`<td>${kg.toFixed(2)}</td><td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:600">${ARS(kg*precio)}</td>`;
+    }).join('');
+    const totKg=SUCS.reduce((s,suc)=>{const rows=byW[wk].filter(r=>r.sucursal===suc);return s+rows.reduce((x,r)=>x+(r.proc_alita||0)+(r.proc_pechuga||0),0)},0);
+    return`<tr><td style="white-space:nowrap;font-family:'JetBrains Mono',monospace">${wk} → ${wkE.toISOString().slice(0,10)}</td>${cols}<td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:700">${ARS(totKg*precio)}</td></tr>`;
+  }).join('');
+}
+
+window.exportCobro=function(){
+  const precio=parseFloat(document.getElementById('co-precio')?.value)||0;
+  const coDesde=document.getElementById('co-desde')?.value||'';
+  const coHasta=document.getElementById('co-hasta')?.value||'';
+  const DATA=filterByDate(DB,coDesde,coHasta);
+  if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
+  const wb=XLSX.utils.book_new();
+  const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
+  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
+  const resumen=SUCS.map(suc=>({'Sucursal':SUC_NAMES[suc],'Kg Procesados Pollo':+kgSuc[suc].toFixed(2),'Precio x Kg ($)':precio,'Total a Cobrar ($)':+(kgSuc[suc]*precio).toFixed(2)}));
+  const totKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
+  resumen.push({'Sucursal':'TOTAL','Kg Procesados Pollo':+totKg.toFixed(2),'Precio x Kg ($)':precio,'Total a Cobrar ($)':+(totKg*precio).toFixed(2)});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resumen),'Resumen por Sucursal');
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const semRows=[];
+  Object.keys(byW).filter(wk=>wk&&wk!=='null').sort().forEach(wk=>{
+    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
+    const row={'Semana':wk,'Hasta':wkE.toISOString().slice(0,10)};
+    let totS=0;
+    SUCS.forEach(suc=>{const rows=byW[wk].filter(r=>r.sucursal===suc);const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);row[SUC_NAMES[suc]+' kg']=+kg.toFixed(2);row[SUC_NAMES[suc]+' $']=+(kg*precio).toFixed(2);totS+=kg;});
+    row['Total $']=+(totS*precio).toFixed(2);semRows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
+  XLSX.writeFile(wb,`CDP_Cobro_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('✅ Excel de cobro descargado');
 }
 
 window.exportManoObra=function(){
