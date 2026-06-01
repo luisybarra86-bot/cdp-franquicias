@@ -1841,7 +1841,7 @@ window.exportCobroPDF=function(suc){
     didParseCell:function(d){
       if(d.section==='body'&&d.row.index===filas.length-1){
         d.cell.styles.fontStyle='bold';
-        d.cell.styles.fillColor=[rgb[0]+'22'?[Math.min(255,rgb[0]+180),Math.min(255,rgb[1]+180),Math.min(255,rgb[2]+180)]:[240,240,240]];
+        d.cell.styles.fillColor=[Math.min(255,rgb[0]+160),Math.min(255,rgb[1]+160),Math.min(255,rgb[2]+160)];
         d.cell.styles.textColor=rgb;
       }
     },
