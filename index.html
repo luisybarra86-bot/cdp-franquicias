@@ -1780,70 +1780,87 @@ window.exportCobroPDF=function(suc){
   const DATA=filterByDate(DB,coDesde,coHasta).filter(r=>r.sucursal===suc);
   if(!DATA.length){toast('No hay datos para esta sucursal en el periodo',false);return}
   if(!window.jspdf){toast('PDF no disponible, recarga la pagina',false);return}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF();
-  const SUC_RGB={'INDEPENDENCIA':[255,75,110],'PERON':[255,159,28],'BARRIO SUR':[46,196,182],'FLIP':[155,93,229]};
-  const rgb=SUC_RGB[suc]||[255,34,68];
-  const nombre=SUC_NAMES[suc];
-  const hoy=new Date().toLocaleDateString('es-AR');
-  doc.setFillColor(rgb[0],rgb[1],rgb[2]);
-  doc.rect(0,0,210,20,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('CDP FRANQUICIAS',14,9);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text('Informe de Cobro - Pollo Procesado',14,15);
-  doc.text('Generado: '+hoy,196,15,{align:'right'});
-  doc.setTextColor(rgb[0],rgb[1],rgb[2]);
-  doc.setFontSize(26);doc.setFont('helvetica','bold');
-  doc.text(nombre.toUpperCase(),14,34);
-  const fechas=DATA.map(r=>r.fecha).sort();
-  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
-  doc.text('Periodo: '+fechas[0]+'  al  '+fechas[fechas.length-1],14,42);
-  doc.text('Precio de venta: $ '+precio.toFixed(2)+' / kg',14,49);
-  const totalKg=DATA.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
-  const totalPesos=totalKg*precio;
-  doc.setFillColor(245,245,248);
-  doc.rect(14,55,182,24,'F');
-  doc.setDrawColor(rgb[0],rgb[1],rgb[2]);
-  doc.setLineWidth(0.5);
-  doc.rect(14,55,182,24,'S');
-  doc.setFontSize(10);doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');
-  doc.text('Total kg procesados:',20,65);
-  doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);
-  doc.text(totalKg.toFixed(2)+' kg',110,65);
-  doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);doc.setFontSize(11);
-  doc.text('TOTAL A COBRAR:',20,74);
-  doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);doc.setFontSize(13);
-  doc.text('$ '+totalPesos.toFixed(2),110,74);
-  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
-  const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
-  const kgATotal=DATA.reduce((s,r)=>s+(r.proc_alita||0),0);
-  const kgPTotal=DATA.reduce((s,r)=>s+(r.proc_pechuga||0),0);
-  const filas=weeks.map(wk=>{
-    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
-    const rows=byW[wk];
-    const kgA=rows.reduce((s,r)=>s+(r.proc_alita||0),0);
-    const kgP=rows.reduce((s,r)=>s+(r.proc_pechuga||0),0);
-    const kg=kgA+kgP;
-    return[wk+' al '+wkE.toISOString().slice(0,10),kgA.toFixed(2),kgP.toFixed(2),kg.toFixed(2),'$ '+(kg*precio).toFixed(2)];
-  });
-  filas.push(['TOTAL',kgATotal.toFixed(2),kgPTotal.toFixed(2),totalKg.toFixed(2),'$ '+totalPesos.toFixed(2)]);
-  doc.autoTable({
-    startY:86,
-    head:[['Semana','Alita kg','Pechuga kg','Total kg','Total $']],
-    body:filas,
-    headStyles:{fillColor:[rgb[0],rgb[1],rgb[2]],textColor:[255,255,255],fontStyle:'bold',fontSize:10,halign:'center'},
-    bodyStyles:{fontSize:10,halign:'center'},
-    columnStyles:{0:{halign:'left'},4:{fontStyle:'bold'}},
-    alternateRowStyles:{fillColor:[248,248,252]},
-    margin:{left:14,right:14}
-  });
-  const finalY=doc.lastAutoTable.finalY+8;
-  doc.setFontSize(8);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');
-  doc.text('CDP Franquicias - documento generado automaticamente',14,finalY);
-  doc.save('CDP_Cobro_'+nombre.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
-  toast('PDF '+nombre+' descargado');
+  function generarPDF(logoImg){
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF();
+    const rgb=[204,0,0];
+    const nombre=SUC_NAMES[suc];
+    const hoy=new Date().toLocaleDateString('es-AR');
+    // Franja superior roja
+    doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+    doc.rect(0,0,210,22,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(13);doc.setFont('helvetica','bold');
+    doc.text('LENO CDP',14,10);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');
+    doc.text('Informe de cobro semanal',14,17);
+    doc.text('Generado: '+hoy,196,17,{align:'right'});
+    // Logo LENO (si cargo)
+    if(logoImg){
+      try{doc.addImage(logoImg,'PNG',166,2,18,18);}catch(e){}
+    }
+    // Titulo franquiciado
+    doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+    doc.setFontSize(20);doc.setFont('helvetica','bold');
+    doc.text('Franquiciado '+nombre,14,34);
+    doc.setFontSize(10);doc.setFont('helvetica','normal');
+    doc.setTextColor(80,80,80);
+    doc.text('Insumo: Pollo',14,41);
+    // Periodo y precio
+    const fechas=DATA.map(r=>r.fecha).sort();
+    doc.text('Periodo: '+fechas[0]+'  al  '+fechas[fechas.length-1],14,49);
+    doc.text('Precio de venta: $ '+precio.toFixed(2)+' / kg',14,56);
+    // Caja resumen
+    const totalKg=DATA.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
+    const totalPesos=totalKg*precio;
+    doc.setFillColor(250,245,245);
+    doc.rect(14,62,182,24,'F');
+    doc.setDrawColor(rgb[0],rgb[1],rgb[2]);
+    doc.setLineWidth(0.5);
+    doc.rect(14,62,182,24,'S');
+    doc.setFontSize(10);doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');
+    doc.text('Total kg procesados:',20,72);
+    doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+    doc.text(totalKg.toFixed(2)+' kg',110,72);
+    doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);doc.setFontSize(11);
+    doc.text('Total a Cobrar:',20,81);
+    doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);doc.setFontSize(13);
+    doc.text('$ '+totalPesos.toFixed(2),110,81);
+    // Tabla semanal
+    const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+    const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
+    const kgATotal=DATA.reduce((s,r)=>s+(r.proc_alita||0),0);
+    const kgPTotal=DATA.reduce((s,r)=>s+(r.proc_pechuga||0),0);
+    const filas=weeks.map(wk=>{
+      const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
+      const rows=byW[wk];
+      const kgA=rows.reduce((s,r)=>s+(r.proc_alita||0),0);
+      const kgP=rows.reduce((s,r)=>s+(r.proc_pechuga||0),0);
+      const kg=kgA+kgP;
+      return[wk+' al '+wkE.toISOString().slice(0,10),kgA.toFixed(2),kgP.toFixed(2),kg.toFixed(2),'$ '+(kg*precio).toFixed(2)];
+    });
+    filas.push(['TOTAL',kgATotal.toFixed(2),kgPTotal.toFixed(2),totalKg.toFixed(2),'$ '+totalPesos.toFixed(2)]);
+    doc.autoTable({
+      startY:93,
+      head:[['Semana','Alita kg','Pechuga kg','Total kg','Total $']],
+      body:filas,
+      headStyles:{fillColor:[rgb[0],rgb[1],rgb[2]],textColor:[255,255,255],fontStyle:'bold',fontSize:10,halign:'center'},
+      bodyStyles:{fontSize:10,halign:'center'},
+      columnStyles:{0:{halign:'left'},4:{fontStyle:'bold'}},
+      alternateRowStyles:{fillColor:[255,248,248]},
+      margin:{left:14,right:14}
+    });
+    const finalY=doc.lastAutoTable.finalY+8;
+    doc.setFontSize(8);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');
+    doc.text('LENO CDP - documento generado automaticamente',14,finalY);
+    doc.save('LENO_CDP_Cobro_'+nombre.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+    toast('PDF '+nombre+' descargado');
+  }
+  const logo=new Image();
+  logo.onload=function(){generarPDF(logo)};
+  logo.onerror=function(){generarPDF(null)};
+  logo.crossOrigin='anonymous';
+  logo.src='icon-192.png';
 }
 
 window.exportManoObra=function(){
