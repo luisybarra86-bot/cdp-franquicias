@@ -1782,52 +1782,91 @@ window.exportCobroPDF=function(suc){
   if(!DATA.length){toast('No hay datos para esta sucursal en el periodo',false);return}
   if(!window.jspdf){toast('PDF no disponible, recarga la pagina',false);return}
   const {jsPDF}=window.jspdf;
-  const doc=new jsPDF();
-  const rgb=[204,0,0];
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297;
+  const red=[204,0,0],white=[255,255,255],dark=[30,30,30],gray=[100,100,100];
   const nombre=SUC_NAMES[suc];
   const hoy=new Date().toLocaleDateString('es-AR');
-  // Fondo patron LENO (pagina completa)
-  try{doc.addImage(LENO_BG,'JPEG',0,0,210,297);}catch(e){}
-  // Area blanca de contenido (deja patron en los margenes)
-  doc.setFillColor(255,255,255);
-  doc.rect(8,22,194,268,'F');
-  // Franja superior roja (sobre el fondo)
-  doc.setFillColor(rgb[0],rgb[1],rgb[2]);
-  doc.rect(0,0,210,22,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('LENO CDP',14,10);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text('Informe de cobro semanal',14,17);
-  doc.text('Generado: '+hoy,196,17,{align:'right'});
+  // === FONDO: patron LENO cubre toda la hoja ===
+  try{doc.addImage(LENO_BG,'JPEG',0,0,W,H);}catch(e){}
+  // === HEADER: franja roja solida ===
+  doc.setFillColor(red[0],red[1],red[2]);
+  doc.rect(0,0,W,28,'F');
+  // Linea blanca decorativa bajo el header
+  doc.setDrawColor(white[0],white[1],white[2]);
+  doc.setLineWidth(0.4);
+  doc.line(0,28,W,28);
+  // Texto header
+  doc.setTextColor(white[0],white[1],white[2]);
+  doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('LENO  CDP',14,13);
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+  doc.text('INFORME DE COBRO SEMANAL',14,21);
+  doc.setFontSize(8);
+  doc.text(hoy,W-14,21,{align:'right'});
+  // === BLOQUE TITULO: caja blanca semitransparente ===
+  doc.saveGraphicsState();
+  doc.setGState(new doc.GState({opacity:0.88}));
+  doc.setFillColor(white[0],white[1],white[2]);
+  doc.rect(8,32,W-16,42,'F');
+  doc.restoreGraphicsState();
+  // Borde izquierdo rojo como acento
+  doc.setFillColor(red[0],red[1],red[2]);
+  doc.rect(8,32,3,42,'F');
   // Titulo franquiciado
-  doc.setTextColor(rgb[0],rgb[1],rgb[2]);
-  doc.setFontSize(20);doc.setFont('helvetica','bold');
-  doc.text('Franquiciado '+nombre,14,34);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.setTextColor(80,80,80);
-  doc.text('Insumo: Pollo',14,41);
+  doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.setFontSize(22);doc.setFont('helvetica','bold');
+  doc.text('Franquiciado '+nombre.toUpperCase(),16,44);
+  // Insumo tag
+  doc.setFillColor(red[0],red[1],red[2]);
+  doc.rect(16,48,24,6,'F');
+  doc.setTextColor(white[0],white[1],white[2]);
+  doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+  doc.text('INSUMO: POLLO',17.5,52.5);
   // Periodo y precio
   const fechas=DATA.map(r=>r.fecha).sort();
-  doc.text('Periodo: '+fechas[0]+'  al  '+fechas[fechas.length-1],14,49);
-  doc.text('Precio de venta: $ '+precio.toFixed(2)+' / kg',14,56);
-  // Caja resumen
+  doc.setTextColor(gray[0],gray[1],gray[2]);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('PERIODO',16,62);
+  doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.setFontSize(9.5);doc.setFont('helvetica','bold');
+  doc.text(fechas[0]+'  al  '+fechas[fechas.length-1],16,67);
+  doc.setTextColor(gray[0],gray[1],gray[2]);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('PRECIO / KG',120,62);
+  doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.setFontSize(9.5);doc.setFont('helvetica','bold');
+  doc.text('$ '+precio.toFixed(2),120,67);
+  // === BLOQUE RESUMEN ===
+  doc.saveGraphicsState();
+  doc.setGState(new doc.GState({opacity:0.92}));
+  doc.setFillColor(white[0],white[1],white[2]);
+  doc.rect(8,78,W-16,30,'F');
+  doc.restoreGraphicsState();
+  doc.setDrawColor(red[0],red[1],red[2]);
+  doc.setLineWidth(0.5);
+  doc.rect(8,78,W-16,30,'S');
   const totalKg=DATA.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
   const totalPesos=totalKg*precio;
-  doc.setFillColor(253,242,242);
-  doc.rect(14,62,182,24,'F');
-  doc.setDrawColor(rgb[0],rgb[1],rgb[2]);
-  doc.setLineWidth(0.5);
-  doc.rect(14,62,182,24,'S');
-  doc.setFontSize(10);doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');
-  doc.text('Total kg procesados:',20,72);
-  doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);
-  doc.text(totalKg.toFixed(2)+' kg',110,72);
-  doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);doc.setFontSize(11);
-  doc.text('Total a Cobrar:',20,81);
-  doc.setFont('helvetica','bold');doc.setTextColor(rgb[0],rgb[1],rgb[2]);doc.setFontSize(13);
-  doc.text('$ '+totalPesos.toFixed(2),110,81);
-  // Tabla semanal
+  // KG procesados
+  doc.setTextColor(gray[0],gray[1],gray[2]);
+  doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+  doc.text('TOTAL KG PROCESADOS',16,86);
+  doc.setTextColor(dark[0],dark[1],dark[2]);
+  doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text(totalKg.toFixed(2)+' kg',16,97);
+  // Linea vertical separadora
+  doc.setDrawColor(220,220,220);
+  doc.setLineWidth(0.3);
+  doc.line(105,81,105,105);
+  // Total a cobrar
+  doc.setTextColor(gray[0],gray[1],gray[2]);
+  doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+  doc.text('TOTAL A COBRAR',112,86);
+  doc.setTextColor(red[0],red[1],red[2]);
+  doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('$ '+totalPesos.toFixed(2),112,97);
+  // === TABLA SEMANAL ===
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
   const kgATotal=DATA.reduce((s,r)=>s+(r.proc_alita||0),0);
@@ -1842,24 +1881,32 @@ window.exportCobroPDF=function(suc){
   });
   filas.push(['TOTAL',kgATotal.toFixed(2),kgPTotal.toFixed(2),totalKg.toFixed(2),'$ '+totalPesos.toFixed(2)]);
   doc.autoTable({
-    startY:93,
-    head:[['Semana','Alita kg','Pechuga kg','Total kg','Total $']],
+    startY:114,
+    head:[['SEMANA','ALITA  kg','PECHUGA  kg','TOTAL  kg','TOTAL  $']],
     body:filas,
-    headStyles:{fillColor:[rgb[0],rgb[1],rgb[2]],textColor:[255,255,255],fontStyle:'bold',fontSize:10,halign:'center'},
-    bodyStyles:{fontSize:10,halign:'center',fillColor:[255,255,255]},
-    columnStyles:{0:{halign:'left'},4:{fontStyle:'bold'}},
-    alternateRowStyles:{fillColor:[253,242,242]},
-    tableLineColor:[rgb[0],rgb[1],rgb[2]],
-    tableLineWidth:0.1,
-    margin:{left:14,right:14}
+    headStyles:{fillColor:[red[0],red[1],red[2]],textColor:[255,255,255],fontStyle:'bold',fontSize:9,halign:'center',cellPadding:4},
+    bodyStyles:{fontSize:9,halign:'center',fillColor:[255,255,255],textColor:[30,30,30],cellPadding:3},
+    columnStyles:{0:{halign:'left'},4:{fontStyle:'bold',textColor:[red[0],red[1],red[2]]}},
+    alternateRowStyles:{fillColor:[254,246,246]},
+    footStyles:{fillColor:[red[0],red[1],red[2]],textColor:[255,255,255],fontStyle:'bold'},
+    tableLineColor:[220,220,220],
+    tableLineWidth:0.2,
+    margin:{left:8,right:8},
+    didParseCell:function(d){
+      if(d.section==='body'&&d.row.index===filas.length-1){
+        d.cell.styles.fillColor=[red[0],red[1],red[2]];
+        d.cell.styles.textColor=[255,255,255];
+        d.cell.styles.fontStyle='bold';
+      }
+    }
   });
+  // Footer
   const finalY=doc.lastAutoTable.finalY+8;
-  doc.setFontSize(8);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');
-  doc.text('LENO CDP - documento generado automaticamente',14,finalY);
+  doc.setFontSize(7.5);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');
+  doc.text('LENO CDP  |  documento generado automaticamente',W/2,finalY,{align:'center'});
   doc.save('LENO_CDP_Cobro_'+nombre.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('PDF '+nombre+' descargado');
 }
-
 window.exportManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
   const moDesde=document.getElementById('mo-desde')?.value||'';
