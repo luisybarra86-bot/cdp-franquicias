@@ -726,6 +726,56 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
 /* ── EFICIENCIA COLOR ────────────────────────────────────── */
 .eff-ok{color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:700}
 .eff-warn{color:var(--per);font-family:'JetBrains Mono',monospace;font-weight:700}
+
+/* ── LOADING OVERLAY ─────────────────────────────────────── */
+#app-loading{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:14px;
+  z-index:9998;
+  transition:opacity .5s ease;
+}
+#app-loading.hide{opacity:0;pointer-events:none}
+.loading-wordmark{
+  font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:5px;
+  color:var(--text);line-height:1;
+}
+.loading-wordmark span{color:var(--accent)}
+.loading-sub{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--text3);letter-spacing:2px;text-transform:uppercase;
+  display:flex;align-items:center;gap:10px;
+}
+
+/* ── CONFIRM DIALOG ──────────────────────────────────────── */
+#confirm-dialog{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;
+  z-index:9997;
+}
+#confirm-dialog.open{display:flex}
+.confirm-box{
+  background:var(--modal-bg);
+  border:1px solid var(--border2);
+  border-radius:18px;padding:28px 26px 22px;width:300px;
+  text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.55);
+  animation:fadeUp .2s ease;
+}
+.confirm-icon{font-size:36px;margin-bottom:10px}
+.confirm-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--text);margin-bottom:6px}
+.confirm-msg{font-size:12px;color:var(--text2);margin-bottom:22px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns button{flex:1;padding:11px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.confirm-cancel{background:var(--surface2);color:var(--text2);border:1px solid var(--border2) !important}
+.confirm-cancel:hover{border-color:var(--text3) !important;color:var(--text)}
+.confirm-ok{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3) !important}
+.confirm-ok:hover{background:rgba(239,68,68,.25)}
+
+/* ── INPUT ERROR ─────────────────────────────────────────── */
+.input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.18) !important;animation:shake .35s ease}
+.toast.warn{border-left-color:#FF9F1C !important}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#FF9F1C">
@@ -1063,6 +1113,25 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- LOADING OVERLAY -->
+<div id="app-loading">
+  <div class="loading-wordmark">CDP <span>Franquicias</span></div>
+  <div class="loading-sub"><span class="spin" style="border-top-color:var(--accent)"></span>Conectando con la nube...</div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div id="confirm-dialog">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">🗑</div>
+    <div class="confirm-title" id="confirm-title">¿Eliminar?</div>
+    <div class="confirm-msg" id="confirm-msg">Esta acción no se puede deshacer.</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="confirmCancel()">Cancelar</button>
+      <button class="confirm-ok" id="confirm-ok-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <!-- THEME SCRIPT -->
 <script>
 function setTheme(t){
@@ -1132,9 +1201,16 @@ function setSyncStatus(s){
 
 // ── LISTENER ──
 const q = query(collection(db,COL), orderBy("fecha","desc"));
+let _firstLoad=true;
 onSnapshot(q, (snap)=>{
   DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
   setSyncStatus('online');
+  if(_firstLoad){
+    _firstLoad=false;
+    const ov=document.getElementById('app-loading');
+    ov.classList.add('hide');
+    setTimeout(()=>ov.style.display='none',500);
+  }
   renderReg();
   renderGraf();
   const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
@@ -1159,12 +1235,15 @@ function filterByDate(arr,desde='',hasta=''){
   return arr.filter(r=>{if(!r.fecha)return false;if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
 }
 
-function toast(msg,ok=true){
+function toast(msg,type='ok'){
   const t=document.getElementById('toast');
   t.textContent=msg;
-  t.style.borderLeftColor=ok?'#22c55e':'#ef4444';
+  t.classList.remove('warn');
+  if(type==='ok'||type===true)t.style.borderLeftColor='#22c55e';
+  else if(type==='error'||type===false){t.style.borderLeftColor='#ef4444';}
+  else if(type==='warn'){t.style.borderLeftColor='#FF9F1C';t.classList.add('warn');}
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3200);
+  setTimeout(()=>t.classList.remove('show'),3600);
 }
 
 // ── PIN ──
@@ -1257,11 +1336,44 @@ window.calcPollo=function(){
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
 
+function markError(id){
+  const el=document.getElementById(id);
+  el.classList.add('input-error');
+  setTimeout(()=>el.classList.remove('input-error'),800);
+}
+
 window.guardar=async function(){
   const fecha=document.getElementById('f-fecha').value;
   const suc=document.getElementById('f-suc').value;
-  if(!fecha){toast('❌ Falta la fecha',false);return}
-  if(!suc){toast('❌ Elegí una sucursal',false);return}
+  if(!fecha){toast('❌ Falta la fecha','error');markError('f-fecha');return}
+  if(!suc){toast('❌ Elegí una sucursal','error');markError('f-suc');return}
+
+  // Aviso duplicado
+  const exists=DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
+  if(exists){
+    showConfirm({
+      icon:'⚠️',
+      title:'Registro existente',
+      msg:`Ya hay un registro para ${SUC_NAMES[suc]} · ${fecha}.\n¿Querés sobreescribirlo?`,
+      okLabel:'Sobreescribir',
+      okClass:'confirm-ok',
+      onOk:()=>_doGuardar(fecha,suc)
+    });
+    return;
+  }
+
+  // Aviso si procesado > pedido (no bloquea, solo avisa)
+  const pedKg=num('f-ped-kg'), procKg=num('f-proc-kg');
+  const pedAlita=num('f-ped-alita'), procAlita=num('f-proc-alita');
+  const pedPechuga=num('f-ped-pechuga'), procPechuga=num('f-proc-pechuga');
+  if(pedKg>0&&procKg>pedKg) toast(`⚠️ Carne: procesado (${procKg} kg) supera pedido (${pedKg} kg)`,'warn');
+  if(pedAlita>0&&procAlita>pedAlita) toast(`⚠️ Alita: procesado supera pedido`,'warn');
+  if(pedPechuga>0&&procPechuga>pedPechuga) toast(`⚠️ Pechuga: procesado supera pedido`,'warn');
+
+  await _doGuardar(fecha,suc);
+}
+
+async function _doGuardar(fecha,suc){
   const btn=document.getElementById('btn-guardar');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   setSyncStatus('syncing');
@@ -1279,7 +1391,7 @@ window.guardar=async function(){
     toast(`✅ Guardado — ${SUC_NAMES[suc]} · ${fecha}`);
     limpiar();
   }catch(e){
-    toast('❌ Error: '+e.message,false);
+    toast('❌ Error: '+e.message,'error');
     setSyncStatus('error');
   }
   btn.disabled=false;btn.innerHTML='💾 Guardar en la nube';
@@ -1294,13 +1406,39 @@ window.limpiar=function(){
   calcKg();
 }
 
-window.delReg=async function(id){
-  if(!confirm('¿Eliminar este registro de la nube?'))return;
-  try{
-    await deleteDoc(doc(db,COL,id));
-    toast('🗑 Registro eliminado');
-  }catch(e){toast('❌ Error: '+e.message,false)}
+window.delReg=function(id){
+  showConfirm({
+    icon:'🗑',
+    title:'Eliminar registro',
+    msg:'Este registro será eliminado de la nube permanentemente.',
+    okLabel:'Eliminar',
+    onOk:async()=>{
+      try{
+        await deleteDoc(doc(db,COL,id));
+        toast('🗑 Registro eliminado');
+      }catch(e){toast('❌ Error: '+e.message,'error')}
+    }
+  });
 }
+
+let _confirmCallback=null;
+function showConfirm({icon='🗑',title,msg,okLabel='Confirmar',onOk}){
+  document.getElementById('confirm-icon').textContent=icon;
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-ok-btn').textContent=okLabel;
+  _confirmCallback=onOk;
+  document.getElementById('confirm-dialog').classList.add('open');
+}
+window.confirmCancel=function(){
+  document.getElementById('confirm-dialog').classList.remove('open');
+  _confirmCallback=null;
+}
+document.getElementById('confirm-ok-btn').addEventListener('click',()=>{
+  document.getElementById('confirm-dialog').classList.remove('open');
+  if(_confirmCallback) _confirmCallback();
+  _confirmCallback=null;
+});
 
 // ── REGISTROS ──
 window.setRegF=function(s,btn){
