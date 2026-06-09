@@ -776,6 +776,26 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
 /* ── INPUT ERROR ─────────────────────────────────────────── */
 .input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.18) !important;animation:shake .35s ease}
 .toast.warn{border-left-color:#FF9F1C !important}
+
+/* ── EDIT BANNER ─────────────────────────────────────────── */
+.edit-banner{
+  display:none;
+  padding:9px 24px;
+  background:rgba(255,159,28,.1);
+  border-bottom:1px solid rgba(255,159,28,.2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--accent);letter-spacing:.3px;
+  align-items:center;gap:8px;
+}
+.edit-banner.show{display:flex}
+.btn-edit{
+  background:rgba(99,179,237,.1);
+  border:1px solid rgba(99,179,237,.25);
+  color:#63b3ed;
+  padding:5px 10px;font-size:11px;border-radius:7px;
+  cursor:pointer;transition:background .15s;font-family:'DM Sans',sans-serif;font-weight:600;
+}
+.btn-edit:hover{background:rgba(99,179,237,.2)}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#FF9F1C">
@@ -833,8 +853,9 @@ if('serviceWorker' in navigator){
 <div id="tab-cargar" class="panel active">
   <div class="card">
     <div class="card-head">
-      <span class="card-title">Cargar envío del día</span>
+      <span class="card-title" id="cargar-title">Cargar envío del día</span>
     </div>
+    <div class="edit-banner" id="edit-banner">✏️ Editando: <strong id="edit-banner-info"></strong><button class="btn-edit" style="margin-left:auto" onclick="limpiar()">✕ Cancelar edición</button></div>
     <div class="card-body">
       <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
         <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
@@ -905,6 +926,9 @@ if('serviceWorker' in navigator){
     <div class="card-head">
       <span class="card-title">Todos los registros</span>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input class="search-input" type="date" id="reg-desde" style="width:130px" oninput="renderReg()" title="Desde">
+        <span style="color:var(--text3);font-size:11px">→</span>
+        <input class="search-input" type="date" id="reg-hasta" style="width:130px" oninput="renderReg()" title="Hasta">
         <input class="search-input" type="text" id="reg-search" placeholder="Buscar..." oninput="renderReg()">
         <button class="btn btn-excel" onclick="exportExcel()">↓ Excel</button>
       </div>
@@ -1186,7 +1210,7 @@ const MN={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06'
 const SUC_NAMES={'INDEPENDENCIA':'Independencia','PERON':'Perón','BARRIO SUR':'Barrio Sur','FLIP':'Flip'};
 const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip'};
 
-let DB=[], regF='ALL', semV='carne', mesV='carne', CHS={};
+let DB=[], regF='ALL', semV='carne', mesV='carne', CHS={}, editingId=null;
 
 // ── SYNC ──
 function setSyncStatus(s){
@@ -1377,8 +1401,9 @@ async function _doGuardar(fecha,suc){
   const btn=document.getElementById('btn-guardar');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   setSyncStatus('syncing');
+  const docId=editingId||`${suc}_${fecha}`;
   try{
-    await setDoc(doc(db,COL,`${suc}_${fecha}`),{
+    await setDoc(doc(db,COL,docId),{
       fecha,sucursal:suc,
       ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
       med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
@@ -1403,7 +1428,42 @@ window.limpiar=function(){
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+  editingId=null;
+  document.getElementById('edit-banner').classList.remove('show');
+  document.getElementById('cargar-title').textContent='Cargar envío del día';
+  document.getElementById('btn-guardar').innerHTML='💾 Guardar en la nube';
   calcKg();
+}
+
+window.editReg=function(id){
+  const r=DB.find(x=>x._id===id);
+  if(!r)return;
+  editingId=id;
+  document.getElementById('f-fecha').value=r.fecha||'';
+  document.getElementById('f-suc').value=r.sucursal||'';
+  document.getElementById('f-ped-kg').value=r.ped_kg||'';
+  document.getElementById('f-rec-kg').value=r.rec_kg||'';
+  document.getElementById('f-proc-kg').value=r.proc_kg||'';
+  document.getElementById('f-med110').value=r.med110||'';
+  document.getElementById('f-bol110').value=r.bol110||'';
+  document.getElementById('f-med75').value=r.med75||'';
+  document.getElementById('f-ped-alita').value=r.ped_alita||'';
+  document.getElementById('f-proc-alita').value=r.proc_alita||'';
+  document.getElementById('f-ped-pechuga').value=r.ped_pechuga||'';
+  document.getElementById('f-proc-pechuga').value=r.proc_pechuga||'';
+  document.getElementById('f-alitas').value=r.alitas||'';
+  document.getElementById('f-filet').value=r.filet||'';
+  document.getElementById('f-popCorns').value=r.popCorns||'';
+  document.getElementById('f-tiras').value=r.tiras||'';
+  calcKg(); calcPollo();
+  document.getElementById('cargar-title').textContent='Editar registro';
+  document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
+  document.getElementById('edit-banner-info').textContent=`${SUC_NAMES[r.sucursal]} · ${r.fecha}`;
+  document.getElementById('edit-banner').classList.add('show');
+  // Navegar al tab cargar
+  const btn=document.querySelector('.nav-btn');
+  goTab('cargar',btn);
+  document.querySelector('#tab-cargar').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 window.delReg=function(id){
@@ -1449,7 +1509,15 @@ window.setRegF=function(s,btn){
 
 window.renderReg=function(){
   const q=(document.getElementById('reg-search')?.value||'').toLowerCase();
-  const rows=DB.filter(r=>(regF==='ALL'||r.sucursal===regF)&&(!q||r.fecha?.includes(q)||r.sucursal?.toLowerCase().includes(q)));
+  const desde=document.getElementById('reg-desde')?.value||'';
+  const hasta=document.getElementById('reg-hasta')?.value||'';
+  const rows=DB.filter(r=>{
+    if(regF!=='ALL'&&r.sucursal!==regF)return false;
+    if(desde&&r.fecha<desde)return false;
+    if(hasta&&r.fecha>hasta)return false;
+    if(q&&!r.fecha?.includes(q)&&!r.sucursal?.toLowerCase().includes(q))return false;
+    return true;
+  });
   const tblWrap=document.getElementById('reg-tbody')?.closest('.tbl-wrap');
   const tb=document.getElementById('reg-tbody');
   if(!tb)return;
@@ -1470,7 +1538,7 @@ window.renderReg=function(){
       <td>${r.ped_kg||0}</td><td>${r.rec_kg||0}</td><td>${r.proc_kg||0}</td>
       <td>${r.med110||0}</td><td>${r.bol110||0}</td>
       <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
-      <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
+      <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
     </tr>`).join('');
   } else {
     // Vista por sucursal — tablas separadas carne / pollo
@@ -1500,7 +1568,7 @@ window.renderReg=function(){
             <td>${r.rec_kg||0}</td>
             <td style="color:#22c55e;font-weight:600">${r.proc_kg||0}</td>
             <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
-            <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
+            <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
           </tr>`).join('')}</tbody>
         </table>
       </div>
@@ -1517,7 +1585,7 @@ window.renderReg=function(){
             <td style="color:#FF4B6E;font-weight:600">${r.ped_pechuga||0}</td>
             <td style="color:#22c55e;font-weight:600">${r.proc_pechuga||0}</td>
             <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
-            <td><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
+            <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
           </tr>`).join('')}</tbody>
         </table>
       </div>`;
