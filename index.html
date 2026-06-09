@@ -942,6 +942,10 @@ if('serviceWorker' in navigator){
         <button class="sf-btn" data-s="FLIP" onclick="setRegF('FLIP',this)">Flip</button>
       </div>
     </div>
+    <div id="reg-old-banner" style="display:none;padding:10px 24px;background:rgba(255,159,28,.08);border-bottom:1px solid rgba(255,159,28,.15);display:none;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace">⚠️ Mostrando solo últimos 6 meses.</span>
+      <button id="reg-fetch-old-btn" class="btn-edit" onclick="fetchOldRecords()">Buscar en período completo</button>
+    </div>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
@@ -1186,7 +1190,7 @@ const FECHA_CORTE = '2026-03-23';
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, where, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCp0PTMPDod1FGDE3nstyHTrpxKfW3HyeM",
@@ -1223,11 +1227,14 @@ function setSyncStatus(s){
   else{lbl.textContent='Conectando...'}
 }
 
-// ── LISTENER ──
-const q = query(collection(db,COL), orderBy("fecha","desc"));
-let _firstLoad=true;
+// ── LISTENER — últimos 6 meses por defecto ──
+const _d6m = new Date(); _d6m.setMonth(_d6m.getMonth()-6);
+const DEFAULT_DESDE = _d6m.toISOString().slice(0,10);
+const q = query(collection(db,COL), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
+let _firstLoad=true, _extDB=null;
 onSnapshot(q, (snap)=>{
   DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
+  _extDB=null; // resetear resultados extendidos al recibir sync
   setSyncStatus('online');
   if(_firstLoad){
     _firstLoad=false;
@@ -1481,6 +1488,22 @@ window.delReg=function(id){
   });
 }
 
+// ── BÚSQUEDA EXTENDIDA (datos anteriores a 6 meses) ──
+window.fetchOldRecords=async function(){
+  const btn=document.getElementById('reg-fetch-old-btn');
+  const desde=document.getElementById('reg-desde')?.value||'';
+  if(btn){btn.disabled=true;btn.textContent='Buscando...';}
+  try{
+    const snap=await getDocs(query(collection(db,COL),where("fecha",">=",desde||'2000-01-01'),orderBy("fecha","desc")));
+    _extDB=snap.docs.map(d=>({...d.data(),_id:d.id}));
+    renderReg();
+    toast(`✅ ${_extDB.length} registros cargados`);
+  }catch(e){
+    toast('❌ Error: '+e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='Buscar en período completo';}
+  }
+}
+
 let _confirmCallback=null;
 function showConfirm({icon='🗑',title,msg,okLabel='Confirmar',onOk}){
   document.getElementById('confirm-icon').textContent=icon;
@@ -1511,7 +1534,12 @@ window.renderReg=function(){
   const q=(document.getElementById('reg-search')?.value||'').toLowerCase();
   const desde=document.getElementById('reg-desde')?.value||'';
   const hasta=document.getElementById('reg-hasta')?.value||'';
-  const rows=DB.filter(r=>{
+  // Mostrar banner si pide datos más viejos que el límite y no se buscó aún
+  const needsOld=desde&&desde<DEFAULT_DESDE;
+  const banner=document.getElementById('reg-old-banner');
+  if(banner) banner.style.display=needsOld&&!_extDB?'flex':'none';
+  const source=_extDB||DB;
+  const rows=source.filter(r=>{
     if(regF!=='ALL'&&r.sucursal!==regF)return false;
     if(desde&&r.fecha<desde)return false;
     if(hasta&&r.fecha>hasta)return false;
