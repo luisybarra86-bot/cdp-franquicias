@@ -396,6 +396,33 @@ body{
   border-left:3px solid #2EC4B6;
   color:#2EC4B6;
 }
+/* ── FORM CARGAR — Opción B ── */
+.suc-chip{
+  padding:10px 4px;border:1px solid var(--border2);border-radius:10px;
+  text-align:center;cursor:pointer;font-size:12px;font-weight:600;
+  color:var(--text2);background:var(--input-bg);
+  font-family:'JetBrains Mono',monospace;letter-spacing:.5px;
+  transition:all .15s;
+}
+.suc-chip.active{background:#222;color:#fff;border-color:#444;}
+[data-theme="red"] .suc-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+[data-theme="light"] .suc-chip.active{background:#111;color:#fff;border-color:#111;}
+.form-group-b{margin-bottom:8px;}
+.form-group-b label{
+  display:block;font-size:10px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;
+}
+.form-group-b input{
+  width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;
+  color:var(--text);background:var(--input-bg);outline:none;
+  text-align:right;transition:border-color .2s;
+}
+.form-group-b input:focus{border-color:var(--accent);}
+.inp-pedido{border-color:rgba(239,68,68,.55)!important;background:rgba(239,68,68,.07)!important;color:#ef4444!important;}
+.inp-pedido:focus{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,.15)!important;}
+.inp-procesado{border-color:rgba(34,197,94,.55)!important;background:rgba(34,197,94,.07)!important;color:#16a34a!important;}
+.inp-procesado:focus{border-color:#22c55e!important;box-shadow:0 0 0 3px rgba(34,197,94,.15)!important;}
 /* ── KPI compacto en gráficos ── */
 .kpi-sm .kpi-val{font-size:26px}
 .kpi-sm{padding:14px 14px}
@@ -899,41 +926,60 @@ if('serviceWorker' in navigator){
     </div>
     <div class="edit-banner" id="edit-banner">✏️ Editando: <strong id="edit-banner-info"></strong><button class="btn-edit" style="margin-left:auto" onclick="limpiar()">✕ Cancelar edición</button></div>
     <div class="card-body">
-      <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
-        <div class="form-group"><label>Fecha</label><input type="date" id="f-fecha"></div>
-        <div class="form-group"><label>Sucursal</label>
-          <select id="f-suc">
-            <option value="">— Elegir —</option>
-            <option>INDEPENDENCIA</option><option>PERON</option>
-            <option>BARRIO SUR</option><option>FLIP</option>
-          </select>
+
+      <!-- Fecha -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <label style="font-size:12px;color:var(--text3);min-width:42px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Fecha</label>
+        <input type="date" id="f-fecha" style="flex:1;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:14px;outline:none">
+        <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;white-space:nowrap">Hoy</button>
+      </div>
+
+      <!-- Sucursal chips -->
+      <div style="margin-bottom:18px">
+        <label style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px">Sucursal</label>
+        <select id="f-suc" style="display:none">
+          <option value="">— Elegir —</option>
+          <option>INDEPENDENCIA</option><option>PERON</option>
+          <option>BARRIO SUR</option><option>FLIP</option>
+        </select>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <button class="suc-chip" data-v="INDEPENDENCIA" onclick="setSucChip(this)">IND</button>
+          <button class="suc-chip" data-v="PERON" onclick="setSucChip(this)">PER</button>
+          <button class="suc-chip" data-v="BARRIO SUR" onclick="setSucChip(this)">BAR</button>
+          <button class="suc-chip" data-v="FLIP" onclick="setSucChip(this)">FLIP</button>
         </div>
       </div>
 
-      <div class="sec-title sec-title-carne">🥩 Carne</div>
-      <div class="form-grid">
-        <div class="form-group"><label style="color:var(--accent2)">Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Recibido (kg)</label><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label>Medallón 90g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
-        <div class="form-group"><label>Bolita 90g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
-        <div class="form-group"><label>Medallón 75g</label><input type="number" id="f-med75" min="0" placeholder="0"></div>
+      <!-- Carne + Pollo en dos columnas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+
+        <!-- CARNE -->
+        <div style="background:var(--surface2);border-radius:10px;padding:12px 14px">
+          <div class="sec-title sec-title-carne" style="margin:0 0 12px 0;padding:6px 10px">🥩 Carne</div>
+          <div class="form-group-b"><label>Pedido (kg)</label><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0" class="inp-pedido"></div>
+          <div class="form-group-b"><label>Recibido (kg)</label><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
+          <div class="form-group-b"><label>Procesado (kg)</label><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0" class="inp-procesado"></div>
+          <div class="form-group-b"><label>Medallón 90g</label><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
+          <div class="form-group-b"><label>Bolita 90g</label><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
+          <input type="hidden" id="f-med75" value="0">
+        </div>
+
+        <!-- POLLO -->
+        <div style="background:var(--surface2);border-radius:10px;padding:12px 14px">
+          <div class="sec-title sec-title-pollo" style="margin:0 0 12px 0;padding:6px 10px">🐔 Pollo</div>
+          <div class="form-group-b"><label>Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0" class="inp-pedido"></div>
+          <div class="form-group-b"><label>Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" class="inp-procesado" oninput="calcPollo()"></div>
+          <div class="form-group-b"><label>Ped. Filet (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0" class="inp-pedido"></div>
+          <div class="form-group-b"><label>Proc. Filet (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" class="inp-procesado" oninput="calcPollo()"></div>
+          <div class="form-group-b"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
+          <div class="form-group-b"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
+          <div class="form-group-b"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
+          <div class="form-group-b"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
+        </div>
       </div>
 
-      <div class="sec-title sec-title-pollo">🐔 Pollo</div>
-      <div class="form-grid">
-        <div class="form-group"><label style="color:var(--accent2)">Ped. Alita (kg)</label><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Alita (kg)</label><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-        <div class="form-group"><label style="color:var(--accent2)">Ped. Pechuga (kg)</label><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
-        <div class="form-group"><label style="color:#22c55e">Proc. Pechuga (kg)</label><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-        <div class="form-group"><label>Alitas</label><input type="number" id="f-alitas" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Filet</label><input type="number" id="f-filet" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Pop Corns</label><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
-        <div class="form-group"><label>Tiras</label><input type="number" id="f-tiras" min="0" placeholder="0"></div>
-      </div>
-
-      <!-- CALCULADORA KG — al final -->
-      <div class="calc-box" style="margin-top:20px">
+      <!-- CALCULADORA KG -->
+      <div class="calc-box">
         <div class="calc-head">
           <span>Tipo</span><span style="text-align:center">Cantidad</span><span>Kg equiv.</span>
         </div>
@@ -1496,7 +1542,7 @@ async function _doGuardar(fecha,suc){
       source:'web'
     });
     toast(`✅ Guardado — ${SUC_NAMES[suc]} · ${fecha}`);
-    limpiar();
+    limpiarNumeros();
   }catch(e){
     toast('❌ Error: '+e.message,'error');
     setSyncStatus('error');
@@ -1504,11 +1550,27 @@ async function _doGuardar(fecha,suc){
   btn.disabled=false;btn.innerHTML='💾 Guardar en la nube';
 }
 
+window.setSucChip=function(btn){
+  document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('f-suc').value=btn.dataset.v;
+};
+
+window.limpiarNumeros=function(){
+  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
+   'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
+   'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-suc').value='';
+  document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
+  calcKg();
+}
+
 window.limpiar=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
+  document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
   editingId=null;
   document.getElementById('edit-banner').classList.remove('show');
@@ -1523,6 +1585,7 @@ window.editReg=function(id){
   editingId=id;
   document.getElementById('f-fecha').value=r.fecha||'';
   document.getElementById('f-suc').value=r.sucursal||'';
+  document.querySelectorAll('.suc-chip').forEach(c=>c.classList.toggle('active',c.dataset.v===(r.sucursal||'')));
   document.getElementById('f-ped-kg').value=r.ped_kg||'';
   document.getElementById('f-rec-kg').value=r.rec_kg||'';
   document.getElementById('f-proc-kg').value=r.proc_kg||'';
