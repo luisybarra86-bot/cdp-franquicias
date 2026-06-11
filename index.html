@@ -833,6 +833,9 @@ tr:hover td{background:var(--tbl-hover);color:var(--text)}
   cursor:pointer;transition:background .15s;font-family:'DM Sans',sans-serif;font-weight:600;
 }
 .btn-edit:hover{background:rgba(99,179,237,.2)}
+.btn-gtipo{background:transparent;border:none;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:background .15s,color .15s}
+.btn-gtipo.active{background:var(--accent);color:#fff}
+.btn-gtipo:hover:not(.active){background:var(--hover)}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#FF9F1C">
@@ -1048,13 +1051,19 @@ if('serviceWorker' in navigator){
         <option value="BARRIO SUR">Barrio Sur</option>
         <option value="FLIP">Flip</option>
       </select>
-      <button class="btn" style="padding:6px 12px;font-size:12px" onclick="document.getElementById('graf-desde').value='';document.getElementById('graf-hasta').value='';document.getElementById('graf-suc').value='ALL';renderGraf()">Limpiar</button>
+      <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px">
+        <button id="gtipo-all" class="btn-gtipo active" onclick="setGrafTipo('ALL')">Ambos</button>
+        <button id="gtipo-carne" class="btn-gtipo" onclick="setGrafTipo('carne')">🥩 Carne</button>
+        <button id="gtipo-pollo" class="btn-gtipo" onclick="setGrafTipo('pollo')">🐔 Pollo</button>
+      </div>
+      <button class="btn" style="padding:6px 12px;font-size:12px" onclick="document.getElementById('graf-desde').value='';document.getElementById('graf-hasta').value='';document.getElementById('graf-suc').value='ALL';setGrafTipo('ALL')">Limpiar</button>
+      <button class="btn" style="padding:6px 12px;font-size:12px;background:var(--accent);color:#fff;margin-left:auto" onclick="exportGrafPDF()">⬇️ PDF</button>
     </div>
   </div>
   <div class="kpi-row" id="kpi-row"></div>
   <div class="charts-grid">
-    <div class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--ind)"></span>Carne Procesada — Mensual por Sucursal (kg)</div><div class="ch-wrap"><canvas id="ch1"></canvas></div></div>
-    <div class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--fli)"></span>Productos Pollo por Sucursal</div><div class="ch-wrap"><canvas id="ch4"></canvas></div></div>
+    <div id="graf-carne-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--ind)"></span>Carne Procesada — Mensual por Sucursal (kg)</div><div class="ch-wrap"><canvas id="ch1"></canvas></div></div>
+    <div id="graf-pollo-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--fli)"></span>Productos Pollo por Sucursal</div><div class="ch-wrap"><canvas id="ch4"></canvas></div></div>
   </div>
 </div>
 
@@ -1837,6 +1846,16 @@ function getChartDefaults(){
   };
 }
 
+var _grafTipo='ALL';
+window.setGrafTipo=function(t){
+  _grafTipo=t;
+  ['ALL','carne','pollo'].forEach(k=>{
+    const id=k==='ALL'?'gtipo-all':'gtipo-'+k;
+    document.getElementById(id)?.classList.toggle('active',k===t);
+  });
+  renderGraf();
+};
+
 window.renderGraf=function(){
   const kr=document.getElementById('kpi-row');
   if(!kr)return;
@@ -1851,31 +1870,149 @@ window.renderGraf=function(){
     return true;
   });
   const sucsFilt=grafSuc==='ALL'?SUCS:[grafSuc];
-  kr.innerHTML=`
+  const showCarne=_grafTipo!=='pollo';
+  const showPollo=_grafTipo!=='carne';
+  const carneKpis=showCarne?`
     <div class="kpi-section-label carne">🥩 Carne</div>
     <div class="kpi kpi-sm" style="--ac:#FF4B6E"><div class="kpi-label">Kg Pedido</div><div class="kpi-val">${sum(GDB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#FF9F1C"><div class="kpi-label">Kg Procesado</div><div class="kpi-val">${sum(GDB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(GDB,'med110'))}</div><div class="kpi-sub">unidades</div></div>
-    <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(GDB,'bol110'))}</div><div class="kpi-sub">unidades</div></div>
+    <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(GDB,'bol110'))}</div><div class="kpi-sub">unidades</div></div>`:'';
+  const polloKpis=showPollo?`
     <div class="kpi-section-label pollo" style="margin-top:8px">🐔 Pollo</div>
     <div class="kpi kpi-sm" style="--ac:#9B5DE5"><div class="kpi-label">Alita Pedido</div><div class="kpi-val">${sum(GDB,'ped_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#7B2FBE"><div class="kpi-label">Alita Procesado</div><div class="kpi-val">${sum(GDB,'proc_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#F15BB5"><div class="kpi-label">Pechuga Pedido</div><div class="kpi-val">${sum(GDB,'ped_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi kpi-sm" style="--ac:#C9184A"><div class="kpi-label">Pechuga Procesado</div><div class="kpi-val">${sum(GDB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    `;
+    <div class="kpi kpi-sm" style="--ac:#C9184A"><div class="kpi-label">Pechuga Procesado</div><div class="kpi-val">${sum(GDB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>`:'';
+  kr.innerHTML=carneKpis+polloKpis;
+  document.getElementById('graf-carne-section').style.display=showCarne?'':'none';
+  document.getElementById('graf-pollo-section').style.display=showPollo?'':'none';
   if(!GDB.length)return;
   Object.values(CHS).forEach(c=>{try{c.destroy()}catch(e){}});CHS={};
   const COPT=getChartDefaults();
   const months=[...new Set(GDB.map(r=>monthKey(r.fecha)))].sort();
-  CHS.c1=new Chart(document.getElementById('ch1'),{type:'bar',data:{labels:months,datasets:sucsFilt.map(s=>({label:SUC_NAMES[s],data:months.map(m=>sum(GDB.filter(r=>r.sucursal===s&&monthKey(r.fecha)===m),'proc_kg')),backgroundColor:SC[s]+'99',borderColor:SC[s],borderWidth:1.5,borderRadius:6,borderSkipped:false}))},options:COPT});
+  if(showCarne)
+    CHS.c1=new Chart(document.getElementById('ch1'),{type:'bar',data:{labels:months,datasets:sucsFilt.map(s=>({label:SUC_NAMES[s],data:months.map(m=>sum(GDB.filter(r=>r.sucursal===s&&monthKey(r.fecha)===m),'proc_kg')),backgroundColor:SC[s]+'99',borderColor:SC[s],borderWidth:1.5,borderRadius:6,borderSkipped:false}))},options:COPT});
+  if(showPollo)
+    CHS.c4=new Chart(document.getElementById('ch4'),{type:'bar',data:{labels:sucsFilt.map(s=>SUC_NAMES[s]),datasets:[
+      {label:'Alitas',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'alitas')),backgroundColor:'#FF4B6E99',borderColor:'#FF4B6E',borderWidth:1.5,borderRadius:4},
+      {label:'Filet',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'filet')),backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5},
+      {label:'Pop Corns',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'popCorns')),backgroundColor:'#2EC4B699',borderColor:'#2EC4B6',borderWidth:1.5},
+      {label:'Tiras',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'tiras')),backgroundColor:'#9B5DE599',borderColor:'#9B5DE5',borderWidth:1.5}
+    ]},options:{...COPT,scales:{...COPT.scales,x:{...COPT.scales.x,stacked:true},y:{...COPT.scales.y,stacked:true}}}});
+};
 
-  CHS.c4=new Chart(document.getElementById('ch4'),{type:'bar',data:{labels:sucsFilt.map(s=>SUC_NAMES[s]),datasets:[
-    {label:'Alitas',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'alitas')),backgroundColor:'#FF4B6E99',borderColor:'#FF4B6E',borderWidth:1.5,borderRadius:4},
-    {label:'Filet',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'filet')),backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5},
-    {label:'Pop Corns',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'popCorns')),backgroundColor:'#2EC4B699',borderColor:'#2EC4B6',borderWidth:1.5},
-    {label:'Tiras',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'tiras')),backgroundColor:'#9B5DE599',borderColor:'#9B5DE5',borderWidth:1.5}
-  ]},options:{...COPT,scales:{...COPT.scales,x:{...COPT.scales.x,stacked:true},y:{...COPT.scales.y,stacked:true}}}});
-}
+window.exportGrafPDF=function(){
+  if(!window.jspdf){toast('PDF no disponible, recarga la página',false);return}
+  const {jsPDF}=window.jspdf;
+  const grafDesde=document.getElementById('graf-desde')?.value||'';
+  const grafHasta=document.getElementById('graf-hasta')?.value||'';
+  const grafSuc=document.getElementById('graf-suc')?.value||'ALL';
+  const hoyG=new Date().toISOString().slice(0,10);
+  const GDB=DB.filter(r=>{
+    if(grafDesde&&r.fecha<grafDesde)return false;
+    if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
+    if(grafSuc!=='ALL'&&r.sucursal!==grafSuc)return false;
+    return true;
+  });
+  if(!GDB.length){toast('No hay datos para exportar',false);return}
+  const sucsFilt=grafSuc==='ALL'?SUCS:[grafSuc];
+  const showCarne=_grafTipo!=='pollo';
+  const showPollo=_grafTipo!=='carne';
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210;
+  const BLK=[17,17,17],WHT=[255,255,255],GRY=[120,120,120];
+  const hoy=new Date().toLocaleDateString('es-AR');
+  // Header
+  doc.setFillColor(...BLK);doc.rect(0,0,W,26,'F');
+  doc.setTextColor(...WHT);doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('LENO  CDP',14,13);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.setTextColor(...GRY);
+  const tipoLabel=showCarne&&showPollo?'CARNE + POLLO':showCarne?'CARNE':'POLLO';
+  doc.text('INFORME DE GRÁFICOS — '+tipoLabel,14,20);
+  doc.setTextColor(170,170,170);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text(hoy,W-14,13,{align:'right'});
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+  doc.text('Fecha de emisión',W-14,20,{align:'right'});
+  doc.setDrawColor(68,68,68);doc.setLineWidth(0.8);doc.line(0,26,W,26);
+  // Período y sucursal
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+  const periodo=(grafDesde||grafHasta)?(grafDesde||'inicio')+' → '+(grafHasta||hoy):'Todo el período';
+  const sucLabel=grafSuc==='ALL'?'Todas las sucursales':SUC_NAMES[grafSuc]||grafSuc;
+  doc.text('Período: '+periodo+'   |   Sucursal: '+sucLabel,14,34);
+  let y=42;
+  const months=[...new Set(GDB.map(r=>monthKey(r.fecha)))].sort();
+  if(showCarne){
+    doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+    doc.text('🥩 Carne',14,y);y+=2;
+    doc.setDrawColor(220,50,50);doc.setLineWidth(0.5);doc.line(14,y,W-14,y);y+=4;
+    // KPIs carne en línea
+    const kc=[
+      ['Kg Pedido',sum(GDB,'ped_kg').toFixed(1)+' kg'],
+      ['Kg Procesado',sum(GDB,'proc_kg').toFixed(1)+' kg'],
+      ['Medallón 90g',fmt(sum(GDB,'med110'))+' u'],
+      ['Bolita 90g',fmt(sum(GDB,'bol110'))+' u'],
+    ];
+    const cw=(W-28)/kc.length;
+    kc.forEach((k,i)=>{
+      const x=14+i*cw;
+      doc.setFillColor(248,248,248);doc.rect(x,y,cw-2,14,'F');
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
+      doc.text(k[0],x+2,y+5);
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(k[1],x+2,y+12);
+    });
+    y+=20;
+    // Tabla carne por mes × sucursal
+    const carneHead=[['Mes',...sucsFilt.map(s=>SUC_NAMES[s]||s),'Total']];
+    const carneBody=months.map(m=>{
+      const vals=sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s&&monthKey(r.fecha)===m),'proc_kg'));
+      return[m,...vals.map(v=>v.toFixed(1)),vals.reduce((a,b)=>a+b,0).toFixed(1)];
+    });
+    doc.autoTable({startY:y,head:carneHead,body:carneBody,theme:'grid',headStyles:{fillColor:BLK,textColor:WHT,fontSize:8},bodyStyles:{fontSize:8},margin:{left:14,right:14}});
+    y=doc.lastAutoTable.finalY+10;
+  }
+  if(showPollo){
+    if(y>240){doc.addPage();y=20;}
+    doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+    doc.text('🐔 Pollo',14,y);y+=2;
+    doc.setDrawColor(120,60,200);doc.setLineWidth(0.5);doc.line(14,y,W-14,y);y+=4;
+    const kp=[
+      ['Alita Pedido',sum(GDB,'ped_alita').toFixed(1)+' kg'],
+      ['Alita Proc.',sum(GDB,'proc_alita').toFixed(1)+' kg'],
+      ['Pechuga Ped.',sum(GDB,'ped_pechuga').toFixed(1)+' kg'],
+      ['Pechuga Proc.',sum(GDB,'proc_pechuga').toFixed(1)+' kg'],
+    ];
+    const pw=(W-28)/kp.length;
+    kp.forEach((k,i)=>{
+      const x=14+i*pw;
+      doc.setFillColor(248,248,248);doc.rect(x,y,pw-2,14,'F');
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
+      doc.text(k[0],x+2,y+5);
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(k[1],x+2,y+12);
+    });
+    y+=20;
+    // Tabla pollo: alitas / filet / popCorns / tiras por sucursal
+    const polloHead=[['Sucursal','Alitas','Filet','Pop Corns','Tiras']];
+    const polloBody=sucsFilt.map(s=>[
+      SUC_NAMES[s]||s,
+      sum(GDB.filter(r=>r.sucursal===s),'alitas').toFixed(0),
+      sum(GDB.filter(r=>r.sucursal===s),'filet').toFixed(0),
+      sum(GDB.filter(r=>r.sucursal===s),'popCorns').toFixed(0),
+      sum(GDB.filter(r=>r.sucursal===s),'tiras').toFixed(0),
+    ]);
+    if(sucsFilt.length>1){
+      polloBody.push(['Total',
+        sum(GDB,'alitas').toFixed(0),sum(GDB,'filet').toFixed(0),
+        sum(GDB,'popCorns').toFixed(0),sum(GDB,'tiras').toFixed(0)]);
+    }
+    doc.autoTable({startY:y,head:polloHead,body:polloBody,theme:'grid',headStyles:{fillColor:[80,30,160],textColor:WHT,fontSize:8},bodyStyles:{fontSize:8},margin:{left:14,right:14}});
+  }
+  const fileName='LENO_CDP_Graficos_'+hoyG+(grafSuc!=='ALL'?'_'+grafSuc:'')+'.pdf';
+  doc.save(fileName);
+};
 
 // ── MANO DE OBRA ──
 window.renderManoObra=function(){
