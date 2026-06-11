@@ -70,7 +70,6 @@ function subirConMask(docId, reg, fieldNames) {
   const mask = fieldNames.map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
   const url  = `${FIRESTORE_BASE}/${docId}?${mask}&key=${API_KEY}`;
 
-  // Solo incluir en el body los campos del mask
   const subset = {};
   fieldNames.forEach(f => { if (f in reg) subset[f] = reg[f]; });
 
@@ -107,42 +106,39 @@ function buildCarne(rowData, suc) {
 function buildPollo(rowData, suc) {
   const c = suc.startCol;
   return {
-    fecha:       parseDate(rowData[c]),
-    sucursal:    suc.id,
-    ped_alita:   parseNum(rowData[c + 1]),
-    proc_alita:  parseNum(rowData[c + 2]),
-    ped_pechuga: parseNum(rowData[c + 3]),
-    proc_pechuga:parseNum(rowData[c + 4]),
-    alitas:      parseNum(rowData[c + 6]),
-    filet:       parseNum(rowData[c + 7]),
-    popCorns:    parseNum(rowData[c + 8]),
-    tiras:       parseNum(rowData[c + 9]),
-    createdAt:   new Date().toISOString(),
-    source:      'sheets',
+    fecha:        parseDate(rowData[c]),
+    sucursal:     suc.id,
+    ped_alita:    parseNum(rowData[c + 1]),
+    proc_alita:   parseNum(rowData[c + 2]),
+    ped_pechuga:  parseNum(rowData[c + 3]),
+    proc_pechuga: parseNum(rowData[c + 4]),
+    alitas:       parseNum(rowData[c + 6]),
+    filet:        parseNum(rowData[c + 7]),
+    popCorns:     parseNum(rowData[c + 8]),
+    tiras:        parseNum(rowData[c + 9]),
+    createdAt:    new Date().toISOString(),
+    source:       'sheets',
   };
 }
 
 // ── Sync automático al editar ──────────────────────────────────
 
 function onEditInstalable(e) {
-  const sheet  = e.source.getActiveSheet();
+  const sheet   = e.source.getActiveSheet();
   const sheetId = sheet.getSheetId();
-  const row    = e.range.getRow();
-  const col    = e.range.getColumn() - 1; // 0-based
+  const row     = e.range.getRow();
+  const col     = e.range.getColumn() - 1; // 0-based
 
-  // Detectar si es hoja carne o pollo
   let isCarne, dataRow;
   if      (sheetId === CARNE_GID) { isCarne = true;  dataRow = CARNE_DATA_ROW; }
   else if (sheetId === POLLO_GID) { isCarne = false; dataRow = POLLO_DATA_ROW; }
-  else return; // otra hoja → ignorar
+  else return;
 
-  if (row < dataRow) return; // fila de encabezado → ignorar
+  if (row < dataRow) return;
 
-  // Detectar sucursal por columna
   const suc = SUCURSALES.find(s => col >= s.startCol && col < s.startCol + 10);
   if (!suc) return;
 
-  // Leer la fila completa
   const rowData = sheet.getRange(row, 1, 1, 45).getValues()[0];
 
   try {
@@ -160,49 +156,59 @@ function onEditInstalable(e) {
   }
 }
 
-// ── Sync manual completo (ambas hojas) ────────────────────────
+// ── Sync manual completo — batchWrite para evitar timeout ──────
 
 function sincronizar() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let ok = 0, errores = [];
+  const requests = [];
 
-  // Buscar las hojas por GID
+  function addSheet(sheet, dataRow, buildFn, fields, sucs) {
+    if (!sheet) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < dataRow) return;
+    const data = sheet.getRange(dataRow, 1, lastRow - dataRow + 1, sheet.getLastColumn()).getValues();
+    sucs.forEach(function(suc) {
+      data.forEach(function(row) {
+        const reg = buildFn(row, suc);
+        if (!reg.fecha) return;
+        const docId = suc.id + '_' + reg.fecha;
+        const mask  = fields.map(f => 'updateMask.fieldPaths=' + encodeURIComponent(f)).join('&');
+        const subset = {};
+        fields.forEach(f => { if (f in reg) subset[f] = reg[f]; });
+        requests.push({
+          url:         FIRESTORE_BASE + '/' + docId + '?' + mask + '&key=' + API_KEY,
+          method:      'PATCH',
+          contentType: 'application/json',
+          payload:     JSON.stringify(toFirestoreDoc(subset)),
+          muteHttpExceptions: true,
+        });
+      });
+    });
+  }
+
   const carneSheet = ss.getSheets().find(s => s.getSheetId() === CARNE_GID);
   const polloSheet = ss.getSheets().find(s => s.getSheetId() === POLLO_GID);
 
-  // ── Carne ──
-  if (carneSheet) {
-    const data = carneSheet.getDataRange().getValues();
-    for (const suc of SUCURSALES) {
-      for (let i = CARNE_DATA_ROW - 1; i < data.length; i++) {
-        const reg = buildCarne(data[i], suc);
-        if (!reg.fecha) continue;
-        try {
-          const code = subirConMask(`${suc.id}_${reg.fecha}`, reg, CARNE_FIELDS);
-          code === 200 ? ok++ : errores.push(`CARNE ${reg.fecha} ${suc.id} → ${code}`);
-        } catch(e) { errores.push(`CARNE ${suc.id}: ${e.message}`); }
-      }
-    }
+  addSheet(carneSheet, CARNE_DATA_ROW, buildCarne, CARNE_FIELDS, SUCURSALES);
+  addSheet(polloSheet, POLLO_DATA_ROW, buildPollo, POLLO_FIELDS, SUCURSALES);
+
+  if (!requests.length) {
+    SpreadsheetApp.getUi().alert('CDP Franquicias', 'No hay registros con fecha para sincronizar.', SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
   }
 
-  // ── Pollo ──
-  if (polloSheet) {
-    const data = polloSheet.getDataRange().getValues();
-    for (const suc of SUCURSALES) {
-      for (let i = POLLO_DATA_ROW - 1; i < data.length; i++) {
-        const reg = buildPollo(data[i], suc);
-        if (!reg.fecha) continue;
-        try {
-          const code = subirConMask(`${suc.id}_${reg.fecha}`, reg, POLLO_FIELDS);
-          code === 200 ? ok++ : errores.push(`POLLO ${reg.fecha} ${suc.id} → ${code}`);
-        } catch(e) { errores.push(`POLLO ${suc.id}: ${e.message}`); }
-      }
-    }
+  // fetchAll manda hasta 100 requests en paralelo → mucho más rápido que uno por uno
+  var ok = 0;
+  var CHUNK = 100;
+  for (var i = 0; i < requests.length; i += CHUNK) {
+    UrlFetchApp.fetchAll(requests.slice(i, i + CHUNK)).forEach(function(res) {
+      if (res.getResponseCode() === 200) ok++;
+    });
   }
 
-  const msg = `Sincronización completada\n✅ ${ok} registros subidos a Firebase`
-    + (errores.length ? `\n\n❌ ${errores.length} errores:\n${errores.slice(0,5).join('\n')}` : '');
-  SpreadsheetApp.getUi().alert('CDP Franquicias', msg, SpreadsheetApp.getUi().ButtonSet.OK);
+  SpreadsheetApp.getUi().alert('CDP Franquicias',
+    'Sincronización completada\n✅ ' + ok + ' de ' + requests.length + ' registros subidos a Firebase',
+    SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
 // ── Reset total: borrar Firestore y recargar desde Sheets ────────
@@ -216,22 +222,18 @@ function resetYResincronizar() {
   );
   if (confirmBtn !== ui.Button.YES) return;
 
-  // 1. Listar todos los nombres de documentos
   const allDocNames = [];
   let nextToken = null;
 
   do {
     let listUrl = `${FIRESTORE_BASE}?pageSize=300&key=${API_KEY}`;
     if (nextToken) listUrl += `&pageToken=${encodeURIComponent(nextToken)}`;
-
     const listRes  = UrlFetchApp.fetch(listUrl, { muteHttpExceptions: true });
     const listData = JSON.parse(listRes.getContentText());
-
     (listData.documents || []).forEach(d => allDocNames.push(d.name));
     nextToken = listData.nextPageToken || null;
   } while (nextToken);
 
-  // 2. Borrar en lotes de 500 usando batchWrite (mucho más rápido)
   const batchUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents:batchWrite?key=${API_KEY}`;
   const BATCH = 500;
 
@@ -245,7 +247,6 @@ function resetYResincronizar() {
     });
   }
 
-  // 3. Recargar todo desde Sheets
   sincronizar();
 }
 

@@ -1680,7 +1680,8 @@ function renderSem(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
   }
-  const byWeek=groupBy(DB.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const hoy=new Date().toISOString().slice(0,10);
+  const byWeek=groupBy(DB.filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
   let html='';
   Object.keys(byWeek).sort().reverse().forEach(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
@@ -1738,7 +1739,8 @@ function renderMes(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
   }
-  const byM=groupBy(DB.filter(r=>monthKey(r.fecha)),r=>monthKey(r.fecha));
+  const hoy=new Date().toISOString().slice(0,10);
+  const byM=groupBy(DB.filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
   let html='';
   Object.keys(byM).sort().reverse().forEach(mk=>{
     const [yr,mo]=mk.split('-');
@@ -1845,6 +1847,7 @@ window.renderGraf=function(){
     {label:'Pop Corns',data:SUCS.map(s=>sum(DB.filter(r=>r.sucursal===s),'popCorns')),backgroundColor:'#2EC4B699',borderColor:'#2EC4B6',borderWidth:1.5},
     {label:'Tiras',data:SUCS.map(s=>sum(DB.filter(r=>r.sucursal===s),'tiras')),backgroundColor:'#9B5DE599',borderColor:'#9B5DE5',borderWidth:1.5}
   ]},options:{...COPT,scales:{...COPT.scales,x:{...COPT.scales.x,stacked:true},y:{...COPT.scales.y,stacked:true}}}});
+
 }
 
 // ── MANO DE OBRA ──
