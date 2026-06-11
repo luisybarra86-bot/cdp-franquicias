@@ -1132,11 +1132,15 @@ if('serviceWorker' in navigator){
     </div>
     <div class="card-body">
       <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
-        <div class="form-group" style="margin:0;min-width:240px">
-          <label>Precio de venta por kg ($ ARS)</label>
-          <input type="number" id="co-precio" min="0" step="0.01" placeholder="Ej: 2800" oninput="renderCobro()">
+        <div class="form-group" style="margin:0;min-width:200px">
+          <label>🐔 Precio venta Alita ($ / kg)</label>
+          <input type="number" id="co-precio-alita" min="0" step="0.01" placeholder="Ej: 3200" oninput="renderCobro()">
         </div>
-        <div style="font-size:12px;color:var(--text3);padding-bottom:12px">← Ingresá el precio y los totales se calculan automáticamente</div>
+        <div class="form-group" style="margin:0;min-width:200px">
+          <label>🍗 Precio venta Filet ($ / kg)</label>
+          <input type="number" id="co-precio-filet" min="0" step="0.01" placeholder="Ej: 4500" oninput="renderCobro()">
+        </div>
+        <div style="font-size:12px;color:var(--text3);padding-bottom:12px">← Ingresá los precios y los totales se calculan automáticamente</div>
       </div>
     </div>
   </div>
@@ -1157,10 +1161,10 @@ if('serviceWorker' in navigator){
       <table>
         <thead><tr>
           <th>Semana</th>
-          <th style="color:var(--ind)">IND kg</th><th style="color:var(--ind)">IND $</th>
-          <th style="color:var(--per)">PER kg</th><th style="color:var(--per)">PER $</th>
-          <th style="color:var(--bar)">BAR kg</th><th style="color:var(--bar)">BAR $</th>
-          <th style="color:var(--fli)">FLIP kg</th><th style="color:var(--fli)">FLIP $</th>
+          <th style="color:var(--ind)">IND alita</th><th style="color:var(--ind)">IND filet</th><th style="color:var(--ind)">IND $</th>
+          <th style="color:var(--per)">PER alita</th><th style="color:var(--per)">PER filet</th><th style="color:var(--per)">PER $</th>
+          <th style="color:var(--bar)">BAR alita</th><th style="color:var(--bar)">BAR filet</th><th style="color:var(--bar)">BAR $</th>
+          <th style="color:var(--fli)">FLIP alita</th><th style="color:var(--fli)">FLIP filet</th><th style="color:var(--fli)">FLIP $</th>
           <th>Total $</th>
         </tr></thead>
         <tbody id="co-tbody"></tbody>
@@ -2131,7 +2135,8 @@ window.exportExcel=function(desdeId,hastaId){
 
 // ── COBRO ──
 window.renderCobro=function(){
-  const precio=parseFloat(document.getElementById('co-precio')?.value)||0;
+  const pAlita=parseFloat(document.getElementById('co-precio-alita')?.value)||0;
+  const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
   const DATA=filterByDate(DB,coDesde,coHasta);
@@ -2139,13 +2144,20 @@ window.renderCobro=function(){
   const tbody=document.getElementById('co-tbody');
   const periodo=document.getElementById('co-periodo');
   if(!cards||!tbody)return;
-  const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
-  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
-  const totalKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
+  const kgAlita={},kgFilet={};
+  SUCS.forEach(s=>{kgAlita[s]=0;kgFilet[s]=0;});
+  DATA.forEach(r=>{
+    if(r.sucursal&&kgAlita[r.sucursal]!==undefined){
+      kgAlita[r.sucursal]+=(r.proc_alita||0);
+      kgFilet[r.sucursal]+=(r.proc_pechuga||0);
+    }
+  });
+  const totAlita=Object.values(kgAlita).reduce((a,b)=>a+b,0);
+  const totFilet=Object.values(kgFilet).reduce((a,b)=>a+b,0);
   if(DATA.length){const fechas=DATA.map(r=>r.fecha).sort();periodo.textContent=`${fechas[0]} → ${fechas[fechas.length-1]}`;}
   else{periodo.textContent=coDesde||coHasta?`${coDesde||'Inicio'} → ${coHasta||'Hoy'}`:''}
-  if(!precio){
-    cards.innerHTML='<div class="empty"><div class="ico">💰</div><p>Ingresá el precio por kg para ver los totales.</p></div>';
+  if(!pAlita&&!pFilet){
+    cards.innerHTML='<div class="empty"><div class="ico">💰</div><p>Ingresá el precio por kg de Alita y/o Filet para ver los totales.</p></div>';
     tbody.innerHTML='';return;
   }
   if(!DATA.length){
@@ -2153,11 +2165,16 @@ window.renderCobro=function(){
     tbody.innerHTML='';return;
   }
   cards.innerHTML=`<div class="mo-cards-grid">${SUCS.map(suc=>{
-    const kg=kgSuc[suc],total=kg*precio;
+    const kgA=kgAlita[suc],kgF=kgFilet[suc];
+    const total=kgA*pAlita+kgF*pFilet;
     return`<div class="mo-card" style="--ac:${SC[suc]}">
       <div class="mo-card-label">${SUC_NAMES[suc]}</div>
-      <div class="mo-card-kg">${kg.toFixed(2)}</div>
-      <div class="mo-card-unit">kg procesados</div>
+      <div style="margin:8px 0 2px;font-size:11px;color:var(--muted)">🐔 Alita</div>
+      <div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace">${kgA.toFixed(2)} kg</div>
+      ${pAlita?`<div style="font-size:12px;color:#9B5DE5;font-family:'JetBrains Mono',monospace">${ARS(kgA*pAlita)}</div>`:''}
+      <div style="margin:8px 0 2px;font-size:11px;color:var(--muted)">🍗 Filet</div>
+      <div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace">${kgF.toFixed(2)} kg</div>
+      ${pFilet?`<div style="font-size:12px;color:#F15BB5;font-family:'JetBrains Mono',monospace">${ARS(kgF*pFilet)}</div>`:''}
       <hr class="mo-card-divider">
       <div class="mo-card-cost-label">Total a cobrar</div>
       <div class="mo-card-cost">${ARS(total)}</div>
@@ -2166,10 +2183,13 @@ window.renderCobro=function(){
   }).join('')}</div>
   <div class="mo-total-bar">
     <div>
-      <div class="mo-total-label">Total general pollo procesado</div>
-      <div class="mo-total-sub">${totalKg.toFixed(2)} kg × ${ARS(precio)}/kg</div>
+      <div class="mo-total-label">Total general a cobrar</div>
+      <div class="mo-total-sub" style="display:flex;gap:14px;flex-wrap:wrap">
+        ${pAlita?`<span>🐔 ${totAlita.toFixed(2)} kg × ${ARS(pAlita)} = ${ARS(totAlita*pAlita)}</span>`:''}
+        ${pFilet?`<span>🍗 ${totFilet.toFixed(2)} kg × ${ARS(pFilet)} = ${ARS(totFilet*pFilet)}</span>`:''}
+      </div>
     </div>
-    <div class="mo-total-val">${ARS(totalKg*precio)}</div>
+    <div class="mo-total-val">${ARS(totAlita*pAlita+totFilet*pFilet)}</div>
   </div>`;
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
@@ -2177,26 +2197,39 @@ window.renderCobro=function(){
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
     const cols=SUCS.map(suc=>{
       const rows=byW[wk].filter(r=>r.sucursal===suc);
-      const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
-      return`<td>${kg.toFixed(2)}</td><td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:600">${ARS(kg*precio)}</td>`;
+      const kgA=rows.reduce((s,r)=>s+(r.proc_alita||0),0);
+      const kgF=rows.reduce((s,r)=>s+(r.proc_pechuga||0),0);
+      const tot=kgA*pAlita+kgF*pFilet;
+      return`<td>${kgA.toFixed(2)}</td><td>${kgF.toFixed(2)}</td><td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:600">${ARS(tot)}</td>`;
     }).join('');
-    const totKg=SUCS.reduce((s,suc)=>{const rows=byW[wk].filter(r=>r.sucursal===suc);return s+rows.reduce((x,r)=>x+(r.proc_alita||0)+(r.proc_pechuga||0),0)},0);
-    return`<tr><td style="white-space:nowrap;font-family:'JetBrains Mono',monospace">${wk} → ${wkE.toISOString().slice(0,10)}</td>${cols}<td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:700">${ARS(totKg*precio)}</td></tr>`;
+    const totSem=SUCS.reduce((s,suc)=>{
+      const rows=byW[wk].filter(r=>r.sucursal===suc);
+      return s+rows.reduce((x,r)=>x+(r.proc_alita||0)*pAlita+(r.proc_pechuga||0)*pFilet,0);
+    },0);
+    return`<tr><td style="white-space:nowrap;font-family:'JetBrains Mono',monospace">${wk} → ${wkE.toISOString().slice(0,10)}</td>${cols}<td style="color:#22c55e;font-family:'JetBrains Mono',monospace;font-weight:700">${ARS(totSem)}</td></tr>`;
   }).join('');
 }
 
 window.exportCobro=function(){
-  const precio=parseFloat(document.getElementById('co-precio')?.value)||0;
+  const pAlita=parseFloat(document.getElementById('co-precio-alita')?.value)||0;
+  const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
   const DATA=filterByDate(DB,coDesde,coHasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
-  const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
-  DATA.forEach(r=>{if(r.sucursal&&kgSuc[r.sucursal]!==undefined)kgSuc[r.sucursal]+=(r.proc_alita||0)+(r.proc_pechuga||0)});
-  const resumen=SUCS.map(suc=>({'Sucursal':SUC_NAMES[suc],'Kg Procesados Pollo':+kgSuc[suc].toFixed(2),'Precio x Kg ($)':precio,'Total a Cobrar ($)':+(kgSuc[suc]*precio).toFixed(2)}));
-  const totKg=Object.values(kgSuc).reduce((a,b)=>a+b,0);
-  resumen.push({'Sucursal':'TOTAL','Kg Procesados Pollo':+totKg.toFixed(2),'Precio x Kg ($)':precio,'Total a Cobrar ($)':+(totKg*precio).toFixed(2)});
+  const kgAlita={},kgFilet={};
+  SUCS.forEach(s=>{kgAlita[s]=0;kgFilet[s]=0;});
+  DATA.forEach(r=>{if(r.sucursal&&kgAlita[r.sucursal]!==undefined){kgAlita[r.sucursal]+=(r.proc_alita||0);kgFilet[r.sucursal]+=(r.proc_pechuga||0);}});
+  const resumen=SUCS.map(suc=>({
+    'Sucursal':SUC_NAMES[suc],
+    'Alita kg':+kgAlita[suc].toFixed(2),'Precio Alita ($/kg)':pAlita,'Total Alita ($)':+(kgAlita[suc]*pAlita).toFixed(2),
+    'Filet kg':+kgFilet[suc].toFixed(2),'Precio Filet ($/kg)':pFilet,'Total Filet ($)':+(kgFilet[suc]*pFilet).toFixed(2),
+    'Total a Cobrar ($)':+(kgAlita[suc]*pAlita+kgFilet[suc]*pFilet).toFixed(2)
+  }));
+  const tA=Object.values(kgAlita).reduce((a,b)=>a+b,0);
+  const tF=Object.values(kgFilet).reduce((a,b)=>a+b,0);
+  resumen.push({'Sucursal':'TOTAL','Alita kg':+tA.toFixed(2),'Precio Alita ($/kg)':pAlita,'Total Alita ($)':+(tA*pAlita).toFixed(2),'Filet kg':+tF.toFixed(2),'Precio Filet ($/kg)':pFilet,'Total Filet ($)':+(tF*pFilet).toFixed(2),'Total a Cobrar ($)':+(tA*pAlita+tF*pFilet).toFixed(2)});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(resumen),'Resumen por Sucursal');
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const semRows=[];
@@ -2204,8 +2237,16 @@ window.exportCobro=function(){
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
     const row={'Semana':wk,'Hasta':wkE.toISOString().slice(0,10)};
     let totS=0;
-    SUCS.forEach(suc=>{const rows=byW[wk].filter(r=>r.sucursal===suc);const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);row[SUC_NAMES[suc]+' kg']=+kg.toFixed(2);row[SUC_NAMES[suc]+' $']=+(kg*precio).toFixed(2);totS+=kg;});
-    row['Total $']=+(totS*precio).toFixed(2);semRows.push(row);
+    SUCS.forEach(suc=>{
+      const rows=byW[wk].filter(r=>r.sucursal===suc);
+      const kgA=rows.reduce((s,r)=>s+(r.proc_alita||0),0);
+      const kgF=rows.reduce((s,r)=>s+(r.proc_pechuga||0),0);
+      row[SUC_NAMES[suc]+' alita kg']=+kgA.toFixed(2);
+      row[SUC_NAMES[suc]+' filet kg']=+kgF.toFixed(2);
+      row[SUC_NAMES[suc]+' $']=+(kgA*pAlita+kgF*pFilet).toFixed(2);
+      totS+=kgA*pAlita+kgF*pFilet;
+    });
+    row['Total $']=+totS.toFixed(2);semRows.push(row);
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
   XLSX.writeFile(wb,`CDP_Cobro_${new Date().toISOString().slice(0,10)}.xlsx`);
@@ -2213,10 +2254,11 @@ window.exportCobro=function(){
 }
 
 window.exportCobroPDF=function(suc){
-  const precio=parseFloat(document.getElementById('co-precio')?.value)||0;
+  const pAlita=parseFloat(document.getElementById('co-precio-alita')?.value)||0;
+  const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
-  if(!precio){toast('Ingresa el precio por kg primero',false);return}
+  if(!pAlita&&!pFilet){toast('Ingresá al menos un precio por kg primero',false);return}
   const DATA=filterByDate(DB,coDesde,coHasta).filter(r=>r.sucursal===suc);
   if(!DATA.length){toast('No hay datos para esta sucursal en el periodo',false);return}
   if(!window.jspdf){toast('PDF no disponible, recarga la pagina',false);return}
@@ -2306,60 +2348,60 @@ window.exportCobroPDF=function(suc){
     doc.text(val,x+3,y+9.5);
   }
   infoCell(gx1,gy1,'PERIODO',periodoStr);
-  infoCell(gx2,gy1,'PRECIO DE VENTA / KG',fmtARS(precio));
+  infoCell(gx2,gy1,'PRECIO ALITA / KG',(pAlita?fmtARS(pAlita):'—')+'   FILET: '+(pFilet?fmtARS(pFilet):'—'));
   infoCell(gx1,gy2,'INSUMO','Pollo procesado');
   infoCell(gx2,gy2,'SUCURSAL','Leno '+nombre);
   // ── CARDS RESUMEN ──
-  const cy=gy2+cH+5,ch=22,cw1=88,cw2=W-30-cw1;
-  // Card KG (gris claro)
-  doc.setFillColor(250,250,250);
-  doc.rect(14,cy,cw1,ch,'F');
-  doc.setDrawColor(224,224,224);doc.setLineWidth(0.3);
-  doc.rect(14,cy,cw1,ch,'S');
-  const totalKg=DATA.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);
-  const totalPesos=totalKg*precio;
-  doc.setTextColor(GRY[0],GRY[1],GRY[2]);
-  doc.setFontSize(6.5);doc.setFont('helvetica','bold');
-  doc.text('TOTAL KG PROCESADOS',17,cy+6);
-  doc.setTextColor(DRK[0],DRK[1],DRK[2]);
-  doc.setFontSize(17);doc.setFont('helvetica','bold');
-  doc.text(totalKg.toFixed(2),17,cy+18);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.setTextColor(GRY[0],GRY[1],GRY[2]);
-  doc.text('kg',17+doc.getTextWidth(totalKg.toFixed(2))+2,cy+18);
-  // Card $ (negro)
-  doc.setFillColor(BLK[0],BLK[1],BLK[2]);
-  doc.rect(14+cw1+4,cy,cw2,ch,'F');
-  doc.setTextColor(GRY[0],GRY[1],GRY[2]);
-  doc.setFontSize(6.5);doc.setFont('helvetica','bold');
-  doc.text('TOTAL A COBRAR',14+cw1+7,cy+6);
-  doc.setTextColor(WHT[0],WHT[1],WHT[2]);
-  doc.setFontSize(17);doc.setFont('helvetica','bold');
-  doc.text(fmtARS(totalPesos),14+cw1+7,cy+18);
+  const kgATotal=DATA.reduce((s,r)=>s+(r.proc_alita||0),0);
+  const kgPTotal=DATA.reduce((s,r)=>s+(r.proc_pechuga||0),0);
+  const totalKg=kgATotal+kgPTotal;
+  const totalPesos=kgATotal*pAlita+kgPTotal*pFilet;
+  const cy=gy2+cH+5,ch=22;
+  // Card alita
+  const cw3=(W-32)/3;
+  doc.setFillColor(250,250,250);doc.rect(14,cy,cw3,ch,'F');
+  doc.setDrawColor(224,224,224);doc.setLineWidth(0.3);doc.rect(14,cy,cw3,ch,'S');
+  doc.setTextColor(GRY[0],GRY[1],GRY[2]);doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+  doc.text('ALITA KG',17,cy+6);
+  doc.setTextColor(DRK[0],DRK[1],DRK[2]);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text(kgATotal.toFixed(2)+' kg',17,cy+13);
+  doc.setFontSize(8);doc.setTextColor(100,80,160);
+  doc.text(pAlita?fmtARS(kgATotal*pAlita):'—',17,cy+20);
+  // Card filet
+  doc.setFillColor(250,250,250);doc.rect(14+cw3+2,cy,cw3,ch,'F');
+  doc.setDrawColor(224,224,224);doc.rect(14+cw3+2,cy,cw3,ch,'S');
+  doc.setTextColor(GRY[0],GRY[1],GRY[2]);doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+  doc.text('FILET KG',17+cw3+2,cy+6);
+  doc.setTextColor(DRK[0],DRK[1],DRK[2]);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text(kgPTotal.toFixed(2)+' kg',17+cw3+2,cy+13);
+  doc.setFontSize(8);doc.setTextColor(180,60,120);
+  doc.text(pFilet?fmtARS(kgPTotal*pFilet):'—',17+cw3+2,cy+20);
+  // Card total (negro)
+  const cx3=14+(cw3+2)*2;
+  doc.setFillColor(BLK[0],BLK[1],BLK[2]);doc.rect(cx3,cy,cw3,ch,'F');
+  doc.setTextColor(GRY[0],GRY[1],GRY[2]);doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+  doc.text('TOTAL A COBRAR',cx3+3,cy+6);
+  doc.setTextColor(WHT[0],WHT[1],WHT[2]);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text(fmtARS(totalPesos),cx3+3,cy+18);
   // ── TABLA SEMANAL ──
   const tableY=cy+ch+7;
-  // Titulo seccion
-  doc.setTextColor(GRY[0],GRY[1],GRY[2]);
-  doc.setFontSize(7);doc.setFont('helvetica','bold');
+  doc.setTextColor(GRY[0],GRY[1],GRY[2]);doc.setFontSize(7);doc.setFont('helvetica','bold');
   doc.text('DETALLE SEMANAL',14,tableY);
   doc.setDrawColor(232,232,232);doc.setLineWidth(0.2);
   doc.line(50,tableY-0.5,W-14,tableY-0.5);
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
-  const kgATotal=DATA.reduce((s,r)=>s+(r.proc_alita||0),0);
-  const kgPTotal=DATA.reduce((s,r)=>s+(r.proc_pechuga||0),0);
   const filas=weeks.map(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
     const rows=byW[wk];
     const kgA=rows.reduce((s,r)=>s+(r.proc_alita||0),0);
     const kgP=rows.reduce((s,r)=>s+(r.proc_pechuga||0),0);
-    const kg=kgA+kgP;
-    return[wk+' al '+wkE.toISOString().slice(0,10),kgA.toFixed(2),kgP.toFixed(2),kg.toFixed(2),fmtARS(kg*precio)];
+    return[wk+' al '+wkE.toISOString().slice(0,10),kgA.toFixed(2),fmtARS(kgA*pAlita),kgP.toFixed(2),fmtARS(kgP*pFilet),fmtARS(kgA*pAlita+kgP*pFilet)];
   });
-  filas.push(['TOTAL',kgATotal.toFixed(2),kgPTotal.toFixed(2),totalKg.toFixed(2),fmtARS(totalPesos)]);
+  filas.push(['TOTAL',kgATotal.toFixed(2),fmtARS(kgATotal*pAlita),kgPTotal.toFixed(2),fmtARS(kgPTotal*pFilet),fmtARS(totalPesos)]);
   doc.autoTable({
     startY:tableY+3,
-    head:[['SEMANA','ALITA KG','PECHUGA KG','TOTAL KG','TOTAL $']],
+    head:[['SEMANA','ALITA KG','ALITA $','FILET KG','FILET $','TOTAL $']],
     body:filas,
     headStyles:{fillColor:[34,34,34],textColor:[204,204,204],fontStyle:'bold',fontSize:7,halign:'center',cellPadding:3},
     bodyStyles:{fontSize:7.5,halign:'center',fillColor:[255,255,255],textColor:[68,68,68],cellPadding:2.5},
