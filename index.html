@@ -1049,9 +1049,9 @@ if('serviceWorker' in navigator){
       <div class="precio-section">
         <span class="sec-lbl-precio">$ Precios de compra — actualizar solo ante cambio de precio</span>
         <div class="g3-precio">
-          <div class="fp"><span>Carne ($/kg)</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0"></div>
-          <div class="fp"><span>Alita ($/kg)</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0"></div>
-          <div class="fp"><span>Filet ($/kg)</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0"></div>
+          <div class="fp"><span>Carne ($/kg)</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
+          <div class="fp"><span>Alita ($/kg)</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
+          <div class="fp"><span>Filet ($/kg)</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
         </div>
         <div class="precio-note">📌 Se mantienen del registro anterior. Solo modificar si hubo cambio de precio.</div>
       </div>
@@ -1607,6 +1607,7 @@ window.calcPollo=function(){
 
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+precargarPrecios(); // cargar precios desde localStorage al abrir la página
 
 function markError(id){
   const el=document.getElementById(id);
@@ -1662,6 +1663,7 @@ async function _doGuardar(fecha,suc){
       createdAt:new Date().toISOString(),
       source:'web'
     });
+    guardarPreciosLocal(); // persistir precios en localStorage para próximas sesiones
     toast(`✅ Guardado — ${SUC_NAMES[suc]} · ${fecha}`);
     limpiarNumeros();
   }catch(e){
@@ -1753,20 +1755,41 @@ window.delReg=function(id){
 }
 
 // ── PRECIOS STICKY ──
+const LS_PRECIOS='cdp_precios_v1';
+
+function guardarPreciosLocal(){
+  const c=document.getElementById('f-precio-carne')?.value;
+  const a=document.getElementById('f-precio-alita')?.value;
+  const f=document.getElementById('f-precio-filet')?.value;
+  if(c||a||f) localStorage.setItem(LS_PRECIOS,JSON.stringify({c:c||'',a:a||'',f:f||''}));
+}
+
 function precargarPrecios(){
-  // Solo precarga si los campos están vacíos (no sobreescribir lo que el operador ya puso)
   const cEl=document.getElementById('f-precio-carne');
   const aEl=document.getElementById('f-precio-alita');
   const fEl=document.getElementById('f-precio-filet');
   if(!cEl||!aEl||!fEl) return;
-  if(cEl.value&&aEl.value&&fEl.value) return; // ya tiene valores
-  // Buscar el registro más reciente de DB que tenga precios
+  if(cEl.value&&aEl.value&&fEl.value) return; // ya tiene valores en pantalla
+
+  // 1. Intentar desde localStorage (persiste entre sesiones)
+  try{
+    const saved=JSON.parse(localStorage.getItem(LS_PRECIOS)||'{}');
+    if(saved.c||saved.a||saved.f){
+      if(!cEl.value&&saved.c) cEl.value=saved.c;
+      if(!aEl.value&&saved.a) aEl.value=saved.a;
+      if(!fEl.value&&saved.f) fEl.value=saved.f;
+      return;
+    }
+  }catch(e){}
+
+  // 2. Fallback: buscar en el último registro de Firestore que tenga precios
   const sorted=[...DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const last=sorted.find(r=>r.precio_carne||r.precio_alita||r.precio_filet);
   if(!last) return;
   if(!cEl.value&&last.precio_carne) cEl.value=last.precio_carne;
   if(!aEl.value&&last.precio_alita) aEl.value=last.precio_alita;
   if(!fEl.value&&last.precio_filet) fEl.value=last.precio_filet;
+  guardarPreciosLocal(); // guardar en localStorage para próximas sesiones
 }
 
 // ── DASHBOARD ──
