@@ -404,9 +404,39 @@ body{
   font-family:'JetBrains Mono',monospace;letter-spacing:.5px;
   transition:all .15s;
 }
-.suc-chip.active{background:#222;color:#fff;border-color:#444;}
-[data-theme="red"] .suc-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-[data-theme="light"] .suc-chip.active{background:#111;color:#fff;border-color:#111;}
+.suc-chip[data-v="INDEPENDENCIA"].active{background:var(--ind);border-color:var(--ind);color:#fff;}
+.suc-chip[data-v="PERON"].active{background:var(--per);border-color:var(--per);color:#000;}
+.suc-chip[data-v="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#000;}
+.suc-chip[data-v="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff;}
+/* ── Layout 2 columnas Cargar Día ── */
+.cargar-2col{display:grid;grid-template-columns:270px 1fr;gap:14px;align-items:start}
+@media(max-width:820px){.cargar-2col{grid-template-columns:1fr}}
+/* ── Panel info sucursal (derecha) ── */
+.sp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px 20px;color:var(--text3);font-size:13px;text-align:center}
+.sp-empty i{font-size:32px;opacity:.3}
+.sp-header{border-radius:12px 12px 0 0;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.sp-header-name{font-size:16px;font-weight:700;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.sp-header-sub{font-size:10px;font-weight:500;opacity:.8;letter-spacing:.3px}
+.sp-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px}
+.sp-kpi{background:var(--surface2);border-radius:8px;padding:8px 10px}
+.sp-kpi-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px}
+.sp-kpi-val{font-size:18px;font-weight:600;color:var(--text);line-height:1.2}
+.sp-kpi-sub{font-size:9px;color:var(--text3);margin-top:1px;display:flex;align-items:center;gap:3px}
+.sp-sdot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.sp-sdot.g{background:#22c55e}.sp-sdot.y{background:#FF9F1C}.sp-sdot.r{background:#ef4444}
+.sp-section{padding:0 12px 10px}
+.sp-sec-title{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.sp-sec-title i{font-size:12px}
+.sp-rec-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)}
+.sp-rec-row:last-child{border-bottom:none}
+.sp-rec-date{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;min-width:48px}
+.sp-rec-val{font-size:12px;font-weight:600;color:var(--text);min-width:48px}
+.sp-rec-sub{font-size:10px;color:var(--text3)}
+.sp-rec-ef{font-size:10px;font-weight:600;margin-left:auto}
+.sp-cost-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.sp-cost-row:last-child{border-bottom:none}
+.sp-cost-lbl{font-size:11px;color:var(--text2)}
+.sp-cost-val{font-size:12px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace}
 .form-group-b{margin-bottom:4px;}
 .form-group-b label{
   display:block;font-size:9px;font-weight:600;color:var(--text3);
@@ -994,129 +1024,130 @@ if('serviceWorker' in navigator){
 
 <!-- CARGAR -->
 <div id="tab-cargar" class="panel active">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title" id="cargar-title">Cargar envío del día</span>
-    </div>
-    <div class="edit-banner" id="edit-banner">✏️ Editando: <strong id="edit-banner-info"></strong><button class="btn-edit" style="margin-left:auto" onclick="limpiar()">✕ Cancelar edición</button></div>
-    <div class="card-body">
+  <div class="edit-banner" id="edit-banner">✏️ Editando: <strong id="edit-banner-info"></strong><button class="btn-edit" style="margin-left:auto" onclick="limpiar()">✕ Cancelar edición</button></div>
+  <div class="cargar-2col">
 
-      <!-- Fecha -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.6px;min-width:38px">Fecha</label>
-        <input type="date" id="f-fecha" style="flex:1;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:14px;font-weight:500;outline:none">
-        <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;white-space:nowrap;letter-spacing:.3px">HOY</button>
+    <!-- COLUMNA IZQUIERDA: formulario compacto -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head" style="padding:12px 16px">
+        <span class="card-title" id="cargar-title">Cargar envío del día</span>
       </div>
+      <div class="card-body" style="padding:12px 16px">
 
-      <!-- Sucursal chips -->
-      <select id="f-suc" style="display:none">
-        <option value="">— Elegir —</option>
-        <option>INDEPENDENCIA</option><option>PERON</option>
-        <option>BARRIO SUR</option><option>FLIP</option>
-      </select>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
-        <button class="suc-chip" data-v="INDEPENDENCIA" onclick="setSucChip(this)">IND</button>
-        <button class="suc-chip" data-v="PERON" onclick="setSucChip(this)">PER</button>
-        <button class="suc-chip" data-v="BARRIO SUR" onclick="setSucChip(this)">BAR</button>
-        <button class="suc-chip" data-v="FLIP" onclick="setSucChip(this)">FLIP</button>
-      </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
+          <input type="date" id="f-fecha" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
+          <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+        </div>
 
-      <!-- Tabs de sección -->
-      <div class="form-sec-tabs">
-        <button class="form-sec-tab active" onclick="setFormTab('carne',this)">
-          <i class="ti ti-meat" aria-hidden="true"></i> Carne
-        </button>
-        <button class="form-sec-tab" onclick="setFormTab('pollo',this)">
-          <i class="ti ti-drumstick" aria-hidden="true"></i> Pollo
-        </button>
-        <button class="form-sec-tab" onclick="setFormTab('precio',this)">
-          <i class="ti ti-currency-dollar" aria-hidden="true"></i> Precios
-        </button>
-      </div>
+        <select id="f-suc" style="display:none">
+          <option value="">— Elegir —</option>
+          <option>INDEPENDENCIA</option><option>PERON</option>
+          <option>BARRIO SUR</option><option>FLIP</option>
+        </select>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
+          <button class="suc-chip" data-v="INDEPENDENCIA" onclick="setSucChip(this)">IND</button>
+          <button class="suc-chip" data-v="PERON" onclick="setSucChip(this)">PER</button>
+          <button class="suc-chip" data-v="BARRIO SUR" onclick="setSucChip(this)">BAR</button>
+          <button class="suc-chip" data-v="FLIP" onclick="setSucChip(this)">FLIP</button>
+        </div>
 
-      <!-- PANEL CARNE -->
-      <div class="form-panel active" id="fpanel-carne">
-        <div class="fpanel-bg">
-          <div class="g2-form">
-            <div class="ff"><span>Pedido kg</span><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
-            <div class="ff"><span>Recibido kg</span><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
-            <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
-            <div class="ff"><span>Medallón 90g</span><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
-            <div class="ff"><span>Bolita 90g</span><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
-          </div>
-          <input type="hidden" id="f-med75" value="0">
-          <!-- Calculadora inline -->
-          <div class="calc-box" style="margin-top:10px;margin-bottom:0">
-            <div class="calc-head">
-              <span>Tipo</span><span style="text-align:center">Cantidad</span><span>Kg equiv.</span>
+        <div class="form-sec-tabs">
+          <button class="form-sec-tab active" onclick="setFormTab('carne',this)">
+            <i class="ti ti-meat" aria-hidden="true"></i> Carne
+          </button>
+          <button class="form-sec-tab" onclick="setFormTab('pollo',this)">
+            <i class="ti ti-drumstick" aria-hidden="true"></i> Pollo
+          </button>
+          <button class="form-sec-tab" onclick="setFormTab('precio',this)">
+            <i class="ti ti-currency-dollar" aria-hidden="true"></i> Precios
+          </button>
+        </div>
+
+        <!-- PANEL CARNE -->
+        <div class="form-panel active" id="fpanel-carne">
+          <div class="fpanel-bg">
+            <div class="g2-form">
+              <div class="ff"><span>Pedido kg</span><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff"><span>Recibido kg</span><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff"><span>Medallón 90g</span><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
+              <div class="ff"><span>Bolita 90g</span><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
             </div>
-            <div class="calc-row">
-              <span class="calc-lbl" style="color:var(--ind)">Med. 90gr</span>
-              <span class="calc-q" id="calc-q-med110">0</span>
-              <span class="calc-kg" id="calc-kg-med110">0.000</span>
-            </div>
-            <div class="calc-row">
-              <span class="calc-lbl" style="color:var(--per)">Bol. 90gr</span>
-              <span class="calc-q" id="calc-q-bol110">0</span>
-              <span class="calc-kg" id="calc-kg-bol110">0.000</span>
-            </div>
-            <div class="calc-row total">
-              <span class="calc-lbl" style="font-weight:700">TOTAL</span>
-              <span></span>
-              <span class="calc-total-val" id="calc-total">0.000</span>
+            <input type="hidden" id="f-med75" value="0">
+            <div class="calc-box" style="margin-top:8px;margin-bottom:0">
+              <div class="calc-head"><span>Tipo</span><span style="text-align:center">Cant.</span><span>Kg</span></div>
+              <div class="calc-row">
+                <span class="calc-lbl" style="color:var(--ind)">Med. 90g</span>
+                <span class="calc-q" id="calc-q-med110">0</span>
+                <span class="calc-kg" id="calc-kg-med110">0.000</span>
+              </div>
+              <div class="calc-row">
+                <span class="calc-lbl" style="color:var(--per)">Bol. 90g</span>
+                <span class="calc-q" id="calc-q-bol110">0</span>
+                <span class="calc-kg" id="calc-kg-bol110">0.000</span>
+              </div>
+              <div class="calc-row total">
+                <span class="calc-lbl" style="font-weight:700">TOTAL</span>
+                <span></span>
+                <span class="calc-total-val" id="calc-total">0.000</span>
+              </div>
             </div>
           </div>
+          <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo</div>
         </div>
-        <div class="fpanel-hint">
-          <i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo
-        </div>
-      </div>
 
-      <!-- PANEL POLLO -->
-      <div class="form-panel" id="fpanel-pollo">
-        <div class="fpanel-bg">
-          <div class="g2-form">
-            <div class="ff"><span>Pedido Alita kg</span><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
-            <div class="ff proc"><span>Procesado Alita kg</span><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-            <div class="ff"><span>Pedido Filet kg</span><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
-            <div class="ff proc"><span>Procesado Filet kg</span><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
+        <!-- PANEL POLLO -->
+        <div class="form-panel" id="fpanel-pollo">
+          <div class="fpanel-bg">
+            <div class="g2-form">
+              <div class="ff"><span>Pedido Alita kg</span><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff proc"><span>Procesado Alita</span><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
+              <div class="ff"><span>Pedido Filet kg</span><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff proc"><span>Procesado Filet</span><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:7px 0"></div>
+            <div class="g2-form">
+              <div class="ff"><span>Alitas</span><input type="number" id="f-alitas" min="0" placeholder="0"></div>
+              <div class="ff"><span>Filet</span><input type="number" id="f-filet" min="0" placeholder="0"></div>
+              <div class="ff"><span>Pop Corns</span><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
+              <div class="ff"><span>Tiras</span><input type="number" id="f-tiras" min="0" placeholder="0"></div>
+            </div>
           </div>
-          <div style="height:1px;background:var(--border);margin:8px 0"></div>
-          <div class="g2-form">
-            <div class="ff"><span>Alitas</span><input type="number" id="f-alitas" min="0" placeholder="0"></div>
-            <div class="ff"><span>Filet</span><input type="number" id="f-filet" min="0" placeholder="0"></div>
-            <div class="ff"><span>Pop Corns</span><input type="number" id="f-popCorns" min="0" placeholder="0"></div>
-            <div class="ff"><span>Tiras</span><input type="number" id="f-tiras" min="0" placeholder="0"></div>
-          </div>
+          <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Precios</div>
         </div>
-        <div class="fpanel-hint">
-          <i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Precios de compra
-        </div>
-      </div>
 
-      <!-- PANEL PRECIOS -->
-      <div class="form-panel" id="fpanel-precio">
-        <div class="fpanel-bg">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:5px">
-            <i class="ti ti-pin" style="font-size:13px;color:var(--accent)" aria-hidden="true"></i>
-            Se mantienen del registro anterior. Modificar solo ante cambio de precio.
+        <!-- PANEL PRECIOS -->
+        <div class="form-panel" id="fpanel-precio">
+          <div class="fpanel-bg">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:4px">
+              <i class="ti ti-pin" style="font-size:12px;color:var(--accent)" aria-hidden="true"></i>
+              Solo modificar ante cambio de precio.
+            </div>
+            <div class="g3-precio">
+              <div class="fp"><span>Carne $/kg</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
+              <div class="fp"><span>Alita $/kg</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
+              <div class="fp"><span>Filet $/kg</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
+            </div>
           </div>
-          <div class="g3-precio">
-            <div class="fp"><span>Carne ($/kg)</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-            <div class="fp"><span>Alita ($/kg)</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-            <div class="fp"><span>Filet ($/kg)</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-          </div>
+          <div class="fpanel-hint"><i class="ti ti-check" aria-hidden="true"></i> Todo listo — guardá el registro</div>
         </div>
-        <div class="fpanel-hint">
-          <i class="ti ti-check" aria-hidden="true"></i> Todo listo — guardá el registro
-        </div>
-      </div>
 
-      <div class="btn-row" style="margin-top:14px">
-        <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar en la nube</button>
-        <button class="btn btn-ghost" onclick="limpiar()">✕ Limpiar</button>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar</button>
+          <button class="btn btn-ghost" onclick="limpiar()">✕</button>
+        </div>
       </div>
     </div>
+
+    <!-- COLUMNA DERECHA: info de la sucursal seleccionada -->
+    <div class="card" style="margin-bottom:0;overflow:hidden" id="suc-panel">
+      <div class="sp-empty">
+        <i class="ti ti-building-store" aria-hidden="true"></i>
+        Tocá una sucursal para ver su información
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1517,6 +1548,9 @@ onSnapshot(q, (snap)=>{
   renderReg();
   renderGraf();
   precargarPrecios();
+  // Refrescar panel sucursal si ya hay una seleccionada
+  const sucActiva=document.getElementById('f-suc')?.value;
+  if(sucActiva) renderSucPanel(sucActiva);
   const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
   if(cur.includes('dashboard')) renderDashboard();
   if(cur.includes('semanal')) renderSem();
@@ -1710,7 +1744,124 @@ async function _doGuardar(fecha,suc){
 window.setSucChip=function(btn){
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('f-suc').value=btn.dataset.v;
+  const suc=btn.dataset.v;
+  document.getElementById('f-suc').value=suc;
+  renderSucPanel(suc);
+};
+
+const SUC_COLOR={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)'};
+const SUC_BG={INDEPENDENCIA:'var(--ind-l)',PERON:'var(--per-l)','BARRIO SUR':'var(--bar-l)',FLIP:'var(--fli-l)'};
+const SUC_LABEL={INDEPENDENCIA:'Independencia',PERON:'Perón','BARRIO SUR':'Barrio Sur',FLIP:'Flip'};
+
+window.renderSucPanel=function(suc){
+  const panel=document.getElementById('suc-panel');
+  if(!panel||!suc) return;
+
+  const color=SUC_COLOR[suc]||'var(--accent)';
+  const bg=SUC_BG[suc]||'var(--surface2)';
+  const label=SUC_LABEL[suc]||suc;
+
+  // Filtrar registros de esta sucursal
+  const regs=[...DB].filter(r=>r.sucursal===suc).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  // Semana actual
+  const hoy=new Date();
+  const dow=hoy.getDay()||7;
+  const lunes=new Date(hoy); lunes.setDate(hoy.getDate()-dow+1);
+  const lunesStr=lunes.toISOString().slice(0,10);
+  const hoyStr=hoy.toISOString().slice(0,10);
+  const semRecs=regs.filter(r=>r.fecha>=lunesStr&&r.fecha<=hoyStr);
+
+  // Semana anterior
+  const lunPrev=new Date(lunes); lunPrev.setDate(lunes.getDate()-7);
+  const domPrev=new Date(lunes); domPrev.setDate(lunes.getDate()-1);
+  const prevRecs=regs.filter(r=>r.fecha>=lunPrev.toISOString().slice(0,10)&&r.fecha<=domPrev.toISOString().slice(0,10));
+
+  const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
+  const carneSem=sumF(semRecs,'proc_kg');
+  const carnePrev=sumF(prevRecs,'proc_kg');
+  const alitaSem=sumF(semRecs,'proc_alita');
+  const filetSem=sumF(semRecs,'proc_pechuga');
+  const polloSem=alitaSem+filetSem;
+  const pedSem=sumF(semRecs,'ped_kg');
+  const efic=pedSem>0?Math.round(carneSem/pedSem*100):null;
+  const dCarne=carnePrev>0?Math.round((carneSem-carnePrev)/carnePrev*100):null;
+
+  // Último precio disponible
+  const lastP=regs.find(r=>r.precio_carne||r.precio_alita||r.precio_filet)||{};
+  const pCarne=lastP.precio_carne||0;
+  const pAlita=lastP.precio_alita||0;
+  const pFilet=lastP.precio_filet||0;
+  const costoCarne=Math.round(carneSem*pCarne);
+  const costoPollo=Math.round(alitaSem*pAlita+filetSem*pFilet);
+
+  function semDot(v,ok=5,warn=15){
+    if(v===null) return '';
+    if(Math.abs(v)<=ok) return '<span class="sp-sdot g"></span>';
+    if(Math.abs(v)<=warn) return '<span class="sp-sdot y"></span>';
+    return '<span class="sp-sdot r"></span>';
+  }
+  function deltaStr(v){
+    if(v===null) return '— sin datos prev.';
+    return (v>0?'▲ +':'▼ ')+v+'% vs sem. ant.';
+  }
+
+  // Últimos 5 registros
+  const recientes=regs.slice(0,5);
+  const recRows=recientes.length
+    ? recientes.map(r=>{
+        const ef=r.ped_kg>0?Math.round(r.proc_kg/r.ped_kg*100):null;
+        const efColor=ef===null?'var(--text3)':ef>=95?'#22c55e':ef>=85?'#FF9F1C':'#ef4444';
+        const polloR=(r.proc_alita||0)+(r.proc_pechuga||0);
+        return `<div class="sp-rec-row">
+          <span class="sp-rec-date">${r.fecha?.slice(5)||'—'}</span>
+          <span class="sp-rec-val">${(r.proc_kg||0).toLocaleString('es-AR')} kg</span>
+          <span class="sp-rec-sub">🐔 ${polloR.toLocaleString('es-AR')} kg</span>
+          ${ef!==null?`<span class="sp-rec-ef" style="color:${efColor}">${ef}%</span>`:''}
+        </div>`;
+      }).join('')
+    : '<p style="font-size:11px;color:var(--text3);padding:4px 0">Sin registros aún para esta sucursal.</p>';
+
+  panel.innerHTML=`
+    <div class="sp-header" style="background:${bg};border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+      <div>
+        <div class="sp-header-name" style="color:${color}">${label}</div>
+        <div class="sp-header-sub" style="color:var(--text3)">${regs.length} registros · semana actual</div>
+      </div>
+    </div>
+
+    <div class="sp-kpis">
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Carne sem.</div>
+        <div class="sp-kpi-val">${carneSem.toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
+        <div class="sp-kpi-sub">${semDot(dCarne)} ${deltaStr(dCarne)}</div>
+      </div>
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Pollo sem.</div>
+        <div class="sp-kpi-val">${polloSem.toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
+        <div class="sp-kpi-sub" style="color:var(--text3)">${alitaSem} alita · ${filetSem} filet</div>
+      </div>
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Eficiencia</div>
+        <div class="sp-kpi-val" style="color:${efic===null?'var(--text3)':efic>=95?'#22c55e':efic>=85?'#FF9F1C':'#ef4444'}">${efic!==null?efic+'%':'—'}</div>
+        <div class="sp-kpi-sub" style="color:var(--text3)">proc / pedido</div>
+      </div>
+    </div>
+
+    ${(pCarne||pAlita||pFilet)?`
+    <div class="sp-section">
+      <div class="sp-sec-title"><i class="ti ti-coin" aria-hidden="true"></i> Costo semana</div>
+      <div class="sp-cost-row"><span class="sp-cost-lbl">Carne (${carneSem} kg × $${pCarne.toLocaleString('es-AR')})</span><span class="sp-cost-val">$${costoCarne.toLocaleString('es-AR')}</span></div>
+      <div class="sp-cost-row"><span class="sp-cost-lbl">Pollo</span><span class="sp-cost-val">$${costoPollo.toLocaleString('es-AR')}</span></div>
+      <div class="sp-cost-row" style="border-bottom:none"><span class="sp-cost-lbl" style="font-weight:600">Total</span><span class="sp-cost-val" style="color:${color}">$${(costoCarne+costoPollo).toLocaleString('es-AR')}</span></div>
+    </div>`:''}
+
+    <div class="sp-section">
+      <div class="sp-sec-title"><i class="ti ti-clock" aria-hidden="true"></i> Últimos registros</div>
+      ${recRows}
+    </div>
+  `;
 };
 
 window.setFormTab=function(name,btn){
@@ -1772,6 +1923,7 @@ window.editReg=function(id){
   if(r.precio_carne) document.getElementById('f-precio-carne').value=r.precio_carne;
   if(r.precio_alita) document.getElementById('f-precio-alita').value=r.precio_alita;
   if(r.precio_filet) document.getElementById('f-precio-filet').value=r.precio_filet;
+  renderSucPanel(r.sucursal||'');
   calcKg(); calcPollo();
   document.getElementById('cargar-title').textContent='Editar registro';
   document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
