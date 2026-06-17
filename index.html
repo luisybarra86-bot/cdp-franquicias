@@ -432,6 +432,58 @@ body{
 .ff.proc{background:rgba(34,180,90,.1);border-radius:5px;padding:3px 5px;border:1px solid rgba(34,180,90,.3)}
 .ff.proc span{color:#15803d;font-weight:600}
 .ff.proc input{background:transparent;border:none;color:#15803d;font-weight:600;padding:2px 0}
+/* ── Precio de compra (amber/sticky) ── */
+.precio-section{background:rgba(186,117,23,.07);border:1px solid rgba(186,117,23,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.precio-section .sec-lbl-precio{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#854F0B;display:block;margin-bottom:6px}
+.g3-precio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fp{display:flex;flex-direction:column;gap:2px}
+.fp span{font-size:8px;text-transform:uppercase;letter-spacing:.3px;color:#854F0B;font-weight:600;line-height:1.3}
+.fp input{padding:5px 8px;border:1px solid rgba(186,117,23,.35);border-radius:5px;background:rgba(186,117,23,.06);color:#633806;font-size:12px;font-weight:600;text-align:right;outline:none;width:100%}
+.fp input:focus{border-color:rgba(186,117,23,.7);box-shadow:0 0 0 2px rgba(186,117,23,.12)}
+.precio-note{font-size:9px;color:#854F0B;margin-top:5px;opacity:.8}
+/* ── Dashboard KPI tab ── */
+.dash-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.dash-filter-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.dash-filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.kpi-dash-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:700px){.kpi-dash-row{grid-template-columns:repeat(2,1fr)}}
+.kpi-dash{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi-dash::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-dash.kd-red::before{background:#FF4B6E}
+.kpi-dash.kd-teal::before{background:#2EC4B6}
+.kpi-dash.kd-green::before{background:#22c55e}
+.kpi-dash.kd-amber::before{background:#FF9F1C}
+.kpi-dash.kd-blue::before{background:#378ADD}
+.kpi-dash.kd-purple::before{background:#9B5DE5}
+.kpi-dash-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px}
+.kpi-dash-val{font-size:22px;font-weight:600;color:var(--kpi-val);line-height:1.2;margin-bottom:2px}
+.kpi-dash-delta{font-size:11px;display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.kpi-dash-delta.up{color:#22c55e}.kpi-dash-delta.down{color:#ef4444}.kpi-dash-delta.neu{color:var(--text3)}
+.sem-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sem-dot.g{background:#22c55e;box-shadow:0 0 6px #22c55e66}
+.sem-dot.y{background:#FF9F1C;box-shadow:0 0 6px #FF9F1C66}
+.sem-dot.r{background:#ef4444;box-shadow:0 0 6px #ef444466}
+.sem-lbl{font-size:9px;color:var(--text3)}
+.dash-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:700px){.dash-2col{grid-template-columns:1fr}}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.dash-card-head{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.dash-card-body{padding:12px 16px}
+.rank-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.rank-pos{font-size:11px;font-weight:700;color:var(--text3);width:16px;flex-shrink:0}
+.rank-name{font-size:12px;font-weight:600;color:var(--text);min-width:85px}
+.rank-bar-wrap{flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden}
+.rank-bar{height:100%;border-radius:4px;transition:width .4s}
+.rank-val{font-size:11px;color:var(--text2);width:55px;text-align:right;font-family:'JetBrains Mono',monospace}
+.cost-week-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cost-witem{background:var(--surface2);border-radius:8px;padding:8px 10px}
+.cost-witem-lbl{font-size:9px;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:2px}
+.cost-witem-val{font-size:14px;font-weight:600;color:var(--text)}
+.alert-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.alert-row:last-child{border-bottom:none}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.alert-msg{font-size:12px;color:var(--text)}
+.alert-sub{font-size:10px;color:var(--text3);margin-top:1px}
 /* ── KPI compacto en gráficos ── */
 .kpi-sm .kpi-val{font-size:26px}
 .kpi-sm{padding:14px 14px}
@@ -917,6 +969,7 @@ if('serviceWorker' in navigator){
 <!-- NAV -->
 <nav class="nav">
   <button class="nav-btn active" onclick="goTab('cargar',this)">+ Cargar Día</button>
+  <button class="nav-btn" onclick="goTab('dashboard',this)">📊 Dashboard</button>
   <button class="nav-btn" onclick="goTab('registros',this)">Registros</button>
   <button class="nav-btn" onclick="goTab('semanal',this)">Semanal</button>
   <button class="nav-btn" onclick="goTab('mensual',this)">Mensual</button>
@@ -992,6 +1045,17 @@ if('serviceWorker' in navigator){
 
       </div>
 
+      <!-- PRECIOS DE COMPRA (sticky) -->
+      <div class="precio-section">
+        <span class="sec-lbl-precio">$ Precios de compra — actualizar solo ante cambio de precio</span>
+        <div class="g3-precio">
+          <div class="fp"><span>Carne ($/kg)</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0"></div>
+          <div class="fp"><span>Alita ($/kg)</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0"></div>
+          <div class="fp"><span>Filet ($/kg)</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0"></div>
+        </div>
+        <div class="precio-note">📌 Se mantienen del registro anterior. Solo modificar si hubo cambio de precio.</div>
+      </div>
+
       <!-- CALCULADORA KG -->
       <div class="calc-box">
         <div class="calc-head">
@@ -1018,6 +1082,45 @@ if('serviceWorker' in navigator){
         <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar en la nube</button>
         <button class="btn btn-ghost" onclick="limpiar()">✕ Limpiar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="panel">
+  <div class="dash-filter" id="dash-filter-bar">
+    <span style="font-size:11px;color:var(--text3);font-weight:600;margin-right:4px">Período:</span>
+    <button class="dash-filter-btn active" data-period="week" onclick="setDashPeriod('week',this)">Esta semana</button>
+    <button class="dash-filter-btn" data-period="month" onclick="setDashPeriod('month',this)">Este mes</button>
+    <button class="dash-filter-btn" data-period="year" onclick="setDashPeriod('year',this)">Acumulado año</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+    <select id="dash-suc" class="search-input" style="min-width:130px;font-size:12px" onchange="renderDashboard()">
+      <option value="ALL">Todas las sucursales</option>
+      <option value="INDEPENDENCIA">Independencia</option>
+      <option value="PERON">Perón</option>
+      <option value="BARRIO SUR">Barrio Sur</option>
+      <option value="FLIP">Flip</option>
+    </select>
+  </div>
+  <div class="kpi-dash-row" id="dash-kpis"></div>
+  <div class="dash-2col">
+    <div class="dash-card">
+      <div class="dash-card-head">🏆 Ranking Carne (kg procesados)</div>
+      <div class="dash-card-body" id="dash-rank-carne"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head">🏆 Ranking Pollo (kg procesados)</div>
+      <div class="dash-card-body" id="dash-rank-pollo"></div>
+    </div>
+  </div>
+  <div class="dash-2col">
+    <div class="dash-card">
+      <div class="dash-card-head">💰 Costo de producción</div>
+      <div class="dash-card-body" id="dash-costos"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head">⚠️ Alertas automáticas</div>
+      <div class="dash-card-body" id="dash-alertas"></div>
     </div>
   </div>
 </div>
@@ -1379,7 +1482,9 @@ onSnapshot(q, (snap)=>{
   }
   renderReg();
   renderGraf();
+  precargarPrecios();
   const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
+  if(cur.includes('dashboard')) renderDashboard();
   if(cur.includes('semanal')) renderSem();
   if(cur.includes('mensual')) renderMes();
   if(cur.includes('manoobra')) renderManoObra();
@@ -1431,6 +1536,7 @@ window.goTab=function(n,btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
   btn.classList.add('active');
+  if(n==='dashboard')renderDashboard();
   if(n==='registros')renderReg();
   if(n==='semanal')renderSem();
   if(n==='mensual')renderMes();
@@ -1552,6 +1658,7 @@ async function _doGuardar(fecha,suc){
       ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
       ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
+      precio_carne:num('f-precio-carne'),precio_alita:num('f-precio-alita'),precio_filet:num('f-precio-filet'),
       createdAt:new Date().toISOString(),
       source:'web'
     });
@@ -1574,6 +1681,7 @@ window.limpiarNumeros=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
+  // Los precios NO se limpian — son sticky
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   calcKg();
@@ -1582,7 +1690,8 @@ window.limpiarNumeros=function(){
 window.limpiar=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
-   'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
+   'f-alitas','f-filet','f-popCorns','f-tiras',
+   'f-precio-carne','f-precio-alita','f-precio-filet'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
@@ -1614,6 +1723,9 @@ window.editReg=function(id){
   document.getElementById('f-filet').value=r.filet||'';
   document.getElementById('f-popCorns').value=r.popCorns||'';
   document.getElementById('f-tiras').value=r.tiras||'';
+  if(r.precio_carne) document.getElementById('f-precio-carne').value=r.precio_carne;
+  if(r.precio_alita) document.getElementById('f-precio-alita').value=r.precio_alita;
+  if(r.precio_filet) document.getElementById('f-precio-filet').value=r.precio_filet;
   calcKg(); calcPollo();
   document.getElementById('cargar-title').textContent='Editar registro';
   document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
@@ -1639,6 +1751,214 @@ window.delReg=function(id){
     }
   });
 }
+
+// ── PRECIOS STICKY ──
+function precargarPrecios(){
+  // Solo precarga si los campos están vacíos (no sobreescribir lo que el operador ya puso)
+  const cEl=document.getElementById('f-precio-carne');
+  const aEl=document.getElementById('f-precio-alita');
+  const fEl=document.getElementById('f-precio-filet');
+  if(!cEl||!aEl||!fEl) return;
+  if(cEl.value&&aEl.value&&fEl.value) return; // ya tiene valores
+  // Buscar el registro más reciente de DB que tenga precios
+  const sorted=[...DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const last=sorted.find(r=>r.precio_carne||r.precio_alita||r.precio_filet);
+  if(!last) return;
+  if(!cEl.value&&last.precio_carne) cEl.value=last.precio_carne;
+  if(!aEl.value&&last.precio_alita) aEl.value=last.precio_alita;
+  if(!fEl.value&&last.precio_filet) fEl.value=last.precio_filet;
+}
+
+// ── DASHBOARD ──
+let dashPeriod='week';
+window.setDashPeriod=function(p,btn){
+  dashPeriod=p;
+  document.querySelectorAll('.dash-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
+};
+
+function getDashDates(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const today=fmt(now);
+  if(dashPeriod==='week'){
+    const dow=now.getDay()||7;
+    const mon=new Date(now); mon.setDate(now.getDate()-dow+1);
+    return {desde:fmt(mon),hasta:today};
+  }
+  if(dashPeriod==='month'){
+    return {desde:`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`,hasta:today};
+  }
+  // year
+  return {desde:`${now.getFullYear()}-01-01`,hasta:today};
+}
+
+function getPrevDates(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if(dashPeriod==='week'){
+    const dow=now.getDay()||7;
+    const mon=new Date(now); mon.setDate(now.getDate()-dow+1);
+    const prevMon=new Date(mon); prevMon.setDate(mon.getDate()-7);
+    const prevSun=new Date(mon); prevSun.setDate(mon.getDate()-1);
+    return {desde:fmt(prevMon),hasta:fmt(prevSun)};
+  }
+  if(dashPeriod==='month'){
+    const firstPrev=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const lastPrev=new Date(now.getFullYear(),now.getMonth(),0);
+    return {desde:fmt(firstPrev),hasta:fmt(lastPrev)};
+  }
+  const py=now.getFullYear()-1;
+  return {desde:`${py}-01-01`,hasta:`${py}-12-31`};
+}
+
+window.renderDashboard=function(){
+  const sucF=document.getElementById('dash-suc')?.value||'ALL';
+  const {desde,hasta}=getDashDates();
+  const {desde:pDesde,hasta:pHasta}=getPrevDates();
+
+  let cur=DB.filter(r=>r.fecha>=desde&&r.fecha<=hasta);
+  let prev=DB.filter(r=>r.fecha>=pDesde&&r.fecha<=pHasta);
+  if(sucF!=='ALL'){cur=cur.filter(r=>r.sucursal===sucF);prev=prev.filter(r=>r.sucursal===sucF);}
+
+  const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
+  const pct=(a,b)=>b>0?Math.round((a-b)/b*100):null;
+
+  const carneCur=sumF(cur,'proc_kg'), carnePrev=sumF(prev,'proc_kg');
+  const alitaCur=sumF(cur,'proc_alita'), alitaPrev=sumF(prev,'proc_alita');
+  const filetCur=sumF(cur,'proc_pechuga'), filetPrev=sumF(prev,'proc_pechuga');
+  const polloCur=alitaCur+filetCur, polloPrev=alitaPrev+filetPrev;
+  const pedCur=sumF(cur,'ped_kg'), efCarne=pedCur>0?Math.round(carneCur/pedCur*100):null;
+  const pedAlitaCur=sumF(cur,'ped_alita'),pedFiletCur=sumF(cur,'ped_pechuga');
+  const pedPolloCur=pedAlitaCur+pedFiletCur;
+  const efPollo=pedPolloCur>0?Math.round(polloCur/pedPolloCur*100):null;
+
+  // Último precio disponible en DB
+  const sorted=[...DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const lastP=sorted.find(r=>r.precio_carne||r.precio_alita||r.precio_filet)||{};
+  const pCarne=lastP.precio_carne||0, pAlita=lastP.precio_alita||0, pFilet=lastP.precio_filet||0;
+  const costoCarne=Math.round(carneCur*pCarne);
+  const costoAlita=Math.round(alitaCur*pAlita);
+  const costoFilet=Math.round(filetCur*pFilet);
+  const costoTotal=costoCarne+costoAlita+costoFilet;
+
+  function semDot(val,up5=5,up15=15){
+    if(val===null) return '<span class="sem-dot" style="background:var(--text3)"></span>';
+    if(Math.abs(val)<=up5) return '<span class="sem-dot g"></span>';
+    if(Math.abs(val)<=up15) return '<span class="sem-dot y"></span>';
+    return '<span class="sem-dot r"></span>';
+  }
+  function deltaHtml(v){
+    if(v===null) return '<span class="kpi-dash-delta neu">— sin datos prev.</span>';
+    const cls=v>0?'up':'down'; const sig=v>0?'▲':'▼';
+    return `<span class="kpi-dash-delta ${cls}">${sig} ${Math.abs(v)}% vs período ant.</span>`;
+  }
+  const dC=pct(carneCur,carnePrev), dP=pct(polloCur,polloPrev);
+
+  const kpisEl=document.getElementById('dash-kpis');
+  if(kpisEl) kpisEl.innerHTML=`
+    <div class="kpi-dash kd-red">
+      <div class="kpi-dash-lbl">Carne procesada</div>
+      <div class="kpi-dash-val">${carneCur.toLocaleString('es-AR')} kg</div>
+      ${deltaHtml(dC)}
+      <div style="display:flex;align-items:center;gap:5px">${semDot(dC)} <span class="sem-lbl">${dC===null?'—':Math.abs(dC)<=5?'Normal':Math.abs(dC)<=15?'Monitorear':'Revisar'}</span></div>
+    </div>
+    <div class="kpi-dash kd-teal">
+      <div class="kpi-dash-lbl">Pollo procesado</div>
+      <div class="kpi-dash-val">${polloCur.toLocaleString('es-AR')} kg</div>
+      ${deltaHtml(dP)}
+      <div style="display:flex;align-items:center;gap:5px">${semDot(dP)} <span class="sem-lbl">${dP===null?'—':Math.abs(dP)<=5?'Normal':Math.abs(dP)<=15?'Monitorear':'Revisar'}</span></div>
+    </div>
+    <div class="kpi-dash kd-green">
+      <div class="kpi-dash-lbl">Eficiencia carne</div>
+      <div class="kpi-dash-val">${efCarne!==null?efCarne+'%':'—'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Proc / Pedido</div>
+      <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${efCarne!==null?efCarne>=95?'<span class="sem-dot g"></span>':efCarne>=85?'<span class="sem-dot y"></span>':'<span class="sem-dot r"></span>':'<span class="sem-dot" style="background:var(--text3)"></span>'} <span class="sem-lbl">${efCarne!==null?efCarne>=95?'Excelente':efCarne>=85?'Aceptable':'Revisar':'—'}</span></div>
+    </div>
+    <div class="kpi-dash kd-amber">
+      <div class="kpi-dash-lbl">Costo carne</div>
+      <div class="kpi-dash-val" style="font-size:17px">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'Sin precio'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${carneCur} kg × $${pCarne.toLocaleString('es-AR')}/kg</div>
+    </div>
+    <div class="kpi-dash kd-blue">
+      <div class="kpi-dash-lbl">Costo pollo</div>
+      <div class="kpi-dash-val" style="font-size:17px">${(pAlita||pFilet)?'$ '+(costoAlita+costoFilet).toLocaleString('es-AR'):'Sin precio'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Alita + Filet</div>
+    </div>
+    <div class="kpi-dash kd-purple">
+      <div class="kpi-dash-lbl">Costo total período</div>
+      <div class="kpi-dash-val" style="font-size:17px">${costoTotal?'$ '+costoTotal.toLocaleString('es-AR'):'Sin precios'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Carne + Alita + Filet</div>
+    </div>
+  `;
+
+  // Rankings
+  const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP'];
+  const COLS={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)'};
+  function rankHtml(items,field,maxVal){
+    return items.map((r,i)=>{
+      const v=sumF(r.recs,field);
+      const pct=maxVal>0?Math.round(v/maxVal*100):0;
+      return `<div class="rank-row">
+        <span class="rank-pos">${i+1}</span>
+        <span class="rank-name">${r.name}</span>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${r.color}"></div></div>
+        <span class="rank-val">${v.toLocaleString('es-AR')} kg</span>
+      </div>`;
+    }).join('');
+  }
+
+  const sucItems=SUCS.map(s=>({name:s.charAt(0)+s.slice(1).toLowerCase().replace(' s',' S'),color:COLS[s],recs:cur.filter(r=>r.sucursal===s)}));
+  const byCarneDesc=[...sucItems].sort((a,b)=>sumF(b.recs,'proc_kg')-sumF(a.recs,'proc_kg'));
+  const byPolloDesc=[...sucItems].sort((a,b)=>(sumF(b.recs,'proc_alita')+sumF(b.recs,'proc_pechuga'))-(sumF(a.recs,'proc_alita')+sumF(a.recs,'proc_pechuga')));
+  const maxCarne=sumF(byCarneDesc[0]?.recs||[],'proc_kg');
+  const maxPollo=sumF(byPolloDesc[0]?.recs||[],'proc_alita')+sumF(byPolloDesc[0]?.recs||[],'proc_pechuga');
+
+  const rcEl=document.getElementById('dash-rank-carne');
+  const rpEl=document.getElementById('dash-rank-pollo');
+  if(rcEl) rcEl.innerHTML=sucF==='ALL'?rankHtml(byCarneDesc,'proc_kg',maxCarne):'<p style="font-size:12px;color:var(--text3)">Filtro por sucursal activo</p>';
+  if(rpEl){
+    const polloItems=byPolloDesc.map(r=>({...r,polloKg:sumF(r.recs,'proc_alita')+sumF(r.recs,'proc_pechuga')}));
+    if(sucF==='ALL') rpEl.innerHTML=polloItems.map((r,i)=>`<div class="rank-row">
+      <span class="rank-pos">${i+1}</span>
+      <span class="rank-name">${r.name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${maxPollo>0?Math.round(r.polloKg/maxPollo*100):0}%;background:${r.color}"></div></div>
+      <span class="rank-val">${r.polloKg.toLocaleString('es-AR')} kg</span>
+    </div>`).join('');
+    else rpEl.innerHTML='<p style="font-size:12px;color:var(--text3)">Filtro por sucursal activo</p>';
+  }
+
+  // Costos breakdown
+  const cosEl=document.getElementById('dash-costos');
+  if(cosEl) cosEl.innerHTML=`
+    <div class="cost-week-grid" style="margin-bottom:10px">
+      <div class="cost-witem"><div class="cost-witem-lbl">Carne</div><div class="cost-witem-val">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${carneCur} kg × $${pCarne.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Alita</div><div class="cost-witem-val">${pAlita?'$ '+costoAlita.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${alitaCur} kg × $${pAlita.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Filet</div><div class="cost-witem-val">${pFilet?'$ '+costoFilet.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${filetCur} kg × $${pFilet.toLocaleString('es-AR')}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:8px 12px">
+      <span style="font-size:12px;font-weight:600">Total período</span>
+      <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace">${costoTotal?'$ '+costoTotal.toLocaleString('es-AR'):'Cargar precios primero'}</span>
+    </div>
+    ${!pCarne&&!pAlita&&!pFilet?'<p style="font-size:11px;color:var(--text3);margin-top:8px">💡 Para ver costos, cargá un día con precios de compra en el formulario.</p>':''}
+  `;
+
+  // Alertas
+  const alerts=[];
+  if(dC!==null&&dC<-15) alerts.push({color:'#ef4444',msg:`Carne procesada bajó ${Math.abs(dC)}%`,sub:'vs período anterior — revisar operaciones'});
+  if(dP!==null&&dP<-15) alerts.push({color:'#ef4444',msg:`Pollo procesado bajó ${Math.abs(dP)}%`,sub:'vs período anterior — revisar operaciones'});
+  if(efCarne!==null&&efCarne<85) alerts.push({color:'#FF9F1C',msg:`Eficiencia carne baja: ${efCarne}%`,sub:'Procesado vs pedido por debajo del 85%'});
+  if(dC!==null&&dC>20) alerts.push({color:'#22c55e',msg:`Carne procesada subió ${dC}%`,sub:'vs período anterior — buen desempeño'});
+  if(!pCarne&&!pAlita&&!pFilet) alerts.push({color:'#9B5DE5',msg:'Sin precios de compra registrados',sub:'Cargá precios para ver costos de producción'});
+  const altEl=document.getElementById('dash-alertas');
+  if(altEl) altEl.innerHTML=alerts.length?alerts.map(a=>`<div class="alert-row">
+    <div class="alert-dot" style="background:${a.color}"></div>
+    <div><div class="alert-msg">${a.msg}</div><div class="alert-sub">${a.sub}</div></div>
+  </div>`).join(''):'<p style="font-size:12px;color:var(--text3)">✅ Sin alertas para este período.</p>';
+};
 
 // ── BÚSQUEDA EXTENDIDA (datos anteriores a 6 meses) ──
 window.fetchOldRecords=async function(){
