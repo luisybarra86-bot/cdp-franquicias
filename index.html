@@ -1761,21 +1761,24 @@ window.renderSucPanel=function(suc){
   const bg=SUC_BG[suc]||'var(--surface2)';
   const label=SUC_LABEL[suc]||suc;
 
-  // Filtrar registros de esta sucursal
-  const regs=[...DB].filter(r=>r.sucursal===suc).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  // Fecha local (Argentina UTC-3, evita que toISOString devuelva el día siguiente)
+  const _h=new Date();
+  const hoyStr=`${_h.getFullYear()}-${String(_h.getMonth()+1).padStart(2,'0')}-${String(_h.getDate()).padStart(2,'0')}`;
 
-  // Semana actual
-  const hoy=new Date();
-  const dow=hoy.getDay()||7;
-  const lunes=new Date(hoy); lunes.setDate(hoy.getDate()-dow+1);
-  const lunesStr=lunes.toISOString().slice(0,10);
-  const hoyStr=hoy.toISOString().slice(0,10);
+  // Filtrar registros de esta sucursal — excluir fechas futuras
+  const regs=[...DB].filter(r=>r.sucursal===suc&&r.fecha&&r.fecha<=hoyStr).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  // Semana actual (lunes local)
+  const dow=_h.getDay()||7;
+  const lunes=new Date(_h); lunes.setDate(_h.getDate()-dow+1);
+  const lunesStr=`${lunes.getFullYear()}-${String(lunes.getMonth()+1).padStart(2,'0')}-${String(lunes.getDate()).padStart(2,'0')}`;
   const semRecs=regs.filter(r=>r.fecha>=lunesStr&&r.fecha<=hoyStr);
 
   // Semana anterior
   const lunPrev=new Date(lunes); lunPrev.setDate(lunes.getDate()-7);
   const domPrev=new Date(lunes); domPrev.setDate(lunes.getDate()-1);
-  const prevRecs=regs.filter(r=>r.fecha>=lunPrev.toISOString().slice(0,10)&&r.fecha<=domPrev.toISOString().slice(0,10));
+  const fmtD=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const prevRecs=regs.filter(r=>r.fecha>=fmtD(lunPrev)&&r.fecha<=fmtD(domPrev));
 
   const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
   const carneSem=sumF(semRecs,'proc_kg');
