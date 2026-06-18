@@ -1886,7 +1886,7 @@ window.renderSucPanel=function(suc){
       <div class="sp-kpi">
         <div class="sp-kpi-lbl">Pollo sem.</div>
         <div class="sp-kpi-val">${polloSem.toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
-        <div class="sp-kpi-sub" style="color:var(--text3)">${alitaSem} alita · ${filetSem} filet</div>
+        <div class="sp-kpi-sub" style="color:var(--text3)">${(+alitaSem.toFixed(2)).toLocaleString('es-AR')} alita · ${(+filetSem.toFixed(2)).toLocaleString('es-AR')} filet</div>
       </div>
       <div class="sp-kpi">
         <div class="sp-kpi-lbl">Eficiencia</div>
@@ -1898,7 +1898,7 @@ window.renderSucPanel=function(suc){
     ${(pCarne||pAlita||pFilet)?`
     <div class="sp-section">
       <div class="sp-sec-title"><i class="ti ti-coin" aria-hidden="true"></i> Costo semana</div>
-      <div class="sp-cost-row"><span class="sp-cost-lbl">Carne (${carneSem} kg × $${pCarne.toLocaleString('es-AR')})</span><span class="sp-cost-val">$${costoCarne.toLocaleString('es-AR')}</span></div>
+      <div class="sp-cost-row"><span class="sp-cost-lbl">Carne (${(+carneSem.toFixed(2)).toLocaleString('es-AR')} kg × $${pCarne.toLocaleString('es-AR')})</span><span class="sp-cost-val">$${costoCarne.toLocaleString('es-AR')}</span></div>
       <div class="sp-cost-row"><span class="sp-cost-lbl">Pollo</span><span class="sp-cost-val">$${costoPollo.toLocaleString('es-AR')}</span></div>
       <div class="sp-cost-row" style="border-bottom:none"><span class="sp-cost-lbl" style="font-weight:600">Total</span><span class="sp-cost-val" style="color:${color}">$${(costoCarne+costoPollo).toLocaleString('es-AR')}</span></div>
     </div>`:''}
@@ -2150,7 +2150,7 @@ window.renderDashboard=function(){
     <div class="kpi-dash kd-amber">
       <div class="kpi-dash-lbl">Costo carne</div>
       <div class="kpi-dash-val" style="font-size:17px">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'Sin precio'}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">${carneCur} kg × $${pCarne.toLocaleString('es-AR')}/kg</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${(+carneCur.toFixed(2)).toLocaleString('es-AR')} kg × $${pCarne.toLocaleString('es-AR')}/kg</div>
     </div>
     <div class="kpi-dash kd-blue">
       <div class="kpi-dash-lbl">Costo pollo</div>
