@@ -474,15 +474,19 @@ body{
 .fpanel-bg{background:var(--surface2);border-radius:10px;padding:11px 12px}
 .fpanel-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:4px}
 .fpanel-hint i{font-size:12px}
-/* ── Precio de compra (amber/sticky) ── */
-.precio-section{background:rgba(186,117,23,.07);border:1px solid rgba(186,117,23,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px}
-.precio-section .sec-lbl-precio{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#854F0B;display:block;margin-bottom:6px}
-.g3-precio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.fp{display:flex;flex-direction:column;gap:2px}
-.fp span{font-size:8px;text-transform:uppercase;letter-spacing:.3px;color:#854F0B;font-weight:600;line-height:1.3}
-.fp input{padding:5px 8px;border:1px solid rgba(186,117,23,.35);border-radius:5px;background:rgba(186,117,23,.06);color:#633806;font-size:12px;font-weight:600;text-align:right;outline:none;width:100%}
-.fp input:focus{border-color:rgba(186,117,23,.7);box-shadow:0 0 0 2px rgba(186,117,23,.12)}
-.precio-note{font-size:9px;color:#854F0B;margin-top:5px;opacity:.8}
+/* ── Tab Precios de compra ── */
+.precio-tab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.precio-big-field{display:flex;flex-direction:column;gap:6px}
+.precio-big-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2)}
+.precio-big-field input{padding:12px 16px;border:1px solid var(--border2);border-radius:10px;background:var(--input-bg);color:var(--text);font-size:22px;font-weight:600;text-align:right;outline:none;width:100%;transition:border-color .2s}
+.precio-big-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,159,28,.12)}
+.precio-big-field .precio-sub{font-size:10px;color:var(--text3);text-align:right}
+.precio-hist-table{width:100%;border-collapse:collapse;font-size:12px}
+.precio-hist-table th{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+.precio-hist-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.precio-hist-table tr:last-child td{border-bottom:none}
+.precio-hist-table tr:hover td{background:var(--tbl-hover)}
+.precio-vigente-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,.15);color:#22c55e}
 /* ── Dashboard KPI tab ── */
 .dash-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
 .dash-filter-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
@@ -1016,6 +1020,7 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('semanal',this)">Semanal</button>
   <button class="nav-btn" onclick="goTab('mensual',this)">Mensual</button>
   <button class="nav-btn" onclick="goTab('graficos',this)">Gráficos</button>
+  <button class="nav-btn" onclick="goTab('precios',this)">💲 Precios</button>
   <button class="nav-btn" onclick="goTab('manoobra',this)">Mano de Obra</button>
   <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
 </nav>
@@ -1058,9 +1063,6 @@ if('serviceWorker' in navigator){
           </button>
           <button class="form-sec-tab" onclick="setFormTab('pollo',this)">
             <i class="ti ti-drumstick" aria-hidden="true"></i> Pollo
-          </button>
-          <button class="form-sec-tab" onclick="setFormTab('precio',this)">
-            <i class="ti ti-currency-dollar" aria-hidden="true"></i> Precios
           </button>
         </div>
 
@@ -1117,21 +1119,10 @@ if('serviceWorker' in navigator){
           <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Precios</div>
         </div>
 
-        <!-- PANEL PRECIOS -->
-        <div class="form-panel" id="fpanel-precio">
-          <div class="fpanel-bg">
-            <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:4px">
-              <i class="ti ti-pin" style="font-size:12px;color:var(--accent)" aria-hidden="true"></i>
-              Solo modificar ante cambio de precio.
-            </div>
-            <div class="g3-precio">
-              <div class="fp"><span>Carne $/kg</span><input type="number" id="f-precio-carne" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-              <div class="fp"><span>Alita $/kg</span><input type="number" id="f-precio-alita" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-              <div class="fp"><span>Filet $/kg</span><input type="number" id="f-precio-filet" min="0" step="1" placeholder="0" oninput="guardarPreciosLocal()"></div>
-            </div>
-          </div>
-          <div class="fpanel-hint"><i class="ti ti-check" aria-hidden="true"></i> Todo listo — guardá el registro</div>
-        </div>
+        <!-- Precios ocultos: se llenan desde PRECIOS_ACTUALES al guardar -->
+        <input type="hidden" id="f-precio-carne">
+        <input type="hidden" id="f-precio-alita">
+        <input type="hidden" id="f-precio-filet">
 
         <div class="btn-row" style="margin-top:12px">
           <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">💾 Guardar</button>
@@ -1292,6 +1283,46 @@ if('serviceWorker' in navigator){
   <div class="charts-grid">
     <div id="graf-carne-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--ind)"></span>Carne Procesada — Mensual por Sucursal (kg)</div><div class="ch-wrap"><canvas id="ch1"></canvas></div></div>
     <div id="graf-pollo-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--fli)"></span>Productos Pollo por Sucursal</div><div class="ch-wrap"><canvas id="ch4"></canvas></div></div>
+  </div>
+</div>
+
+<!-- PRECIOS DE COMPRA -->
+<div id="tab-precios" class="panel">
+  <div class="card" style="max-width:720px">
+    <div class="card-head">
+      <span class="card-title">Precios de compra actuales</span>
+      <span id="precios-updated" style="font-size:11px;color:var(--text3)"></span>
+    </div>
+    <div class="card-body">
+      <div class="precio-tab-grid">
+        <div class="precio-big-field">
+          <label>Carne ($/kg)</label>
+          <input type="number" id="p-carne" min="0" step="1" placeholder="0">
+          <span class="precio-sub" id="p-carne-sub">—</span>
+        </div>
+        <div class="precio-big-field">
+          <label>Alita de pollo ($/kg)</label>
+          <input type="number" id="p-alita" min="0" step="1" placeholder="0">
+          <span class="precio-sub" id="p-alita-sub">—</span>
+        </div>
+        <div class="precio-big-field">
+          <label>Filet de pollo ($/kg)</label>
+          <input type="number" id="p-filet" min="0" step="1" placeholder="0">
+          <span class="precio-sub" id="p-filet-sub">—</span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-bottom:24px">
+        <button class="btn btn-primary" onclick="savePrecios()">💾 Guardar precios</button>
+        <button class="btn btn-ghost" onclick="renderPrecios()">↺ Cancelar</button>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Historial de cambios</div>
+      <div id="precios-hist-wrap">
+        <table class="precio-hist-table">
+          <thead><tr><th>Fecha</th><th>Carne $/kg</th><th>Alita $/kg</th><th>Filet $/kg</th><th>Estado</th></tr></thead>
+          <tbody id="precios-hist-body"><tr><td colspan="5" style="color:var(--text3);text-align:center;padding:20px">Sin historial aún</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1493,7 +1524,7 @@ fetch('leno.png').then(r=>r.blob()).then(blob=>{
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, where, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, where, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCp0PTMPDod1FGDE3nstyHTrpxKfW3HyeM",
@@ -1518,6 +1549,21 @@ const SUC_NAMES={'INDEPENDENCIA':'Independencia','PERON':'Perón','BARRIO SUR':'
 const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip'};
 
 let DB=[], regF='ALL', semV='carne', mesV='carne', CHS={}, editingId=null;
+
+// ── PRECIOS CENTRALIZADOS ──
+let PRECIOS_ACTUALES={precio_carne:0, precio_alita:0, precio_filet:0, historial:[]};
+const PRECIOS_DOC=doc(db,'config','precios');
+onSnapshot(PRECIOS_DOC,(snap)=>{
+  if(snap.exists()){
+    PRECIOS_ACTUALES={historial:[],...snap.data()};
+  }
+  renderPrecios();
+  // refrescar paneles que muestran costos
+  const sucActiva=document.getElementById('f-suc')?.value;
+  if(sucActiva) renderSucPanel(sucActiva);
+  const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
+  if(cur.includes('dashboard')) renderDashboard();
+});
 
 // ── SYNC ──
 function setSyncStatus(s){
@@ -1547,7 +1593,6 @@ onSnapshot(q, (snap)=>{
   }
   renderReg();
   renderGraf();
-  precargarPrecios();
   // Refrescar panel sucursal si ya hay una seleccionada
   const sucActiva=document.getElementById('f-suc')?.value;
   if(sucActiva) renderSucPanel(sucActiva);
@@ -1605,6 +1650,7 @@ window.goTab=function(n,btn){
   document.getElementById('tab-'+n).classList.add('active');
   btn.classList.add('active');
   if(n==='dashboard')renderDashboard();
+  if(n==='precios')renderPrecios();
   if(n==='registros')renderReg();
   if(n==='semanal')renderSem();
   if(n==='mensual')renderMes();
@@ -1675,7 +1721,6 @@ window.calcPollo=function(){
 
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
-precargarPrecios(); // cargar precios desde localStorage al abrir la página
 
 function markError(id){
   const el=document.getElementById(id);
@@ -1727,11 +1772,10 @@ async function _doGuardar(fecha,suc){
       ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
       ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
-      precio_carne:num('f-precio-carne'),precio_alita:num('f-precio-alita'),precio_filet:num('f-precio-filet'),
+      precio_carne:PRECIOS_ACTUALES.precio_carne||0,precio_alita:PRECIOS_ACTUALES.precio_alita||0,precio_filet:PRECIOS_ACTUALES.precio_filet||0,
       createdAt:new Date().toISOString(),
       source:'web'
     });
-    guardarPreciosLocal(); // persistir precios en localStorage para próximas sesiones
     toast(`✅ Guardado — ${SUC_NAMES[suc]} · ${fecha}`);
     limpiarNumeros();
   }catch(e){
@@ -1790,11 +1834,10 @@ window.renderSucPanel=function(suc){
   const efic=pedSem>0?Math.round(carneSem/pedSem*100):null;
   const dCarne=carnePrev>0?Math.round((carneSem-carnePrev)/carnePrev*100):null;
 
-  // Último precio disponible
-  const lastP=regs.find(r=>r.precio_carne||r.precio_alita||r.precio_filet)||{};
-  const pCarne=lastP.precio_carne||0;
-  const pAlita=lastP.precio_alita||0;
-  const pFilet=lastP.precio_filet||0;
+  // Precios desde config centralizada
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  const pAlita=PRECIOS_ACTUALES.precio_alita||0;
+  const pFilet=PRECIOS_ACTUALES.precio_filet||0;
   const costoCarne=Math.round(carneSem*pCarne);
   const costoPollo=Math.round(alitaSem*pAlita+filetSem*pFilet);
 
@@ -1878,7 +1921,6 @@ window.limpiarNumeros=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
-  // Los precios NO se limpian — son sticky
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   calcKg();
@@ -1887,8 +1929,7 @@ window.limpiarNumeros=function(){
 window.limpiar=function(){
   ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
    'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
-   'f-alitas','f-filet','f-popCorns','f-tiras',
-   'f-precio-carne','f-precio-alita','f-precio-filet'].forEach(id=>document.getElementById(id).value='');
+   'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
@@ -1923,9 +1964,6 @@ window.editReg=function(id){
   document.getElementById('f-filet').value=r.filet||'';
   document.getElementById('f-popCorns').value=r.popCorns||'';
   document.getElementById('f-tiras').value=r.tiras||'';
-  if(r.precio_carne) document.getElementById('f-precio-carne').value=r.precio_carne;
-  if(r.precio_alita) document.getElementById('f-precio-alita').value=r.precio_alita;
-  if(r.precio_filet) document.getElementById('f-precio-filet').value=r.precio_filet;
   renderSucPanel(r.sucursal||'');
   calcKg(); calcPollo();
   document.getElementById('cargar-title').textContent='Editar registro';
@@ -1953,43 +1991,54 @@ window.delReg=function(id){
   });
 }
 
-// ── PRECIOS STICKY ──
-const LS_PRECIOS='cdp_precios_v1';
+// ── PRECIOS CENTRALIZADOS ──
+window.renderPrecios=function(){
+  const p=PRECIOS_ACTUALES;
+  const fmtP=v=>v?'$ '+Number(v).toLocaleString('es-AR'):null;
+  // campos del tab
+  const ce=document.getElementById('p-carne');
+  const ae=document.getElementById('p-alita');
+  const fe=document.getElementById('p-filet');
+  if(ce&&!ce.matches(':focus')) ce.value=p.precio_carne||'';
+  if(ae&&!ae.matches(':focus')) ae.value=p.precio_alita||'';
+  if(fe&&!fe.matches(':focus')) fe.value=p.precio_filet||'';
+  const upd=document.getElementById('precios-updated');
+  if(upd) upd.textContent=p.updatedAt?'Último cambio: '+p.updatedAt.slice(0,10):'Sin datos aún';
+  // subtítulos
+  const cs=document.getElementById('p-carne-sub');
+  const as=document.getElementById('p-alita-sub');
+  const fs=document.getElementById('p-filet-sub');
+  if(cs) cs.textContent=fmtP(p.precio_carne)||'Sin precio cargado';
+  if(as) as.textContent=fmtP(p.precio_alita)||'Sin precio cargado';
+  if(fs) fs.textContent=fmtP(p.precio_filet)||'Sin precio cargado';
+  // historial
+  const tbody=document.getElementById('precios-hist-body');
+  if(!tbody) return;
+  const hist=[...(p.historial||[])].reverse();
+  if(!hist.length){tbody.innerHTML='<tr><td colspan="5" style="color:var(--text3);text-align:center;padding:20px">Sin historial aún</td></tr>';return;}
+  tbody.innerHTML=hist.map((h,i)=>`<tr>
+    <td>${h.fecha||'—'}</td>
+    <td>$ ${Number(h.precio_carne||0).toLocaleString('es-AR')}</td>
+    <td>$ ${Number(h.precio_alita||0).toLocaleString('es-AR')}</td>
+    <td>$ ${Number(h.precio_filet||0).toLocaleString('es-AR')}</td>
+    <td>${i===0?'<span class="precio-vigente-badge"><i class="ti ti-check" aria-hidden="true"></i> Vigente</span>':'<span style="font-size:10px;color:var(--text3)">Anterior</span>'}</td>
+  </tr>`).join('');
+};
 
-function guardarPreciosLocal(){
-  const c=document.getElementById('f-precio-carne')?.value;
-  const a=document.getElementById('f-precio-alita')?.value;
-  const f=document.getElementById('f-precio-filet')?.value;
-  if(c||a||f) localStorage.setItem(LS_PRECIOS,JSON.stringify({c:c||'',a:a||'',f:f||''}));
-}
-
-function precargarPrecios(){
-  const cEl=document.getElementById('f-precio-carne');
-  const aEl=document.getElementById('f-precio-alita');
-  const fEl=document.getElementById('f-precio-filet');
-  if(!cEl||!aEl||!fEl) return;
-  if(cEl.value&&aEl.value&&fEl.value) return; // ya tiene valores en pantalla
-
-  // 1. Intentar desde localStorage (persiste entre sesiones)
+window.savePrecios=async function(){
+  const c=parseFloat(document.getElementById('p-carne')?.value)||0;
+  const a=parseFloat(document.getElementById('p-alita')?.value)||0;
+  const f=parseFloat(document.getElementById('p-filet')?.value)||0;
+  if(!c&&!a&&!f){toast('Ingresá al menos un precio','warn');return;}
+  const _h=new Date();
+  const fechaHoy=`${_h.getFullYear()}-${String(_h.getMonth()+1).padStart(2,'0')}-${String(_h.getDate()).padStart(2,'0')}`;
+  const entrada={fecha:fechaHoy,precio_carne:c,precio_alita:a,precio_filet:f};
+  const histNuevo=[...(PRECIOS_ACTUALES.historial||[]),entrada].slice(-24);
   try{
-    const saved=JSON.parse(localStorage.getItem(LS_PRECIOS)||'{}');
-    if(saved.c||saved.a||saved.f){
-      if(!cEl.value&&saved.c) cEl.value=saved.c;
-      if(!aEl.value&&saved.a) aEl.value=saved.a;
-      if(!fEl.value&&saved.f) fEl.value=saved.f;
-      return;
-    }
-  }catch(e){}
-
-  // 2. Fallback: buscar en el último registro de Firestore que tenga precios
-  const sorted=[...DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const last=sorted.find(r=>r.precio_carne||r.precio_alita||r.precio_filet);
-  if(!last) return;
-  if(!cEl.value&&last.precio_carne) cEl.value=last.precio_carne;
-  if(!aEl.value&&last.precio_alita) aEl.value=last.precio_alita;
-  if(!fEl.value&&last.precio_filet) fEl.value=last.precio_filet;
-  guardarPreciosLocal(); // guardar en localStorage para próximas sesiones
-}
+    await setDoc(PRECIOS_DOC,{precio_carne:c,precio_alita:a,precio_filet:f,updatedAt:new Date().toISOString(),historial:histNuevo});
+    toast('✅ Precios actualizados');
+  }catch(e){toast('❌ Error: '+e.message,'error');}
+};
 
 // ── DASHBOARD ──
 let dashPeriod='week';
@@ -2058,10 +2107,8 @@ window.renderDashboard=function(){
   const pedPolloCur=pedAlitaCur+pedFiletCur;
   const efPollo=pedPolloCur>0?Math.round(polloCur/pedPolloCur*100):null;
 
-  // Último precio disponible en DB
-  const sorted=[...DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const lastP=sorted.find(r=>r.precio_carne||r.precio_alita||r.precio_filet)||{};
-  const pCarne=lastP.precio_carne||0, pAlita=lastP.precio_alita||0, pFilet=lastP.precio_filet||0;
+  // Precios desde config centralizada
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0, pAlita=PRECIOS_ACTUALES.precio_alita||0, pFilet=PRECIOS_ACTUALES.precio_filet||0;
   const costoCarne=Math.round(carneCur*pCarne);
   const costoAlita=Math.round(alitaCur*pAlita);
   const costoFilet=Math.round(filetCur*pFilet);
