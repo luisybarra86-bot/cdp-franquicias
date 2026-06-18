@@ -1861,8 +1861,8 @@ window.renderSucPanel=function(suc){
         const polloR=(r.proc_alita||0)+(r.proc_pechuga||0);
         return `<div class="sp-rec-row">
           <span class="sp-rec-date">${r.fecha?.slice(5)||'—'}</span>
-          <span class="sp-rec-val">${(r.proc_kg||0).toLocaleString('es-AR')} kg</span>
-          <span class="sp-rec-sub">🐔 ${polloR.toLocaleString('es-AR')} kg</span>
+          <span class="sp-rec-val">🥩 <strong>${(r.proc_kg||0).toLocaleString('es-AR')} kg</strong></span>
+          <span class="sp-rec-sub">🐔 <strong>${polloR.toLocaleString('es-AR')} kg</strong></span>
           ${ef!==null?`<span class="sp-rec-ef" style="color:${efColor}">${ef}%</span>`:''}
         </div>`;
       }).join('')
@@ -1899,7 +1899,7 @@ window.renderSucPanel=function(suc){
     <div class="sp-section">
       <div class="sp-sec-title"><i class="ti ti-coin" aria-hidden="true"></i> Costo semana</div>
       <div class="sp-cost-row"><span class="sp-cost-lbl">Carne (${(+carneSem.toFixed(2)).toLocaleString('es-AR')} kg × $${pCarne.toLocaleString('es-AR')})</span><span class="sp-cost-val">$${costoCarne.toLocaleString('es-AR')}</span></div>
-      <div class="sp-cost-row"><span class="sp-cost-lbl">Pollo</span><span class="sp-cost-val">$${costoPollo.toLocaleString('es-AR')}</span></div>
+      <div class="sp-cost-row"><span class="sp-cost-lbl">Pollo (${(+polloSem.toFixed(2)).toLocaleString('es-AR')} kg)</span><span class="sp-cost-val">${costoPollo?'$ '+costoPollo.toLocaleString('es-AR'):'—'}</span></div>
       <div class="sp-cost-row" style="border-bottom:none"><span class="sp-cost-lbl" style="font-weight:600">Total</span><span class="sp-cost-val" style="color:${color}">$${(costoCarne+costoPollo).toLocaleString('es-AR')}</span></div>
     </div>`:''}
 
