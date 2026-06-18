@@ -2204,9 +2204,9 @@ window.renderDashboard=function(){
   const cosEl=document.getElementById('dash-costos');
   if(cosEl) cosEl.innerHTML=`
     <div class="cost-week-grid" style="margin-bottom:10px">
-      <div class="cost-witem"><div class="cost-witem-lbl">Carne</div><div class="cost-witem-val">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${carneCur} kg × $${pCarne.toLocaleString('es-AR')}</div></div>
-      <div class="cost-witem"><div class="cost-witem-lbl">Alita</div><div class="cost-witem-val">${pAlita?'$ '+costoAlita.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${alitaCur} kg × $${pAlita.toLocaleString('es-AR')}</div></div>
-      <div class="cost-witem"><div class="cost-witem-lbl">Filet</div><div class="cost-witem-val">${pFilet?'$ '+costoFilet.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${filetCur} kg × $${pFilet.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Carne</div><div class="cost-witem-val">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${(+carneCur.toFixed(2)).toLocaleString('es-AR')} kg × $${pCarne.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Alita</div><div class="cost-witem-val">${pAlita?'$ '+costoAlita.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${(+alitaCur.toFixed(2)).toLocaleString('es-AR')} kg × $${pAlita.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Filet</div><div class="cost-witem-val">${pFilet?'$ '+costoFilet.toLocaleString('es-AR'):'—'}</div><div style="font-size:9px;color:var(--text3)">${(+filetCur.toFixed(2)).toLocaleString('es-AR')} kg × $${pFilet.toLocaleString('es-AR')}</div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:8px 12px">
       <span style="font-size:12px;font-weight:600">Total período</span>
