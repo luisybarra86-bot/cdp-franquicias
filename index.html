@@ -408,6 +408,7 @@ body{
 .suc-chip[data-v="PERON"].active{background:var(--per);border-color:var(--per);color:#000;}
 .suc-chip[data-v="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#000;}
 .suc-chip[data-v="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff;}
+.suc-chip[data-v="BARRIO NORTE"].active,.suc-chip[data-v="YERBA BUENA"].active,.suc-chip[data-v="TAFI VIEJO"].active{background:var(--accent);border-color:var(--accent);color:#fff;}
 /* ── Layout 2 columnas Cargar Día ── */
 .cargar-2col{display:grid;grid-template-columns:270px 1fr;gap:14px;align-items:start}
 @media(max-width:820px){.cargar-2col{grid-template-columns:1fr}}
@@ -471,6 +472,8 @@ body{
 [data-theme="red"] .form-sec-tab.active{color:#fff}
 .form-panel{display:none}
 .form-panel.active{display:block}
+.leno-subpanel{display:none}
+.leno-subpanel.active{display:block}
 .fpanel-bg{background:var(--surface2);border-radius:10px;padding:11px 12px}
 .fpanel-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:4px}
 .fpanel-hint i{font-size:12px}
@@ -1435,41 +1438,113 @@ if('serviceWorker' in navigator){
 
 <!-- LENO SRL -->
 <div id="tab-leno" class="panel">
-  <div class="dash-filter" id="leno-filter-bar">
-    <span style="font-size:11px;color:var(--text3);font-weight:600;margin-right:4px">Período:</span>
-    <button class="dash-filter-btn active" data-period="week" onclick="setLenoPeriod('week',this)">Esta semana</button>
-    <button class="dash-filter-btn" data-period="month" onclick="setLenoPeriod('month',this)">Este mes</button>
-    <button class="dash-filter-btn" data-period="year" onclick="setLenoPeriod('year',this)">Acumulado año</button>
-    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
-    <select id="leno-suc" class="search-input" style="min-width:150px;font-size:12px" onchange="renderLeno()">
-      <option value="ALL">Todas las ubicaciones</option>
-      <option value="BARRIO NORTE">Barrio Norte</option>
-      <option value="YERBA BUENA">Yerba Buena</option>
-      <option value="TAFI VIEJO">Tafí Viejo</option>
-    </select>
+
+  <div class="form-sec-tabs" style="margin-bottom:14px">
+    <button class="form-sec-tab active" id="leno-subtab-cargar" onclick="setLenoSubTab('cargar',this)">+ Cargar Día</button>
+    <button class="form-sec-tab" id="leno-subtab-reportes" onclick="setLenoSubTab('reportes',this)">📊 Reportes</button>
   </div>
-  <div class="kpi-dash-row" id="leno-kpis"></div>
-  <div class="dash-2col">
-    <div class="dash-card">
-      <div class="dash-card-head">🏆 Ranking por ubicación (kg procesados)</div>
-      <div class="dash-card-body" id="leno-rank"></div>
-    </div>
-    <div class="dash-card">
-      <div class="dash-card-head">🍿 Productos (unidades)</div>
-      <div class="dash-card-body" id="leno-productos"></div>
+
+  <!-- SUB: CARGAR DÍA -->
+  <div id="leno-sub-cargar" class="leno-subpanel active">
+    <div class="edit-banner" id="leno-edit-banner">✏️ Editando: <strong id="leno-edit-banner-info"></strong><button class="btn-edit" style="margin-left:auto" onclick="limpiarLeno()">✕ Cancelar edición</button></div>
+    <div class="cargar-2col">
+
+      <!-- COLUMNA IZQUIERDA: formulario -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head" style="padding:12px 16px">
+          <span class="card-title" id="leno-cargar-title">Cargar envío del día</span>
+        </div>
+        <div class="card-body" style="padding:12px 16px">
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
+            <input type="date" id="leno-f-fecha" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
+            <button onclick="document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+          </div>
+
+          <select id="leno-f-suc" style="display:none">
+            <option value="">— Elegir —</option>
+            <option value="BARRIO NORTE">BARRIO NORTE</option>
+            <option value="YERBA BUENA">YERBA BUENA</option>
+            <option value="TAFI VIEJO">TAFI VIEJO</option>
+          </select>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px">
+            <button class="suc-chip" data-v="BARRIO NORTE" onclick="setSucChipLeno(this)">B. NORTE</button>
+            <button class="suc-chip" data-v="YERBA BUENA" onclick="setSucChipLeno(this)">Y. BUENA</button>
+            <button class="suc-chip" data-v="TAFI VIEJO" onclick="setSucChipLeno(this)">TAFÍ VIEJO</button>
+          </div>
+
+          <div class="fpanel-bg">
+            <div class="g2-form">
+              <div class="ff"><span>Alita</span><input type="number" id="leno-f-alita" min="0" placeholder="0"></div>
+              <div class="ff"><span>Filet</span><input type="number" id="leno-f-filet" min="0" placeholder="0"></div>
+              <div class="ff"><span>Pop Corns</span><input type="number" id="leno-f-popcorns" min="0" placeholder="0"></div>
+              <div class="ff"><span>Tiras</span><input type="number" id="leno-f-tiras" min="0" placeholder="0"></div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:7px 0"></div>
+            <div class="g2-form">
+              <div class="ff proc"><span>Procesado Alita (kg)</span><input type="number" id="leno-f-proc-alita" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff proc"><span>Procesado Filet (kg)</span><input type="number" id="leno-f-proc-filet" min="0" step="0.1" placeholder="0"></div>
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-primary" id="leno-btn-guardar" onclick="guardarLeno()">💾 Guardar</button>
+            <button class="btn btn-ghost" onclick="limpiarLeno()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: info de la ubicación seleccionada -->
+      <div class="card" style="margin-bottom:0;overflow:hidden" id="leno-suc-panel">
+        <div class="sp-empty">
+          <i class="ti ti-building-store" aria-hidden="true"></i>
+          Tocá una ubicación para ver su información
+        </div>
+      </div>
+
     </div>
   </div>
-  <div class="card">
-    <div class="card-head"><span class="card-title">Últimos registros</span></div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr>
-          <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th>
-        </tr></thead>
-        <tbody id="leno-tbody"></tbody>
-      </table>
+
+  <!-- SUB: REPORTES -->
+  <div id="leno-sub-reportes" class="leno-subpanel">
+    <div class="dash-filter" id="leno-filter-bar">
+      <span style="font-size:11px;color:var(--text3);font-weight:600;margin-right:4px">Período:</span>
+      <button class="dash-filter-btn active" data-period="week" onclick="setLenoPeriod('week',this)">Esta semana</button>
+      <button class="dash-filter-btn" data-period="month" onclick="setLenoPeriod('month',this)">Este mes</button>
+      <button class="dash-filter-btn" data-period="year" onclick="setLenoPeriod('year',this)">Acumulado año</button>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+      <select id="leno-suc" class="search-input" style="min-width:150px;font-size:12px" onchange="renderLeno()">
+        <option value="ALL">Todas las ubicaciones</option>
+        <option value="BARRIO NORTE">Barrio Norte</option>
+        <option value="YERBA BUENA">Yerba Buena</option>
+        <option value="TAFI VIEJO">Tafí Viejo</option>
+      </select>
+    </div>
+    <div class="kpi-dash-row" id="leno-kpis"></div>
+    <div class="dash-2col">
+      <div class="dash-card">
+        <div class="dash-card-head">🏆 Ranking por ubicación (kg procesados)</div>
+        <div class="dash-card-body" id="leno-rank"></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-head">🍿 Productos (unidades)</div>
+        <div class="dash-card-body" id="leno-productos"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Últimos registros</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
+          </tr></thead>
+          <tbody id="leno-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
 </div>
 
 </div><!-- /main -->
@@ -1771,6 +1846,7 @@ window.calcPollo=function(){
 
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
 
 function markError(id){
   const el=document.getElementById(id);
@@ -2380,8 +2456,185 @@ window.renderLeno=function(){
       <td>${r.tiras||0}</td>
       <td>${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
       <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
+      <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
     </tr>
-  `).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
+  `).join(''):'<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
+};
+
+// ── LENO SRL — Sub-tabs y formulario de carga ──
+window.setLenoSubTab=function(name,btn){
+  document.querySelectorAll('#tab-leno .form-sec-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.leno-subpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('leno-sub-'+name).classList.add('active');
+  if(name==='reportes') renderLeno();
+};
+
+const LENO_LABEL={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo'};
+
+window.setSucChipLeno=function(btn){
+  document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  const suc=btn.dataset.v;
+  document.getElementById('leno-f-suc').value=suc;
+  renderLenoSucPanel(suc);
+};
+
+window.renderLenoSucPanel=function(suc){
+  const panel=document.getElementById('leno-suc-panel');
+  if(!panel||!suc) return;
+  const label=LENO_LABEL[suc]||suc;
+
+  const _h=new Date();
+  const hoyStr=`${_h.getFullYear()}-${String(_h.getMonth()+1).padStart(2,'0')}-${String(_h.getDate()).padStart(2,'0')}`;
+  const regs=[...LENO_DB].filter(r=>r.sucursal===suc&&r.fecha&&r.fecha<=hoyStr).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  const dow=_h.getDay()||7;
+  const lunes=new Date(_h); lunes.setDate(_h.getDate()-dow+1);
+  const lunesStr=`${lunes.getFullYear()}-${String(lunes.getMonth()+1).padStart(2,'0')}-${String(lunes.getDate()).padStart(2,'0')}`;
+  const semRecs=regs.filter(r=>r.fecha>=lunesStr&&r.fecha<=hoyStr);
+
+  const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
+  const procAlitaSem=sumF(semRecs,'procesado_alita');
+  const procFiletSem=sumF(semRecs,'procesado_filet');
+  const totalSem=procAlitaSem+procFiletSem;
+  const alitaSem=sumF(semRecs,'alita'), filetSem=sumF(semRecs,'filet'), popSem=sumF(semRecs,'popCorns'), tirasSem=sumF(semRecs,'tiras');
+
+  const recientes=regs.slice(0,5);
+  const recRows=recientes.length
+    ? recientes.map(r=>{
+        const kgR=(r.procesado_alita||0)+(r.procesado_filet||0);
+        return `<div class="sp-rec-row">
+          <span class="sp-rec-date">${r.fecha?.slice(5)||'—'}</span>
+          <span class="sp-rec-val">🐔 <strong>${(+kgR.toFixed(2)).toLocaleString('es-AR')} kg</strong></span>
+        </div>`;
+      }).join('')
+    : '<p style="font-size:11px;color:var(--text3);padding:4px 0">Sin registros aún para esta ubicación.</p>';
+
+  panel.innerHTML=`
+    <div class="sp-header" style="background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>
+      <div>
+        <div class="sp-header-name" style="color:var(--accent)">${label}</div>
+        <div class="sp-header-sub" style="color:var(--text3)">${regs.length} registros · semana actual</div>
+      </div>
+    </div>
+
+    <div class="sp-kpis">
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Procesado sem.</div>
+        <div class="sp-kpi-val">${(+totalSem.toFixed(2)).toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
+        <div class="sp-kpi-sub" style="color:var(--text3)">${(+procAlitaSem.toFixed(2)).toLocaleString('es-AR')} alita · ${(+procFiletSem.toFixed(2)).toLocaleString('es-AR')} filet</div>
+      </div>
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Productos sem.</div>
+        <div class="sp-kpi-val">${(alitaSem+filetSem+popSem+tirasSem).toLocaleString('es-AR')}</div>
+        <div class="sp-kpi-sub" style="color:var(--text3)">${alitaSem} alita · ${filetSem} filet · ${popSem} pop · ${tirasSem} tiras</div>
+      </div>
+    </div>
+
+    <div class="sp-section">
+      <div class="sp-sec-title"><i class="ti ti-clock" aria-hidden="true"></i> Últimos registros</div>
+      ${recRows}
+    </div>
+  `;
+};
+
+window.guardarLeno=function(){
+  const fecha=document.getElementById('leno-f-fecha').value;
+  const suc=document.getElementById('leno-f-suc').value;
+  if(!fecha){toast('❌ Falta la fecha','error');markError('leno-f-fecha');return}
+  if(!suc){toast('❌ Elegí una ubicación','error');markError('leno-f-suc');return}
+
+  const exists=LENO_DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
+  if(exists&&!lenoEditingId){
+    showConfirm({
+      icon:'⚠️',
+      title:'Registro existente',
+      msg:`Ya hay un registro para ${LENO_LABEL[suc]} · ${fecha}.\n¿Querés sobreescribirlo?`,
+      okLabel:'Sobreescribir',
+      okClass:'confirm-ok',
+      onOk:()=>_doGuardarLeno(fecha,suc)
+    });
+    return;
+  }
+  _doGuardarLeno(fecha,suc);
+};
+
+let lenoEditingId=null;
+
+async function _doGuardarLeno(fecha,suc){
+  const btn=document.getElementById('leno-btn-guardar');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
+  const docId=lenoEditingId||`${suc}_${fecha}`;
+  try{
+    await setDoc(doc(db,'leno_srl',docId),{
+      fecha,sucursal:suc,
+      alita:num('leno-f-alita'),filet:num('leno-f-filet'),
+      popCorns:num('leno-f-popcorns'),tiras:num('leno-f-tiras'),
+      procesado_alita:num('leno-f-proc-alita'),procesado_filet:num('leno-f-proc-filet'),
+      createdAt:new Date().toISOString(),
+      source:'web'
+    });
+    toast(`✅ Guardado — ${LENO_LABEL[suc]} · ${fecha}`);
+    limpiarLeno();
+  }catch(e){
+    toast('❌ Error: '+e.message,'error');
+  }
+  btn.disabled=false;btn.innerHTML='💾 Guardar';
+}
+
+window.limpiarLeno=function(){
+  ['leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('leno-f-suc').value='';
+  document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
+  lenoEditingId=null;
+  document.getElementById('leno-edit-banner').classList.remove('show');
+  document.getElementById('leno-cargar-title').textContent='Cargar envío del día';
+  document.getElementById('leno-btn-guardar').innerHTML='💾 Guardar';
+};
+
+window.editRegLeno=function(id){
+  const r=LENO_DB.find(x=>x._id===id);
+  if(!r)return;
+  lenoEditingId=id;
+  document.getElementById('leno-f-fecha').value=r.fecha||'';
+  document.getElementById('leno-f-suc').value=r.sucursal||'';
+  document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.toggle('active',c.dataset.v===(r.sucursal||'')));
+  document.getElementById('leno-f-alita').value=r.alita||'';
+  document.getElementById('leno-f-filet').value=r.filet||'';
+  document.getElementById('leno-f-popcorns').value=r.popCorns||'';
+  document.getElementById('leno-f-tiras').value=r.tiras||'';
+  document.getElementById('leno-f-proc-alita').value=r.procesado_alita||'';
+  document.getElementById('leno-f-proc-filet').value=r.procesado_filet||'';
+  renderLenoSucPanel(r.sucursal||'');
+  document.getElementById('leno-cargar-title').textContent='Editar registro';
+  document.getElementById('leno-btn-guardar').innerHTML='💾 Actualizar registro';
+  document.getElementById('leno-edit-banner-info').textContent=`${LENO_LABEL[r.sucursal]} · ${r.fecha}`;
+  document.getElementById('leno-edit-banner').classList.add('show');
+  const btn=document.querySelector('.nav-btn[onclick*="leno"]');
+  goTab('leno',btn);
+  setLenoSubTab('cargar',document.getElementById('leno-subtab-cargar'));
+  document.querySelector('#tab-leno').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+window.delRegLeno=function(id){
+  showConfirm({
+    icon:'🗑',
+    title:'Eliminar registro',
+    msg:'Este registro será eliminado de la nube permanentemente.',
+    okLabel:'Eliminar',
+    okClass:'confirm-del',
+    onOk:async()=>{
+      try{
+        await deleteDoc(doc(db,'leno_srl',id));
+        toast('✅ Registro eliminado');
+      }catch(e){
+        toast('❌ Error: '+e.message,'error');
+      }
+    }
+  });
 };
 
 // ── BÚSQUEDA EXTENDIDA (datos anteriores a 6 meses) ──
