@@ -9,10 +9,12 @@
 var FIREBASE_PROJECT = 'cdp-franquicias';
 var API_KEY          = 'AIzaSyCp0PTMPDod1FGDE3nstyHTrpxKfW3HyeM';
 var FIRESTORE_BASE   = 'https://firestore.googleapis.com/v1/projects/' + FIREBASE_PROJECT + '/databases/(default)/documents/registros';
+var LENO_BASE        = 'https://firestore.googleapis.com/v1/projects/' + FIREBASE_PROJECT + '/databases/(default)/documents/leno_srl';
 
 // GIDs de las hojas
 var CARNE_GID = 324102864;
 var POLLO_GID = 1665296147;
+var LENO_GID  = 423821482;
 
 var SUCURSALES = [
   { id: 'INDEPENDENCIA', startCol: 0  },
@@ -21,8 +23,15 @@ var SUCURSALES = [
   { id: 'FLIP',         startCol: 33 },
 ];
 
+var LENO_SUCURSALES = [
+  { id: 'BARRIO NORTE', startCol: 0  },
+  { id: 'YERBA BUENA',  startCol: 8  },
+  { id: 'TAFI VIEJO',   startCol: 16 },
+];
+
 var CARNE_DATA_ROW = 7;
 var POLLO_DATA_ROW = 3;
+var LENO_DATA_ROW  = 3;
 
 // ── Parsers ────────────────────────────────────────────────────
 
@@ -66,9 +75,9 @@ function toFirestoreDoc(reg) {
 }
 
 // PATCH con updateMask → solo actualiza los campos indicados, sin tocar el resto
-function subirConMask(docId, reg, fieldNames) {
+function subirConMask(docId, reg, fieldNames, base) {
   const mask = fieldNames.map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
-  const url  = `${FIRESTORE_BASE}/${docId}?${mask}&key=${API_KEY}`;
+  const url  = `${base || FIRESTORE_BASE}/${docId}?${mask}&key=${API_KEY}`;
 
   const subset = {};
   fieldNames.forEach(f => { if (f in reg) subset[f] = reg[f]; });
@@ -121,6 +130,24 @@ function buildPollo(rowData, suc) {
   };
 }
 
+var LENO_FIELDS = ['fecha','sucursal','alita','filet','popCorns','tiras','procesado_alita','procesado_filet','createdAt','source'];
+
+function buildLeno(rowData, suc) {
+  const c = suc.startCol;
+  return {
+    fecha:            parseDate(rowData[c]),
+    sucursal:         suc.id,
+    alita:            parseNum(rowData[c + 1]),
+    filet:            parseNum(rowData[c + 2]),
+    popCorns:         parseNum(rowData[c + 3]),
+    tiras:            parseNum(rowData[c + 4]),
+    procesado_alita:  parseNum(rowData[c + 5]),
+    procesado_filet:  parseNum(rowData[c + 6]),
+    createdAt:        new Date().toISOString(),
+    source:           'sheets',
+  };
+}
+
 // ── Sync automático al editar ──────────────────────────────────
 
 function onEditInstalable(e) {
@@ -128,6 +155,21 @@ function onEditInstalable(e) {
   const sheetId = sheet.getSheetId();
   const row     = e.range.getRow();
   const col     = e.range.getColumn() - 1; // 0-based
+
+  if (sheetId === LENO_GID) {
+    if (row < LENO_DATA_ROW) return;
+    const suc = LENO_SUCURSALES.find(s => col >= s.startCol && col < s.startCol + 8);
+    if (!suc) return;
+    const rowData = sheet.getRange(row, 1, 1, 24).getValues()[0];
+    try {
+      const reg = buildLeno(rowData, suc);
+      if (!reg.fecha) return;
+      subirConMask(`${suc.id}_${reg.fecha}`, reg, LENO_FIELDS, LENO_BASE);
+    } catch (err) {
+      console.error('LENO Sync error:', err.message);
+    }
+    return;
+  }
 
   let isCarne, dataRow;
   if      (sheetId === CARNE_GID) { isCarne = true;  dataRow = CARNE_DATA_ROW; }
@@ -162,7 +204,7 @@ function sincronizar() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const requests = [];
 
-  function addSheet(sheet, dataRow, buildFn, fields, sucs) {
+  function addSheet(sheet, dataRow, buildFn, fields, sucs, base) {
     if (!sheet) return;
     const lastRow = sheet.getLastRow();
     if (lastRow < dataRow) return;
@@ -176,7 +218,7 @@ function sincronizar() {
         const subset = {};
         fields.forEach(f => { if (f in reg) subset[f] = reg[f]; });
         requests.push({
-          url:         FIRESTORE_BASE + '/' + docId + '?' + mask + '&key=' + API_KEY,
+          url:         (base || FIRESTORE_BASE) + '/' + docId + '?' + mask + '&key=' + API_KEY,
           method:      'PATCH',
           contentType: 'application/json',
           payload:     JSON.stringify(toFirestoreDoc(subset)),
@@ -188,9 +230,11 @@ function sincronizar() {
 
   const carneSheet = ss.getSheets().find(s => s.getSheetId() === CARNE_GID);
   const polloSheet = ss.getSheets().find(s => s.getSheetId() === POLLO_GID);
+  const lenoSheet  = ss.getSheets().find(s => s.getSheetId() === LENO_GID);
 
   addSheet(carneSheet, CARNE_DATA_ROW, buildCarne, CARNE_FIELDS, SUCURSALES);
   addSheet(polloSheet, POLLO_DATA_ROW, buildPollo, POLLO_FIELDS, SUCURSALES);
+  addSheet(lenoSheet,  LENO_DATA_ROW,  buildLeno,  LENO_FIELDS,  LENO_SUCURSALES, LENO_BASE);
 
   if (!requests.length) {
     SpreadsheetApp.getUi().alert('CDP Franquicias', 'No hay registros con fecha para sincronizar.', SpreadsheetApp.getUi().ButtonSet.OK);
@@ -223,16 +267,18 @@ function resetYResincronizar() {
   if (confirmBtn !== ui.Button.YES) return;
 
   const allDocNames = [];
-  let nextToken = null;
 
-  do {
-    let listUrl = `${FIRESTORE_BASE}?pageSize=300&key=${API_KEY}`;
-    if (nextToken) listUrl += `&pageToken=${encodeURIComponent(nextToken)}`;
-    const listRes  = UrlFetchApp.fetch(listUrl, { muteHttpExceptions: true });
-    const listData = JSON.parse(listRes.getContentText());
-    (listData.documents || []).forEach(d => allDocNames.push(d.name));
-    nextToken = listData.nextPageToken || null;
-  } while (nextToken);
+  [FIRESTORE_BASE, LENO_BASE].forEach(function(base) {
+    let nextToken = null;
+    do {
+      let listUrl = `${base}?pageSize=300&key=${API_KEY}`;
+      if (nextToken) listUrl += `&pageToken=${encodeURIComponent(nextToken)}`;
+      const listRes  = UrlFetchApp.fetch(listUrl, { muteHttpExceptions: true });
+      const listData = JSON.parse(listRes.getContentText());
+      (listData.documents || []).forEach(d => allDocNames.push(d.name));
+      nextToken = listData.nextPageToken || null;
+    } while (nextToken);
+  });
 
   const batchUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents:batchWrite?key=${API_KEY}`;
   const BATCH = 500;

@@ -1023,6 +1023,7 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('precios',this)">💲 Precios</button>
   <button class="nav-btn" onclick="goTab('manoobra',this)">Mano de Obra</button>
   <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
+  <button class="nav-btn" onclick="goTab('leno',this)">🐔 LENO SRL</button>
 </nav>
 
 <div class="main">
@@ -1432,6 +1433,45 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- LENO SRL -->
+<div id="tab-leno" class="panel">
+  <div class="dash-filter" id="leno-filter-bar">
+    <span style="font-size:11px;color:var(--text3);font-weight:600;margin-right:4px">Período:</span>
+    <button class="dash-filter-btn active" data-period="week" onclick="setLenoPeriod('week',this)">Esta semana</button>
+    <button class="dash-filter-btn" data-period="month" onclick="setLenoPeriod('month',this)">Este mes</button>
+    <button class="dash-filter-btn" data-period="year" onclick="setLenoPeriod('year',this)">Acumulado año</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+    <select id="leno-suc" class="search-input" style="min-width:150px;font-size:12px" onchange="renderLeno()">
+      <option value="ALL">Todas las ubicaciones</option>
+      <option value="BARRIO NORTE">Barrio Norte</option>
+      <option value="YERBA BUENA">Yerba Buena</option>
+      <option value="TAFI VIEJO">Tafí Viejo</option>
+    </select>
+  </div>
+  <div class="kpi-dash-row" id="leno-kpis"></div>
+  <div class="dash-2col">
+    <div class="dash-card">
+      <div class="dash-card-head">🏆 Ranking por ubicación (kg procesados)</div>
+      <div class="dash-card-body" id="leno-rank"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-head">🍿 Productos (unidades)</div>
+      <div class="dash-card-body" id="leno-productos"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Últimos registros</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th>
+        </tr></thead>
+        <tbody id="leno-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- TOAST -->
@@ -1607,6 +1647,15 @@ onSnapshot(q, (snap)=>{
   console.error(err);
 });
 
+// ── LISTENER LENO SRL ──
+let LENO_DB=[];
+const qLeno = query(collection(db,'leno_srl'), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
+onSnapshot(qLeno, (snap)=>{
+  LENO_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
+  const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
+  if(cur.includes('leno')) renderLeno();
+}, err=>console.error('LENO sync error:', err));
+
 // ── HELPERS ──
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 const ARS = n=>'$\u00a0'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1657,6 +1706,7 @@ window.goTab=function(n,btn){
   if(n==='graficos')renderGraf();
   if(n==='manoobra')renderManoObra();
   if(n==='cobro')renderCobro();
+  if(n==='leno')renderLeno();
 }
 
 function openPin(){
@@ -2227,6 +2277,111 @@ window.renderDashboard=function(){
     <div class="alert-dot" style="background:${a.color}"></div>
     <div><div class="alert-msg">${a.msg}</div><div class="alert-sub">${a.sub}</div></div>
   </div>`).join(''):'<p style="font-size:12px;color:var(--text3)">✅ Sin alertas para este período.</p>';
+};
+
+// ── LENO SRL ──
+let lenoPeriod='week';
+window.setLenoPeriod=function(p,btn){
+  lenoPeriod=p;
+  document.querySelectorAll('#leno-filter-bar .dash-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeno();
+};
+
+function getLenoDates(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const today=fmt(now);
+  if(lenoPeriod==='week'){
+    const dow=now.getDay()||7;
+    const mon=new Date(now); mon.setDate(now.getDate()-dow+1);
+    return {desde:fmt(mon),hasta:today};
+  }
+  if(lenoPeriod==='month'){
+    return {desde:`${now.getFullYear()}-${pad(now.getMonth()+1)}-01`,hasta:today};
+  }
+  return {desde:`${now.getFullYear()}-01-01`,hasta:today};
+}
+
+window.renderLeno=function(){
+  const sucF=document.getElementById('leno-suc')?.value||'ALL';
+  const {desde,hasta}=getLenoDates();
+  let cur=LENO_DB.filter(r=>r.fecha>=desde&&r.fecha<=hasta);
+  if(sucF!=='ALL') cur=cur.filter(r=>r.sucursal===sucF);
+
+  const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
+  const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO'];
+  const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo'};
+
+  const procAlita=sumF(cur,'procesado_alita');
+  const procFilet=sumF(cur,'procesado_filet');
+  const totalKg=procAlita+procFilet;
+  const tAlita=sumF(cur,'alita'), tFilet=sumF(cur,'filet'), tPop=sumF(cur,'popCorns'), tTiras=sumF(cur,'tiras');
+
+  const kpisEl=document.getElementById('leno-kpis');
+  if(kpisEl) kpisEl.innerHTML=`
+    <div class="kpi-dash kd-teal">
+      <div class="kpi-dash-lbl">Total procesado</div>
+      <div class="kpi-dash-val">${(+totalKg.toFixed(2)).toLocaleString('es-AR')} kg</div>
+    </div>
+    <div class="kpi-dash kd-red">
+      <div class="kpi-dash-lbl">Procesado Alita</div>
+      <div class="kpi-dash-val">${(+procAlita.toFixed(2)).toLocaleString('es-AR')} kg</div>
+    </div>
+    <div class="kpi-dash kd-amber">
+      <div class="kpi-dash-lbl">Procesado Filet</div>
+      <div class="kpi-dash-val">${(+procFilet.toFixed(2)).toLocaleString('es-AR')} kg</div>
+    </div>
+    <div class="kpi-dash kd-blue">
+      <div class="kpi-dash-lbl">Registros del período</div>
+      <div class="kpi-dash-val">${cur.length}</div>
+    </div>
+  `;
+
+  // Ranking por ubicación
+  const rankEl=document.getElementById('leno-rank');
+  const ranking=ubicaciones.map(u=>{
+    const recs=cur.filter(r=>r.sucursal===u);
+    const kg=sumF(recs,'procesado_alita')+sumF(recs,'procesado_filet');
+    return {u,kg};
+  }).sort((a,b)=>b.kg-a.kg);
+  const maxKg=Math.max(...ranking.map(r=>r.kg),1);
+  if(rankEl) rankEl.innerHTML=ranking.map((r,i)=>`
+    <div class="rank-row">
+      <span class="rank-pos">${i+1}</span>
+      <span class="rank-name">${NOMBRES[r.u]}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.kg/maxKg*100)}%;background:var(--accent)"></div></div>
+      <span class="rank-val">${(+r.kg.toFixed(2)).toLocaleString('es-AR')} kg</span>
+    </div>
+  `).join('');
+
+  // Productos (unidades)
+  const prodEl=document.getElementById('leno-productos');
+  if(prodEl) prodEl.innerHTML=`
+    <div class="cost-week-grid">
+      <div class="cost-witem"><div class="cost-witem-lbl">Alita</div><div class="cost-witem-val">${tAlita.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Filet</div><div class="cost-witem-val">${tFilet.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Pop Corns</div><div class="cost-witem-val">${tPop.toLocaleString('es-AR')}</div></div>
+      <div class="cost-witem"><div class="cost-witem-lbl">Tiras</div><div class="cost-witem-val">${tTiras.toLocaleString('es-AR')}</div></div>
+    </div>
+  `;
+
+  // Últimos registros
+  const tbody=document.getElementById('leno-tbody');
+  const recientes=[...cur].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,30);
+  if(tbody) tbody.innerHTML=recientes.length?recientes.map(r=>`
+    <tr>
+      <td>${r.fecha||'—'}</td>
+      <td>${NOMBRES[r.sucursal]||r.sucursal||'—'}</td>
+      <td>${r.alita||0}</td>
+      <td>${r.filet||0}</td>
+      <td>${r.popCorns||0}</td>
+      <td>${r.tiras||0}</td>
+      <td>${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
+      <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
+    </tr>
+  `).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
 };
 
 // ── BÚSQUEDA EXTENDIDA (datos anteriores a 6 meses) ──

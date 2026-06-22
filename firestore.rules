@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /registros/{doc} {
+      allow read, write: if true;
+    }
+    match /config/{doc} {
+      allow read, write: if true;
+    }
+    match /leno_srl/{doc} {
+      allow read, write: if true;
+    }
+  }
+}
