@@ -46,35 +46,6 @@
   --pin-btn-border:#252540;
 }
 
-[data-theme="red"] {
-  --bg:#0A0608;
-  --surface:#120A0C;
-  --surface2:#1A0D10;
-  --border:#2C1218;
-  --border2:#3D1820;
-  --text:#FFF0F2;
-  --text2:#BB8890;
-  --text3:#774455;
-  --accent:#FF2244;
-  --accent2:#FF9F1C;
-  --hdr-bg:linear-gradient(135deg,#0A0608 0%,#1A0510 100%);
-  --nav-bg:#0A0608;
-  --card-shadow:0 4px 24px rgba(255,0,30,.1);
-  --pill-bg:rgba(255,34,68,.08);
-  --kpi-val:#FFF0F2;
-  --input-bg:#0A0608;
-  --tbl-head:#0A0608;
-  --tbl-even:rgba(255,34,68,.03);
-  --tbl-hover:rgba(255,34,68,.08);
-  --empty-ico:rgba(255,34,68,.15);
-  --scrollbar:#2C1218;
-  --toast-bg:#FFF0F2;
-  --toast-text:#0A0608;
-  --modal-bg:#120A0C;
-  --pin-btn-bg:#1A0D10;
-  --pin-btn-border:#2C1218;
-}
-
 [data-theme="light"] {
   --bg:#F0F4FF;
   --surface:#ffffff;
@@ -220,7 +191,6 @@ body{
   line-height:1;
 }
 .theme-btn.active{background:var(--accent);color:#000}
-[data-theme="red"] .theme-btn.active{color:#fff}
 
 /* ── NAV ─────────────────────────────────────────────────── */
 .nav{
@@ -255,7 +225,6 @@ body{
   color:#000;
   box-shadow:0 2px 12px rgba(255,159,28,.3);
 }
-[data-theme="red"] .nav-btn.active{box-shadow:0 2px 12px rgba(255,34,68,.3)}
 .nav-btn:hover:not(.active){background:var(--pill-bg);color:var(--text)}
 
 /* ── MAIN ────────────────────────────────────────────────── */
@@ -368,9 +337,6 @@ body{
   border-color:var(--accent);
   box-shadow:0 0 0 3px rgba(255,159,28,.15);
 }
-[data-theme="red"] .form-group input:focus,[data-theme="red"] .form-group select:focus{
-  box-shadow:0 0 0 3px rgba(255,34,68,.15);
-}
 .form-group select option{background:var(--surface)}
 
 .sec-title{
@@ -469,7 +435,6 @@ body{
 .form-sec-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:10px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;letter-spacing:.2px}
 .form-sec-tab i{font-size:15px}
 .form-sec-tab.active{background:var(--accent);border-color:var(--accent);color:#000}
-[data-theme="red"] .form-sec-tab.active{color:#fff}
 .form-panel{display:none}
 .form-panel.active{display:block}
 .leno-subpanel{display:none}
@@ -1001,8 +966,7 @@ if('serviceWorker' in navigator){
       <span id="sync-label">Conectando...</span>
     </div>
     <div class="theme-toggle">
-      <button class="theme-btn" id="theme-dark" onclick="setTheme('dark')" title="Tema oscuro">🌑</button>
-      <button class="theme-btn active" id="theme-red" onclick="setTheme('red')" title="Tema Rojo CDP">🔴</button>
+      <button class="theme-btn active" id="theme-dark" onclick="setTheme('dark')" title="Tema oscuro">🌑</button>
       <button class="theme-btn" id="theme-light" onclick="setTheme('light')" title="Tema claro">☀️</button>
     </div>
   </div>
@@ -1609,7 +1573,6 @@ if('serviceWorker' in navigator){
 function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.getElementById('theme-dark').classList.toggle('active',t==='dark');
-  document.getElementById('theme-red').classList.toggle('active',t==='red');
   document.getElementById('theme-light').classList.toggle('active',t==='light');
   localStorage.setItem('cdp-theme',t);
   // Re-render charts con nueva paleta
@@ -1617,11 +1580,10 @@ function setTheme(t){
 }
 // Restaurar tema guardado
 (function(){
-  const saved=localStorage.getItem('cdp-theme')||'red';
+  const saved=localStorage.getItem('cdp-theme')||'dark';
   document.documentElement.setAttribute('data-theme',saved);
   document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('theme-dark').classList.toggle('active',saved==='dark');
-    document.getElementById('theme-red').classList.toggle('active',saved==='red');
     document.getElementById('theme-light').classList.toggle('active',saved==='light');
   });
 })();
