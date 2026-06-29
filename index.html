@@ -983,6 +983,7 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('precios',this)">💲 Precios</button>
   <button class="nav-btn" onclick="goTab('manoobra',this)">Mano de Obra</button>
   <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
+  <button class="nav-btn" onclick="goTab('estados',this)">📋 Estados</button>
   <button class="nav-btn" onclick="goTab('leno',this)">🐔 LENO SRL</button>
 </nav>
 
@@ -1354,11 +1355,11 @@ if('serviceWorker' in navigator){
       <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
         <div class="form-group" style="margin:0;min-width:200px">
           <label>🐔 Precio venta Alita ($ / kg)</label>
-          <input type="number" id="co-precio-alita" min="0" step="0.01" placeholder="Ej: 3200" oninput="renderCobro()">
+          <input type="number" id="co-precio-alita" min="0" step="0.01" placeholder="Ej: 3200" oninput="guardarPreciosCobro();renderCobro()">
         </div>
         <div class="form-group" style="margin:0;min-width:200px">
           <label>🍗 Precio venta Filet ($ / kg)</label>
-          <input type="number" id="co-precio-filet" min="0" step="0.01" placeholder="Ej: 4500" oninput="renderCobro()">
+          <input type="number" id="co-precio-filet" min="0" step="0.01" placeholder="Ej: 4500" oninput="guardarPreciosCobro();renderCobro()">
         </div>
         <div style="font-size:12px;color:var(--text3);padding-bottom:12px">← Ingresá los precios y los totales se calculan automáticamente</div>
       </div>
@@ -1391,6 +1392,69 @@ if('serviceWorker' in navigator){
       </table>
     </div>
   </div>
+</div>
+
+
+<!-- ESTADOS DE CUENTA -->
+<div id="tab-estados" class="panel">
+
+  <!-- KPI PANEL -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <span class="card-title">📊 Panel de Control</span>
+      <span style="font-size:11px;color:var(--text3)">Resumen de todos los estados de cuenta</span>
+    </div>
+    <div class="card-body" id="est-kpi-row">
+      <div class="empty" style="padding:16px 0"><div class="ico" style="font-size:28px">📋</div><p>Cargando...</p></div>
+    </div>
+  </div>
+
+  <!-- GENERACIÓN AUTOMÁTICA -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <span class="card-title">⚡ Generación Automática</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+        <div class="form-group" style="margin:0">
+          <label>Semana — seleccioná el <strong>lunes</strong></label>
+          <input type="date" id="est-semana-inicio" class="search-input" style="width:170px">
+        </div>
+        <button class="btn btn-primary" id="est-btn-generar" onclick="generarEstadosCuenta()">⚡ Generar estados de cuenta</button>
+        <div style="font-size:11px;color:var(--text3);max-width:300px">Genera automáticamente un estado para cada franquicia usando los precios registrados en cada envío</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA DE ESTADOS -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">📋 Estados de Cuenta</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="est-fil-estado" class="search-input" style="width:140px" onchange="renderEstados()">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">⏳ Pendiente</option>
+          <option value="enviado">📤 Enviado</option>
+          <option value="cobrado">✅ Cobrado</option>
+          <option value="anulado">🚫 Anulado</option>
+        </select>
+        <select id="est-fil-franquicia" class="search-input" style="width:150px" onchange="renderEstados()">
+          <option value="">Todas las franquicias</option>
+        </select>
+      </div>
+    </div>
+    <div id="est-lista">
+      <div class="empty"><div class="ico">📋</div><p>Generá estados de cuenta para comenzar.</p></div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE -->
+  <div id="est-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;align-items:center;justify-content:center;padding:12px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card);border-radius:14px;width:100%;max-width:740px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:auto">
+      <div id="est-modal-content"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- LENO SRL -->
@@ -1695,6 +1759,17 @@ onSnapshot(qLeno, (snap)=>{
   if(cur.includes('leno')) renderLeno();
 }, err=>console.error('LENO sync error:', err));
 
+// ── ESTADOS DE CUENTA ──
+let ESTADOS_DB=[];
+const ESTADOS_COL='estados_cuenta';
+const qEstados=query(collection(db,ESTADOS_COL),orderBy("periodo_inicio","desc"));
+onSnapshot(qEstados,(snap)=>{
+  ESTADOS_DB=snap.docs.map(d=>({...d.data(),_id:d.id}));
+  const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
+  if(cur.includes('estados'))renderEstados();
+},err=>console.error('Estados sync error:',err));
+
+
 // ── HELPERS ──
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 const ARS = n=>'$\u00a0'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1745,6 +1820,7 @@ window.goTab=function(n,btn){
   if(n==='graficos')renderGraf();
   if(n==='manoobra')renderManoObra();
   if(n==='cobro')renderCobro();
+  if(n==='estados')renderEstados();
   if(n==='leno')renderLeno();
 }
 
@@ -3193,7 +3269,19 @@ window.exportExcel=function(desdeId,hastaId){
 }
 
 // ── COBRO ──
+window.guardarPreciosCobro=function(){
+  const a=document.getElementById('co-precio-alita')?.value||'';
+  const f=document.getElementById('co-precio-filet')?.value||'';
+  localStorage.setItem('cdp-cobro-precio-alita',a);
+  localStorage.setItem('cdp-cobro-precio-filet',f);
+};
+window.restaurarPreciosCobro=function(){
+  const ae=document.getElementById('co-precio-alita'), fe=document.getElementById('co-precio-filet');
+  if(ae&&!ae.value) ae.value=localStorage.getItem('cdp-cobro-precio-alita')||'';
+  if(fe&&!fe.value) fe.value=localStorage.getItem('cdp-cobro-precio-filet')||'';
+};
 window.renderCobro=function(){
+  restaurarPreciosCobro();
   const pAlita=parseFloat(document.getElementById('co-precio-alita')?.value)||0;
   const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
@@ -3457,17 +3545,4 @@ window.exportManoObra=function(){
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const semRows=[];
   Object.keys(byW).filter(wk=>wk&&wk!=='null').sort().forEach(wk=>{
-    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
-    const row={'Semana':wk,'Hasta':wkE.toISOString().slice(0,10)};
-    let totS=0;
-    SUCS.forEach(suc=>{const rows=byW[wk].filter(r=>r.sucursal===suc);const kg=rows.reduce((s,r)=>s+(r.proc_alita||0)+(r.proc_pechuga||0),0);row[SUC_NAMES[suc]+' kg']=+kg.toFixed(2);row[SUC_NAMES[suc]+' $']=+(kg*precio).toFixed(2);totS+=kg;});
-    row['Total $']=+(totS*precio).toFixed(2);semRows.push(row);
-  });
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
-  XLSX.writeFile(wb,`CDP_ManoObra_${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('✅ Excel mano de obra descargado');
-}
-
-</script>
-</body>
-</html>
+    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.get
