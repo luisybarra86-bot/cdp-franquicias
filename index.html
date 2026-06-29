@@ -1506,6 +1506,11 @@ if('serviceWorker' in navigator){
       <button class="dash-filter-btn active" data-period="week" onclick="setLenoPeriod('week',this)">Esta semana</button>
       <button class="dash-filter-btn" data-period="month" onclick="setLenoPeriod('month',this)">Este mes</button>
       <button class="dash-filter-btn" data-period="year" onclick="setLenoPeriod('year',this)">Acumulado año</button>
+      <button class="dash-filter-btn" data-period="custom" onclick="setLenoPeriod('custom',this)">Rango personalizado</button>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+      <input class="search-input" type="date" id="leno-desde" style="width:130px;display:none" title="Desde" oninput="renderLeno()">
+      <span id="leno-rango-sep" style="display:none;color:var(--text3);font-size:12px">→</span>
+      <input class="search-input" type="date" id="leno-hasta" style="width:130px;display:none" title="Hasta" oninput="renderLeno()">
       <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
       <select id="leno-suc" class="search-input" style="min-width:150px;font-size:12px" onchange="renderLeno()">
         <option value="ALL">Todas las ubicaciones</option>
@@ -1517,13 +1522,17 @@ if('serviceWorker' in navigator){
     <div class="kpi-dash-row" id="leno-kpis"></div>
     <div class="dash-2col">
       <div class="dash-card">
+        <div class="dash-card-head">📈 Kg procesados por día</div>
+        <div class="dash-card-body" style="height:220px;position:relative"><canvas id="leno-ch-linea"></canvas></div>
+      </div>
+      <div class="dash-card">
         <div class="dash-card-head">🏆 Ranking por ubicación (kg procesados)</div>
         <div class="dash-card-body" id="leno-rank"></div>
       </div>
-      <div class="dash-card">
-        <div class="dash-card-head">🍿 Productos (unidades)</div>
-        <div class="dash-card-body" id="leno-productos"></div>
-      </div>
+    </div>
+    <div class="dash-card" style="margin-bottom:14px">
+      <div class="dash-card-head">🍿 Productos (unidades) por ubicación</div>
+      <div class="dash-card-body" style="height:220px;position:relative"><canvas id="leno-ch-prod"></canvas></div>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-title">Últimos registros</span></div>
@@ -2349,11 +2358,15 @@ window.renderDashboard=function(){
 };
 
 // ── LENO SRL ──
-let lenoPeriod='week';
+let lenoPeriod='week', lenoCH={};
 window.setLenoPeriod=function(p,btn){
   lenoPeriod=p;
   document.querySelectorAll('#leno-filter-bar .dash-filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const mostrar=p==='custom'?'':'none';
+  document.getElementById('leno-desde').style.display=mostrar;
+  document.getElementById('leno-hasta').style.display=mostrar;
+  document.getElementById('leno-rango-sep').style.display=mostrar;
   renderLeno();
 };
 
@@ -2362,6 +2375,11 @@ function getLenoDates(){
   const pad=n=>String(n).padStart(2,'0');
   const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const today=fmt(now);
+  if(lenoPeriod==='custom'){
+    const desde=document.getElementById('leno-desde')?.value||today;
+    const hasta=document.getElementById('leno-hasta')?.value||today;
+    return {desde,hasta};
+  }
   if(lenoPeriod==='week'){
     const dow=now.getDay()||7;
     const mon=new Date(now); mon.setDate(now.getDate()-dow+1);
@@ -2425,16 +2443,21 @@ window.renderLeno=function(){
     </div>
   `).join('');
 
-  // Productos (unidades)
-  const prodEl=document.getElementById('leno-productos');
-  if(prodEl) prodEl.innerHTML=`
-    <div class="cost-week-grid">
-      <div class="cost-witem"><div class="cost-witem-lbl">Alita</div><div class="cost-witem-val">${tAlita.toLocaleString('es-AR')}</div></div>
-      <div class="cost-witem"><div class="cost-witem-lbl">Filet</div><div class="cost-witem-val">${tFilet.toLocaleString('es-AR')}</div></div>
-      <div class="cost-witem"><div class="cost-witem-lbl">Pop Corns</div><div class="cost-witem-val">${tPop.toLocaleString('es-AR')}</div></div>
-      <div class="cost-witem"><div class="cost-witem-lbl">Tiras</div><div class="cost-witem-val">${tTiras.toLocaleString('es-AR')}</div></div>
-    </div>
-  `;
+  // Gráficos
+  Object.values(lenoCH).forEach(c=>{try{c.destroy()}catch(e){}});lenoCH={};
+  const COPT=getChartDefaults();
+  const dias=[...new Set(cur.map(r=>r.fecha))].sort();
+  const elLinea=document.getElementById('leno-ch-linea');
+  if(elLinea) lenoCH.linea=new Chart(elLinea,{type:'line',data:{labels:dias,datasets:[{label:'Kg procesados',data:dias.map(d=>{const recs=cur.filter(r=>r.fecha===d);return sumF(recs,'procesado_alita')+sumF(recs,'procesado_filet')}),borderColor:'#0F6E56',backgroundColor:'#0F6E5633',borderWidth:2,fill:true,tension:.25,pointRadius:3}]},options:COPT});
+
+  const ubicLbl=ubicaciones.map(u=>NOMBRES[u]);
+  const elProd=document.getElementById('leno-ch-prod');
+  if(elProd) lenoCH.prod=new Chart(elProd,{type:'bar',data:{labels:ubicLbl,datasets:[
+    {label:'Alita',data:ubicaciones.map(u=>sumF(cur.filter(r=>r.sucursal===u),'alita')),backgroundColor:'#1D9E7599',borderColor:'#1D9E75',borderWidth:1.5,borderRadius:4},
+    {label:'Filet',data:ubicaciones.map(u=>sumF(cur.filter(r=>r.sucursal===u),'filet')),backgroundColor:'#5DCAA599',borderColor:'#5DCAA5',borderWidth:1.5,borderRadius:4},
+    {label:'Pop Corns',data:ubicaciones.map(u=>sumF(cur.filter(r=>r.sucursal===u),'popCorns')),backgroundColor:'#9FE1CB99',borderColor:'#9FE1CB',borderWidth:1.5,borderRadius:4},
+    {label:'Tiras',data:ubicaciones.map(u=>sumF(cur.filter(r=>r.sucursal===u),'tiras')),backgroundColor:'#BA751799',borderColor:'#BA7517',borderWidth:1.5,borderRadius:4}
+  ]},options:COPT});
 
   // Últimos registros
   const tbody=document.getElementById('leno-tbody');
