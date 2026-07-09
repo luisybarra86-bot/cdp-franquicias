@@ -461,7 +461,13 @@ body{
 .dash-filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .kpi-dash-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:700px){.kpi-dash-row{grid-template-columns:repeat(2,1fr)}}
-.kpi-dash{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi-dash{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;animation:fadeUp .35s ease both}
+.kpi-dash:nth-child(1){animation-delay:0ms}
+.kpi-dash:nth-child(2){animation-delay:40ms}
+.kpi-dash:nth-child(3){animation-delay:80ms}
+.kpi-dash:nth-child(4){animation-delay:120ms}
+.kpi-dash:nth-child(5){animation-delay:160ms}
+.kpi-dash:nth-child(6){animation-delay:200ms}
 .kpi-dash::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .kpi-dash.kd-red::before{background:#FF4B6E}
 .kpi-dash.kd-teal::before{background:#2EC4B6}
@@ -1747,6 +1753,29 @@ function filterByDate(arr,desde='',hasta=''){
   return arr.filter(r=>{if(!r.fecha)return false;if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
 }
 
+function animateKpiNumbers(container){
+  if(!container) return;
+  container.querySelectorAll('.kpi-dash-val').forEach(el=>{
+    const raw=el.textContent;
+    const m=raw.match(/([\d.,]+)/);
+    if(!m) return;
+    const numStr=m[1];
+    const decimals=numStr.includes(',')?numStr.split(',')[1].length:0;
+    const target=parseFloat(numStr.replace(/\./g,'').replace(',','.'));
+    if(isNaN(target)) return;
+    const prefix=raw.slice(0,m.index);
+    const suffix=raw.slice(m.index+numStr.length);
+    const start=performance.now(), dur=500;
+    function step(now){
+      const t=Math.min((now-start)/dur,1);
+      const eased=1-Math.pow(1-t,3);
+      const formatted=(target*eased).toLocaleString('es-AR',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+      el.textContent=prefix+formatted+suffix;
+      if(t<1) requestAnimationFrame(step); else el.textContent=raw;
+    }
+    requestAnimationFrame(step);
+  });
+}
 function toast(msg,type='ok'){
   const t=document.getElementById('toast');
   t.textContent=msg;
@@ -2346,6 +2375,7 @@ window.renderDashboard=function(){
       <div style="font-size:10px;color:var(--text3);margin-top:2px">Carne + Alita + Filet</div>
     </div>
   `;
+  animateKpiNumbers(kpisEl);
 
   // Rankings
   const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP'];
@@ -2480,6 +2510,7 @@ window.renderLeno=function(){
       <div class="kpi-dash-val">${cur.length}</div>
     </div>
   `;
+  animateKpiNumbers(kpisEl);
 
   // Ranking por ubicación
   const rankEl=document.getElementById('leno-rank');
