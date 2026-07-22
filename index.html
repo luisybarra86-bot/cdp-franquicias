@@ -15,6 +15,9 @@
   --ind:#FF4B6E; --per:#FF9F1C; --bar:#2EC4B6; --fli:#9B5DE5;
   --ind-l:rgba(255,75,110,.12); --per-l:rgba(255,159,28,.12);
   --bar-l:rgba(46,196,182,.12); --fli-l:rgba(155,93,229,.12);
+  --barn:#3B82F6; --yb:#EAB308; --tv:#EC4899; --ev:#14B8A6;
+  --barn-l:rgba(59,130,246,.12); --yb-l:rgba(234,179,8,.12);
+  --tv-l:rgba(236,72,153,.12); --ev-l:rgba(20,184,166,.12);
 }
 
 [data-theme="dark"] {
@@ -191,6 +194,35 @@ body{
   line-height:1;
 }
 .theme-btn.active{background:var(--accent);color:#000}
+
+/* ── MODULO (NIVEL 1) ───────────────────────────────────────── */
+.modulo-nav{
+  background:var(--nav-bg);
+  border-bottom:1px solid var(--border);
+  padding:10px 24px;
+  display:flex;
+  gap:10px;
+}
+.modulo-btn{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:10px 20px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .2s;
+  letter-spacing:.2px;
+}
+.modulo-btn.active{
+  background:var(--accent);
+  color:#000;
+  border-color:var(--accent);
+  box-shadow:0 2px 12px rgba(255,159,28,.3);
+}
+.modulo-btn:hover:not(.active){background:var(--pill-bg);color:var(--text)}
 
 /* ── NAV ─────────────────────────────────────────────────── */
 .nav{
@@ -374,7 +406,10 @@ body{
 .suc-chip[data-v="PERON"].active{background:var(--per);border-color:var(--per);color:#000;}
 .suc-chip[data-v="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#000;}
 .suc-chip[data-v="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff;}
-.suc-chip[data-v="BARRIO NORTE"].active,.suc-chip[data-v="YERBA BUENA"].active,.suc-chip[data-v="TAFI VIEJO"].active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.suc-chip[data-v="BARRIO NORTE"].active{background:var(--barn);border-color:var(--barn);color:#fff;}
+.suc-chip[data-v="YERBA BUENA"].active{background:var(--yb);border-color:var(--yb);color:#000;}
+.suc-chip[data-v="TAFI VIEJO"].active{background:var(--tv);border-color:var(--tv);color:#fff;}
+.suc-chip[data-v="EVENTOS"].active{background:var(--ev);border-color:var(--ev);color:#000;}
 /* ── Layout 2 columnas Cargar Día ── */
 .cargar-2col{display:grid;grid-template-columns:270px 1fr;gap:14px;align-items:start}
 @media(max-width:820px){.cargar-2col{grid-template-columns:1fr}}
@@ -655,6 +690,16 @@ tbody tr{animation:fadeUp .25s ease both}
 .pill-PER{background:var(--per-l);color:var(--per);border:1px solid rgba(255,159,28,.2)}
 .pill-BAR{background:var(--bar-l);color:var(--bar);border:1px solid rgba(46,196,182,.2)}
 .pill-FLI{background:var(--fli-l);color:var(--fli);border:1px solid rgba(155,93,229,.2)}
+.pill-BARN{background:var(--barn-l);color:var(--barn);border:1px solid rgba(59,130,246,.2)}
+.pill-YB{background:var(--yb-l);color:var(--yb);border:1px solid rgba(234,179,8,.2)}
+.pill-TV{background:var(--tv-l);color:var(--tv);border:1px solid rgba(236,72,153,.2)}
+.pill-EV{background:var(--ev-l);color:var(--ev);border:1px solid rgba(20,184,166,.2)}
+
+/* ── MERMA CARNE (NUEVO) ─────────────────────────────────────── */
+.merma-box{margin-top:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.merma-lbl{font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.5px}
+.merma-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#ef4444}
+.merma-pct{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#ef4444}
 
 /* ── FILTROS ─────────────────────────────────────────────── */
 .suc-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
@@ -980,8 +1025,14 @@ if('serviceWorker' in navigator){
   </div>
 </header>
 
-<!-- NAV -->
-<nav class="nav">
+<!-- MODULO (NIVEL 1) -->
+<nav class="modulo-nav" id="modulo-nav">
+  <button class="modulo-btn active" id="modulo-btn-franquicias" onclick="setModulo('franquicias',this)">🍔 Franquicias</button>
+  <button class="modulo-btn" id="modulo-btn-leno" onclick="setModulo('leno',this)">🍔 LENO SRL</button>
+</nav>
+
+<!-- NAV (NIVEL 2 — Franquicias) -->
+<nav class="nav" id="nav-franquicias">
   <button class="nav-btn active" onclick="goTab('cargar',this)">+ Cargar Día</button>
   <button class="nav-btn" onclick="goTab('dashboard',this)">📊 Dashboard</button>
   <button class="nav-btn" onclick="goTab('registros',this)">Registros</button>
@@ -991,7 +1042,6 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('precios',this)">💲 Precios</button>
   <button class="nav-btn" onclick="goTab('manoobra',this)">Mano de Obra</button>
   <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
-  <button class="nav-btn" onclick="goTab('leno',this)">🐔 LENO SRL</button>
 </nav>
 
 <div class="main">
@@ -1040,8 +1090,8 @@ if('serviceWorker' in navigator){
           <div class="fpanel-bg">
             <div class="g2-form">
               <div class="ff"><span>Pedido kg</span><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
-              <div class="ff"><span>Recibido kg</span><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0"></div>
-              <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
+              <div class="ff"><span>Recibido kg</span><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('f-rec-kg','f-proc-kg','merma-box-carne')"></div>
+              <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('f-rec-kg','f-proc-kg','merma-box-carne')"></div>
               <div class="ff"><span>Medallón 90g</span><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
               <div class="ff"><span>Bolita 90g</span><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
             </div>
@@ -1063,6 +1113,10 @@ if('serviceWorker' in navigator){
                 <span></span>
                 <span class="calc-total-val" id="calc-total">0.000</span>
               </div>
+            </div>
+            <div class="merma-box" id="merma-box-carne">
+              <span class="merma-lbl">⚠️ Merma estimada</span>
+              <span><span class="merma-val">0.0 kg</span> <span class="merma-pct">(0.0%)</span></span>
             </div>
           </div>
           <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo</div>
@@ -1180,6 +1234,7 @@ if('serviceWorker' in navigator){
       <table>
         <thead><tr>
           <th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th>
+          <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th>
           <th>Med 110</th><th>Bol 110</th>
           <th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>
         </tr></thead>
@@ -1442,10 +1497,14 @@ if('serviceWorker' in navigator){
 <!-- LENO SRL -->
 <div id="tab-leno" class="panel">
 
-  <div class="form-sec-tabs" style="margin-bottom:14px">
-    <button class="form-sec-tab active" id="leno-subtab-cargar" onclick="setLenoSubTab('cargar',this)">+ Cargar Día</button>
-    <button class="form-sec-tab" id="leno-subtab-reportes" onclick="setLenoSubTab('reportes',this)">📊 Reportes</button>
-  </div>
+  <nav class="nav" id="leno-subnav" style="margin-bottom:14px;border-bottom:none">
+    <button class="nav-btn active" id="leno-subtab-cargar" onclick="setLenoSubTab('cargar',this)">+ Cargar Día</button>
+    <button class="nav-btn" id="leno-subtab-dashboard" onclick="setLenoSubTab('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-btn" id="leno-subtab-registros" onclick="setLenoSubTab('registros',this)">Registros</button>
+    <button class="nav-btn" id="leno-subtab-semanal" onclick="setLenoSubTab('semanal',this)">Semanal</button>
+    <button class="nav-btn" id="leno-subtab-mensual" onclick="setLenoSubTab('mensual',this)">Mensual</button>
+    <button class="nav-btn" id="leno-subtab-graficos" onclick="setLenoSubTab('graficos',this)">Gráficos</button>
+  </nav>
 
   <!-- SUB: CARGAR DÍA -->
   <div id="leno-sub-cargar" class="leno-subpanel active">
@@ -1470,24 +1529,74 @@ if('serviceWorker' in navigator){
             <option value="BARRIO NORTE">BARRIO NORTE</option>
             <option value="YERBA BUENA">YERBA BUENA</option>
             <option value="TAFI VIEJO">TAFI VIEJO</option>
+            <option value="EVENTOS">EVENTOS</option>
           </select>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
             <button class="suc-chip" data-v="BARRIO NORTE" onclick="setSucChipLeno(this)">BN</button>
             <button class="suc-chip" data-v="YERBA BUENA" onclick="setSucChipLeno(this)">YB</button>
             <button class="suc-chip" data-v="TAFI VIEJO" onclick="setSucChipLeno(this)">TV</button>
+            <button class="suc-chip" data-v="EVENTOS" onclick="setSucChipLeno(this)">EV</button>
           </div>
 
-          <div class="fpanel-bg">
-            <div class="g2-form">
-              <div class="ff"><span>Alita</span><input type="number" id="leno-f-alita" min="0" placeholder="0"></div>
-              <div class="ff"><span>Filet</span><input type="number" id="leno-f-filet" min="0" placeholder="0"></div>
-              <div class="ff"><span>Pop Corns</span><input type="number" id="leno-f-popcorns" min="0" placeholder="0"></div>
-              <div class="ff"><span>Tiras</span><input type="number" id="leno-f-tiras" min="0" placeholder="0"></div>
+          <div class="form-sec-tabs">
+            <button class="form-sec-tab active" onclick="setFormTabLeno('carne',this)">
+              <i class="ti ti-meat" aria-hidden="true"></i> Carne
+            </button>
+            <button class="form-sec-tab" onclick="setFormTabLeno('pollo',this)">
+              <i class="ti ti-drumstick" aria-hidden="true"></i> Pollo
+            </button>
+          </div>
+
+          <!-- PANEL CARNE (NUEVO — idéntico en campos/comportamiento al de Franquicias) -->
+          <div class="form-panel active" id="leno-fpanel-carne">
+            <div class="fpanel-bg">
+              <div class="g2-form">
+                <div class="ff"><span>Pedido kg</span><input type="number" id="leno-f-ped-kg" min="0" step="0.1" placeholder="0"></div>
+                <div class="ff"><span>Recibido kg</span><input type="number" id="leno-f-rec-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno')"></div>
+                <div class="ff proc"><span>Procesado kg</span><input type="number" id="leno-f-proc-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno')"></div>
+                <div class="ff"><span>Medallón 90g</span><input type="number" id="leno-f-med90" min="0" placeholder="0" oninput="calcKgLeno()"></div>
+                <div class="ff"><span>Bolita 90g</span><input type="number" id="leno-f-bol90" min="0" placeholder="0" oninput="calcKgLeno()"></div>
+              </div>
+              <div class="calc-box" style="margin-top:8px;margin-bottom:0">
+                <div class="calc-head"><span>Tipo</span><span style="text-align:center">Cant.</span><span>Kg</span></div>
+                <div class="calc-row">
+                  <span class="calc-lbl" style="color:var(--barn)">Med. 90g</span>
+                  <span class="calc-q" id="leno-calc-q-med90">0</span>
+                  <span class="calc-kg" id="leno-calc-kg-med90">0.000</span>
+                </div>
+                <div class="calc-row">
+                  <span class="calc-lbl" style="color:var(--yb)">Bol. 90g</span>
+                  <span class="calc-q" id="leno-calc-q-bol90">0</span>
+                  <span class="calc-kg" id="leno-calc-kg-bol90">0.000</span>
+                </div>
+                <div class="calc-row total">
+                  <span class="calc-lbl" style="font-weight:700">TOTAL</span>
+                  <span></span>
+                  <span class="calc-total-val" id="leno-calc-total">0.000</span>
+                </div>
+              </div>
+              <div class="merma-box" id="merma-box-leno">
+                <span class="merma-lbl">⚠️ Merma estimada</span>
+                <span><span class="merma-val">0.0 kg</span> <span class="merma-pct">(0.0%)</span></span>
+              </div>
             </div>
-            <div style="height:1px;background:var(--border);margin:7px 0"></div>
-            <div class="g2-form">
-              <div class="ff proc"><span>Procesado Alita (kg)</span><input type="number" id="leno-f-proc-alita" min="0" step="0.1" placeholder="0"></div>
-              <div class="ff proc"><span>Procesado Filet (kg)</span><input type="number" id="leno-f-proc-filet" min="0" step="0.1" placeholder="0"></div>
+            <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo</div>
+          </div>
+
+          <!-- PANEL POLLO (ya existente, sin cambios) -->
+          <div class="form-panel" id="leno-fpanel-pollo">
+            <div class="fpanel-bg">
+              <div class="g2-form">
+                <div class="ff"><span>Alita</span><input type="number" id="leno-f-alita" min="0" placeholder="0"></div>
+                <div class="ff"><span>Filet</span><input type="number" id="leno-f-filet" min="0" placeholder="0"></div>
+                <div class="ff"><span>Pop Corns</span><input type="number" id="leno-f-popcorns" min="0" placeholder="0"></div>
+                <div class="ff"><span>Tiras</span><input type="number" id="leno-f-tiras" min="0" placeholder="0"></div>
+              </div>
+              <div style="height:1px;background:var(--border);margin:7px 0"></div>
+              <div class="g2-form">
+                <div class="ff proc"><span>Procesado Alita (kg)</span><input type="number" id="leno-f-proc-alita" min="0" step="0.1" placeholder="0"></div>
+                <div class="ff proc"><span>Procesado Filet (kg)</span><input type="number" id="leno-f-proc-filet" min="0" step="0.1" placeholder="0"></div>
+              </div>
             </div>
           </div>
 
@@ -1509,8 +1618,8 @@ if('serviceWorker' in navigator){
     </div>
   </div>
 
-  <!-- SUB: REPORTES -->
-  <div id="leno-sub-reportes" class="leno-subpanel">
+  <!-- SUB: DASHBOARD (antes "Reportes" — contenido intacto, solo renombrado) -->
+  <div id="leno-sub-dashboard" class="leno-subpanel">
     <div class="dash-filter" id="leno-filter-bar">
       <span style="font-size:11px;color:var(--text3);font-weight:600;margin-right:4px">Período:</span>
       <button class="dash-filter-btn active" data-period="week" onclick="setLenoPeriod('week',this)">Esta semana</button>
@@ -1527,17 +1636,24 @@ if('serviceWorker' in navigator){
         <option value="BARRIO NORTE">Barrio Norte</option>
         <option value="YERBA BUENA">Yerba Buena</option>
         <option value="TAFI VIEJO">Tafí Viejo</option>
+        <option value="EVENTOS">Eventos</option>
       </select>
     </div>
     <div class="kpi-dash-row" id="leno-kpis"></div>
     <div class="dash-2col">
       <div class="dash-card">
-        <div class="dash-card-head">📈 Kg procesados por día</div>
-        <div class="dash-card-body" style="height:220px;position:relative"><canvas id="leno-ch-linea"></canvas></div>
+        <div class="dash-card-head">🏆 Ranking Carne (kg procesados)</div>
+        <div class="dash-card-body" id="leno-rank-carne"></div>
       </div>
       <div class="dash-card">
-        <div class="dash-card-head">🏆 Ranking por ubicación (kg procesados)</div>
+        <div class="dash-card-head">🏆 Ranking Pollo (kg procesados)</div>
         <div class="dash-card-body" id="leno-rank"></div>
+      </div>
+    </div>
+    <div class="dash-2col">
+      <div class="dash-card">
+        <div class="dash-card-head">📈 Kg procesados por día</div>
+        <div class="dash-card-body" style="height:220px;position:relative"><canvas id="leno-ch-linea"></canvas></div>
       </div>
     </div>
     <div class="dash-card" style="margin-bottom:14px">
@@ -1549,11 +1665,122 @@ if('serviceWorker' in navigator){
       <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
+            <th>Fecha</th><th>Ubicación</th>
+            <th style="color:#FF4B6E">Rec. Carne (kg)</th><th style="color:#FF4B6E">Carne proc. (kg)</th>
+            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th>
+            <th style="color:#FF4B6E">Medallón</th><th style="color:#FF4B6E">Bolita</th>
+            <th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
           </tr></thead>
           <tbody id="leno-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- SUB: REGISTROS (NUEVO) -->
+  <div id="leno-sub-registros" class="leno-subpanel">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Todos los registros</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input class="search-input" type="date" id="leno-reg-desde" style="width:130px" oninput="renderLenoRegistros()" title="Desde">
+          <span style="color:var(--text3);font-size:11px">→</span>
+          <input class="search-input" type="date" id="leno-reg-hasta" style="width:130px" oninput="renderLenoRegistros()" title="Hasta">
+        </div>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--border)">
+        <div class="suc-filter" id="leno-reg-filter">
+          <button class="sf-btn active" data-s="ALL" onclick="setLenoRegF('ALL',this)">Todas</button>
+          <button class="sf-btn" data-s="BARRIO NORTE" onclick="setLenoRegF('BARRIO NORTE',this)">Barrio Norte</button>
+          <button class="sf-btn" data-s="YERBA BUENA" onclick="setLenoRegF('YERBA BUENA',this)">Yerba Buena</button>
+          <button class="sf-btn" data-s="TAFI VIEJO" onclick="setLenoRegF('TAFI VIEJO',this)">Tafí Viejo</button>
+          <button class="sf-btn" data-s="EVENTOS" onclick="setLenoRegF('EVENTOS',this)">Eventos</button>
+        </div>
+      </div>
+      <div class="reg-section-hdr carne">🥩 Carne</div>
+      <div class="tbl-wrap" style="border-top:none">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Ubicación</th><th>Rec. Carne (kg)</th><th>Carne proc. (kg)</th>
+            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th>
+            <th>Medallón</th><th>Bolita</th><th></th>
+          </tr></thead>
+          <tbody id="leno-reg-tbody-carne"></tbody>
+        </table>
+      </div>
+      <div class="reg-section-hdr pollo">🐔 Pollo</div>
+      <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th>
+            <th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
+          </tr></thead>
+          <tbody id="leno-reg-tbody-pollo"></tbody>
+        </table>
+      </div>
+      <div style="padding:12px 24px;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="leno-reg-count"></div>
+    </div>
+  </div>
+
+  <!-- SUB: SEMANAL (NUEVO) -->
+  <div id="leno-sub-semanal" class="leno-subpanel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div class="r-tabs">
+        <button class="r-tab active" onclick="setLenoSemV('carne',this)">🥩 Carne</button>
+        <button class="r-tab" onclick="setLenoSemV('pollo',this)">🐔 Pollo</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input type="date" id="leno-sem-desde" class="search-input" style="width:135px" title="Desde" onchange="renderLenoSem()">
+        <span style="color:var(--text3);font-size:11px">→</span>
+        <input type="date" id="leno-sem-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderLenoSem()">
+      </div>
+    </div>
+    <div id="leno-sem-cont"></div>
+  </div>
+
+  <!-- SUB: MENSUAL (NUEVO) -->
+  <div id="leno-sub-mensual" class="leno-subpanel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div class="r-tabs">
+        <button class="r-tab active" onclick="setLenoMesV('carne',this)">🥩 Carne</button>
+        <button class="r-tab" onclick="setLenoMesV('pollo',this)">🐔 Pollo</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input type="date" id="leno-mes-desde" class="search-input" style="width:135px" title="Desde" onchange="renderLenoMes()">
+        <span style="color:var(--text3);font-size:11px">→</span>
+        <input type="date" id="leno-mes-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderLenoMes()">
+      </div>
+    </div>
+    <div id="leno-mes-cont"></div>
+  </div>
+
+  <!-- SUB: GRAFICOS (NUEVO) -->
+  <div id="leno-sub-graficos" class="leno-subpanel">
+    <div class="card" style="margin-bottom:14px;padding:12px 16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--muted);font-weight:600">Filtrar:</span>
+        <input class="search-input" type="date" id="leno-graf-desde" style="width:130px" title="Desde" oninput="renderLenoGraf()">
+        <span style="color:var(--muted);font-size:12px">→</span>
+        <input class="search-input" type="date" id="leno-graf-hasta" style="width:130px" title="Hasta" oninput="renderLenoGraf()">
+        <select id="leno-graf-suc" class="search-input" style="min-width:150px" onchange="renderLenoGraf()">
+          <option value="ALL">Todas las ubicaciones</option>
+          <option value="BARRIO NORTE">Barrio Norte</option>
+          <option value="YERBA BUENA">Yerba Buena</option>
+          <option value="TAFI VIEJO">Tafí Viejo</option>
+          <option value="EVENTOS">Eventos</option>
+        </select>
+        <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px">
+          <button id="leno-gtipo-all" class="btn-gtipo active" onclick="setLenoGrafTipo('ALL')">Ambos</button>
+          <button id="leno-gtipo-carne" class="btn-gtipo" onclick="setLenoGrafTipo('carne')">🥩 Carne</button>
+          <button id="leno-gtipo-pollo" class="btn-gtipo" onclick="setLenoGrafTipo('pollo')">🐔 Pollo</button>
+        </div>
+        <button class="btn" style="padding:6px 12px;font-size:12px" onclick="document.getElementById('leno-graf-desde').value='';document.getElementById('leno-graf-hasta').value='';document.getElementById('leno-graf-suc').value='ALL';setLenoGrafTipo('ALL')">Limpiar</button>
+      </div>
+    </div>
+    <div class="kpi-row" id="leno-kpi-row"></div>
+    <div class="charts-grid">
+      <div id="leno-graf-carne-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--barn)"></span>Carne Procesada — Mensual por Ubicación (kg)</div><div class="ch-wrap"><canvas id="leno-ch1"></canvas></div></div>
+      <div id="leno-graf-pollo-section" class="chart-card full"><div class="chart-title"><span class="dot" style="background:var(--ev)"></span>Productos Pollo por Ubicación</div><div class="ch-wrap"><canvas id="leno-ch4"></canvas></div></div>
     </div>
   </div>
 
@@ -1738,8 +1965,7 @@ let LENO_DB=[];
 const qLeno = query(collection(db,'leno_srl'), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
 onSnapshot(qLeno, (snap)=>{
   LENO_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
-  const cur=document.querySelector('.nav-btn.active')?.getAttribute('onclick')||'';
-  if(cur.includes('leno')) renderLeno();
+  if(document.getElementById('tab-leno')?.classList.contains('active')) renderLenoActive();
 }, err=>console.error('LENO sync error:', err));
 
 // ── HELPERS ──
@@ -1801,12 +2027,16 @@ document.addEventListener('keydown',function(e){
   }
 });
 
+// ── MODULO (NIVEL 1) — recuerda la última pestaña de Franquicias para restaurarla al volver ──
+let _lastFranqTab='cargar', _lastFranqBtn=null;
+
 window.goTab=function(n,btn){
   if((n==='manoobra'||n==='cobro')&&!pinUnlocked){pinTargetBtn=btn;pinTargetTab=n;openPin();return;}
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(n!=='leno'){_lastFranqTab=n;_lastFranqBtn=btn;}
   if(n==='dashboard')renderDashboard();
   if(n==='precios')renderPrecios();
   if(n==='registros')renderReg();
@@ -1815,7 +2045,22 @@ window.goTab=function(n,btn){
   if(n==='graficos')renderGraf();
   if(n==='manoobra')renderManoObra();
   if(n==='cobro')renderCobro();
-  if(n==='leno')renderLeno();
+  if(n==='leno')renderLenoActive();
+}
+
+window.setModulo=function(mod,btn){
+  document.querySelectorAll('.modulo-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const navF=document.getElementById('nav-franquicias');
+  if(mod==='franquicias'){
+    navF.style.display='';
+    const t=_lastFranqTab||'cargar';
+    const b=_lastFranqBtn||navF.querySelector('.nav-btn');
+    goTab(t,b);
+  } else {
+    navF.style.display='none';
+    goTab('leno',null);
+  }
 }
 
 function openPin(){
@@ -1876,6 +2121,34 @@ window.calcPollo=function(){
   document.getElementById('calc-kg-alita').textContent=alita.toFixed(3);
   document.getElementById('calc-kg-pechuga').textContent=pechuga.toFixed(3);
   document.getElementById('calc-total-pollo').textContent=total.toFixed(3);
+}
+
+// ── CARNE LENO SRL (NUEVO) — análoga a calcKg() ──
+window.calcKgLeno=function(){
+  const m90=parseFloat(document.getElementById('leno-f-med90').value)||0;
+  const b90=parseFloat(document.getElementById('leno-f-bol90').value)||0;
+  const kgM90=(m90*90)/1000, kgB90=(b90*90)/1000;
+  const total=kgM90+kgB90;
+  document.getElementById('leno-calc-q-med90').textContent=m90;
+  document.getElementById('leno-calc-q-bol90').textContent=b90;
+  document.getElementById('leno-calc-kg-med90').textContent=kgM90.toFixed(3);
+  document.getElementById('leno-calc-kg-bol90').textContent=kgB90.toFixed(3);
+  document.getElementById('leno-calc-total').textContent=total.toFixed(3);
+}
+
+// ── MERMA CARNE (NUEVO) — reutilizable en Franquicias y LENO SRL ──
+// merma_kg = rec_kg - proc_kg (nunca negativo); merma_pct = merma_kg / rec_kg * 100
+window.updateMerma=function(recId,procId,boxId){
+  const rec=parseFloat(document.getElementById(recId)?.value)||0;
+  const proc=parseFloat(document.getElementById(procId)?.value)||0;
+  let merma=rec-proc; if(merma<0) merma=0;
+  const pct=rec>0?(merma/rec*100):0;
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  const valEl=box.querySelector('.merma-val');
+  const pctEl=box.querySelector('.merma-pct');
+  if(valEl) valEl.textContent=merma.toFixed(1)+' kg';
+  if(pctEl) pctEl.textContent='('+pct.toFixed(1)+'%)';
 }
 
 // ── FORM ──
@@ -2084,6 +2357,7 @@ window.limpiarNumeros=function(){
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   calcKg();
+  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
 }
 
 window.limpiar=function(){
@@ -2101,6 +2375,7 @@ window.limpiar=function(){
   document.querySelectorAll('.form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   calcKg();
+  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
 }
 
 window.editReg=function(id){
@@ -2126,6 +2401,7 @@ window.editReg=function(id){
   document.getElementById('f-tiras').value=r.tiras||'';
   renderSucPanel(r.sucursal||'');
   calcKg(); calcPollo();
+  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
   document.getElementById('cargar-title').textContent='Editar registro';
   document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
   document.getElementById('edit-banner-info').textContent=`${SUC_NAMES[r.sucursal]} · ${r.fecha}`;
@@ -2312,6 +2588,10 @@ window.renderDashboard=function(){
   const pct=(a,b)=>b>0?Math.round((a-b)/b*100):null;
 
   const carneCur=sumF(cur,'proc_kg'), carnePrev=sumF(prev,'proc_kg');
+  // Merma de carne (NUEVO) — sobre el mismo array filtrado (cur) del período/sucursal actual
+  const recKgCur=sumF(cur,'rec_kg');
+  const mermaKgCur=Math.max(recKgCur-carneCur,0);
+  const mermaPctCur=recKgCur>0?(mermaKgCur/recKgCur*100):0;
   const alitaCur=sumF(cur,'proc_alita'), alitaPrev=sumF(prev,'proc_alita');
   const filetCur=sumF(cur,'proc_pechuga'), filetPrev=sumF(prev,'proc_pechuga');
   const polloCur=alitaCur+filetCur, polloPrev=alitaPrev+filetPrev;
@@ -2374,6 +2654,11 @@ window.renderDashboard=function(){
       <div class="kpi-dash-lbl">Costo total período</div>
       <div class="kpi-dash-val" style="font-size:17px">${costoTotal?'$ '+costoTotal.toLocaleString('es-AR'):'Sin precios'}</div>
       <div style="font-size:10px;color:var(--text3);margin-top:2px">Carne + Alita + Filet</div>
+    </div>
+    <div class="kpi-dash" style="--ac:#ef4444">
+      <div class="kpi-dash-lbl">% Merma Carne</div>
+      <div class="kpi-dash-val">${(+mermaPctCur.toFixed(1)).toLocaleString('es-AR')}%</div>
+      <div class="kpi-dash-delta">${(+mermaKgCur.toFixed(1)).toLocaleString('es-AR')} kg perdidos</div>
     </div>
   `;
   animateKpiNumbers(kpisEl);
@@ -2484,13 +2769,18 @@ window.renderLeno=function(){
   if(sucF!=='ALL') cur=cur.filter(r=>r.sucursal===sucF);
 
   const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
-  const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO'];
-  const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo'};
+  const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS'];
+  const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos'};
 
   const procAlita=sumF(cur,'procesado_alita');
   const procFilet=sumF(cur,'procesado_filet');
   const totalKg=procAlita+procFilet;
   const tAlita=sumF(cur,'alita'), tFilet=sumF(cur,'filet'), tPop=sumF(cur,'popCorns'), tTiras=sumF(cur,'tiras');
+
+  // Merma de carne (NUEVO) — recibido - procesado, sobre el período/ubicación filtrado actual
+  const recCarne=sumF(cur,'rec_kg'), procCarne=sumF(cur,'proc_kg');
+  const mermaKg=Math.max(recCarne-procCarne,0);
+  const mermaPct=recCarne>0?(mermaKg/recCarne*100):0;
 
   const kpisEl=document.getElementById('leno-kpis');
   if(kpisEl) kpisEl.innerHTML=`
@@ -2510,10 +2800,31 @@ window.renderLeno=function(){
       <div class="kpi-dash-lbl">Registros del período</div>
       <div class="kpi-dash-val">${cur.length}</div>
     </div>
+    <div class="kpi-dash" style="--ac:#ef4444">
+      <div class="kpi-dash-lbl">% Merma Carne</div>
+      <div class="kpi-dash-val">${(+mermaPct.toFixed(1)).toLocaleString('es-AR')}%</div>
+      <div class="kpi-dash-delta">${(+mermaKg.toFixed(1)).toLocaleString('es-AR')} kg perdidos</div>
+    </div>
   `;
   animateKpiNumbers(kpisEl);
 
-  // Ranking por ubicación
+  // Ranking Carne por ubicación (NUEVO)
+  const rankCEl=document.getElementById('leno-rank-carne');
+  const rankingCarne=ubicaciones.map(u=>{
+    const recs=cur.filter(r=>r.sucursal===u);
+    return {u,kg:sumF(recs,'proc_kg')};
+  }).sort((a,b)=>b.kg-a.kg);
+  const maxKgCarne=Math.max(...rankingCarne.map(r=>r.kg),1);
+  if(rankCEl) rankCEl.innerHTML=rankingCarne.map((r,i)=>`
+    <div class="rank-row">
+      <span class="rank-pos">${i+1}</span>
+      <span class="rank-name">${NOMBRES[r.u]}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.kg/maxKgCarne*100)}%;background:${LENO_SUC_COLOR[r.u]}"></div></div>
+      <span class="rank-val">${(+r.kg.toFixed(2)).toLocaleString('es-AR')} kg</span>
+    </div>
+  `).join('');
+
+  // Ranking Pollo por ubicación
   const rankEl=document.getElementById('leno-rank');
   const ranking=ubicaciones.map(u=>{
     const recs=cur.filter(r=>r.sucursal===u);
@@ -2525,7 +2836,7 @@ window.renderLeno=function(){
     <div class="rank-row">
       <span class="rank-pos">${i+1}</span>
       <span class="rank-name">${NOMBRES[r.u]}</span>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.kg/maxKg*100)}%;background:var(--accent)"></div></div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.kg/maxKg*100)}%;background:${LENO_SUC_COLOR[r.u]}"></div></div>
       <span class="rank-val">${(+r.kg.toFixed(2)).toLocaleString('es-AR')} kg</span>
     </div>
   `).join('');
@@ -2549,10 +2860,20 @@ window.renderLeno=function(){
   // Últimos registros
   const tbody=document.getElementById('leno-tbody');
   const recientes=[...cur].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,30);
-  if(tbody) tbody.innerHTML=recientes.length?recientes.map(r=>`
+  if(tbody) tbody.innerHTML=recientes.length?recientes.map(r=>{
+    const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
+    const rMerma=Math.max(rRec-rProc,0);
+    const rMermaPct=rRec>0?(rMerma/rRec*100):0;
+    return `
     <tr>
       <td>${r.fecha||'—'}</td>
-      <td>${NOMBRES[r.sucursal]||r.sucursal||'—'}</td>
+      <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${NOMBRES[r.sucursal]||r.sucursal||'—'}</span></td>
+      <td>${rRec.toLocaleString('es-AR')}</td>
+      <td>${rProc.toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
+      <td>${r.med90||0}</td>
+      <td>${r.bol90||0}</td>
       <td>${r.alita||0}</td>
       <td>${r.filet||0}</td>
       <td>${r.popCorns||0}</td>
@@ -2560,20 +2881,38 @@ window.renderLeno=function(){
       <td>${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
       <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
-    </tr>
-  `).join(''):'<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
+    </tr>`;
+  }).join(''):'<tr><td colspan="15" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
 };
 
 // ── LENO SRL — Sub-tabs y formulario de carga ──
 window.setLenoSubTab=function(name,btn){
-  document.querySelectorAll('#tab-leno .form-sec-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#leno-subnav .nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.leno-subpanel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('leno-sub-'+name).classList.add('active');
-  if(name==='reportes') renderLeno();
+  renderLenoActive();
 };
 
-const LENO_LABEL={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo'};
+// Renderiza el contenido del sub-tab de LENO SRL actualmente visible (usado al cambiar de sub-tab y al sincronizar Firestore)
+window.renderLenoActive=function(){
+  const activePanel=document.querySelector('#tab-leno .leno-subpanel.active');
+  if(!activePanel) return;
+  switch(activePanel.id){
+    case 'leno-sub-dashboard': renderLeno(); break;
+    case 'leno-sub-registros': renderLenoRegistros(); break;
+    case 'leno-sub-semanal': renderLenoSem(); break;
+    case 'leno-sub-mensual': renderLenoMes(); break;
+    case 'leno-sub-graficos': renderLenoGraf(); break;
+  }
+};
+
+const LENO_LABEL={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos'};
+const LENO_SUC_COLOR={'BARRIO NORTE':'var(--barn)','YERBA BUENA':'var(--yb)','TAFI VIEJO':'var(--tv)','EVENTOS':'var(--ev)'};
+const LENO_SUC_BG={'BARRIO NORTE':'var(--barn-l)','YERBA BUENA':'var(--yb-l)','TAFI VIEJO':'var(--tv-l)','EVENTOS':'var(--ev-l)'};
+const LENO_PILL={'BARRIO NORTE':'pill-BARN','YERBA BUENA':'pill-YB','TAFI VIEJO':'pill-TV','EVENTOS':'pill-EV'};
+// Colores en hex (para Chart.js — los canvas no resuelven var(--x), a diferencia del CSS del DOM)
+const LENO_HEX={'BARRIO NORTE':'#3B82F6','YERBA BUENA':'#EAB308','TAFI VIEJO':'#EC4899','EVENTOS':'#14B8A6'};
 
 window.setSucChipLeno=function(btn){
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
@@ -2581,6 +2920,14 @@ window.setSucChipLeno=function(btn){
   const suc=btn.dataset.v;
   document.getElementById('leno-f-suc').value=suc;
   renderLenoSucPanel(suc);
+};
+
+// ── LENO SRL — tabs Carne/Pollo del formulario de carga (NUEVO) ──
+window.setFormTabLeno=function(name,btn){
+  document.querySelectorAll('#leno-sub-cargar .form-sec-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#leno-sub-cargar .form-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('leno-fpanel-'+name).classList.add('active');
 };
 
 window.renderLenoSucPanel=function(suc){
@@ -2603,29 +2950,42 @@ window.renderLenoSucPanel=function(suc){
   const totalSem=procAlitaSem+procFiletSem;
   const alitaSem=sumF(semRecs,'alita'), filetSem=sumF(semRecs,'filet'), popSem=sumF(semRecs,'popCorns'), tirasSem=sumF(semRecs,'tiras');
 
+  // Carne (NUEVO)
+  const recCarneSem=sumF(semRecs,'rec_kg'), procCarneSem=sumF(semRecs,'proc_kg');
+  const mermaSem=Math.max(recCarneSem-procCarneSem,0);
+  const mermaPctSem=recCarneSem>0?(mermaSem/recCarneSem*100):0;
+
+  const color=LENO_SUC_COLOR[suc]||'var(--accent)';
+
   const recientes=regs.slice(0,5);
   const recRows=recientes.length
     ? recientes.map(r=>{
         const kgR=(r.procesado_alita||0)+(r.procesado_filet||0);
         return `<div class="sp-rec-row">
           <span class="sp-rec-date">${r.fecha?.slice(5)||'—'}</span>
-          <span class="sp-rec-val">🐔 <strong>${(+kgR.toFixed(2)).toLocaleString('es-AR')} kg</strong></span>
+          <span class="sp-rec-val">🥩 <strong>${(+(r.proc_kg||0).toFixed(2)).toLocaleString('es-AR')} kg</strong></span>
+          <span class="sp-rec-sub">🐔 ${(+kgR.toFixed(2)).toLocaleString('es-AR')} kg</span>
         </div>`;
       }).join('')
     : '<p style="font-size:11px;color:var(--text3);padding:4px 0">Sin registros aún para esta ubicación.</p>';
 
   panel.innerHTML=`
     <div class="sp-header" style="background:var(--surface2);border-bottom:1px solid var(--border)">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>
+      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
       <div>
-        <div class="sp-header-name" style="color:var(--accent)">${label}</div>
+        <div class="sp-header-name" style="color:${color}">${label}</div>
         <div class="sp-header-sub" style="color:var(--text3)">${regs.length} registros · semana actual</div>
       </div>
     </div>
 
     <div class="sp-kpis">
       <div class="sp-kpi">
-        <div class="sp-kpi-lbl">Procesado sem.</div>
+        <div class="sp-kpi-lbl">Carne proc. sem.</div>
+        <div class="sp-kpi-val">${(+procCarneSem.toFixed(2)).toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
+        <div class="sp-kpi-sub" style="color:#ef4444">⚠️ ${(+mermaSem.toFixed(1)).toLocaleString('es-AR')} kg merma (${mermaPctSem.toFixed(1)}%)</div>
+      </div>
+      <div class="sp-kpi">
+        <div class="sp-kpi-lbl">Pollo proc. sem.</div>
         <div class="sp-kpi-val">${(+totalSem.toFixed(2)).toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
         <div class="sp-kpi-sub" style="color:var(--text3)">${(+procAlitaSem.toFixed(2)).toLocaleString('es-AR')} alita · ${(+procFiletSem.toFixed(2)).toLocaleString('es-AR')} filet</div>
       </div>
@@ -2673,6 +3033,8 @@ async function _doGuardarLeno(fecha,suc){
   try{
     await setDoc(doc(db,'leno_srl',docId),{
       fecha,sucursal:suc,
+      ped_kg:num('leno-f-ped-kg'),rec_kg:num('leno-f-rec-kg'),proc_kg:num('leno-f-proc-kg'),
+      med90:num('leno-f-med90'),bol90:num('leno-f-bol90'),
       alita:num('leno-f-alita'),filet:num('leno-f-filet'),
       popCorns:num('leno-f-popcorns'),tiras:num('leno-f-tiras'),
       procesado_alita:num('leno-f-proc-alita'),procesado_filet:num('leno-f-proc-filet'),
@@ -2688,7 +3050,8 @@ async function _doGuardarLeno(fecha,suc){
 }
 
 window.limpiarLeno=function(){
-  ['leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
+  ['leno-f-ped-kg','leno-f-rec-kg','leno-f-proc-kg','leno-f-med90','leno-f-bol90',
+   'leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('leno-f-suc').value='';
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
   document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
@@ -2696,6 +3059,11 @@ window.limpiarLeno=function(){
   document.getElementById('leno-edit-banner').classList.remove('show');
   document.getElementById('leno-cargar-title').textContent='Cargar envío del día';
   document.getElementById('leno-btn-guardar').innerHTML='💾 Guardar';
+  // Volver al primer tab (Carne)
+  document.querySelectorAll('#leno-sub-cargar .form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.querySelectorAll('#leno-sub-cargar .form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
+  calcKgLeno();
+  updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno');
 };
 
 window.editRegLeno=function(id){
@@ -2705,19 +3073,25 @@ window.editRegLeno=function(id){
   document.getElementById('leno-f-fecha').value=r.fecha||'';
   document.getElementById('leno-f-suc').value=r.sucursal||'';
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.toggle('active',c.dataset.v===(r.sucursal||'')));
+  document.getElementById('leno-f-ped-kg').value=r.ped_kg||'';
+  document.getElementById('leno-f-rec-kg').value=r.rec_kg||'';
+  document.getElementById('leno-f-proc-kg').value=r.proc_kg||'';
+  document.getElementById('leno-f-med90').value=r.med90||'';
+  document.getElementById('leno-f-bol90').value=r.bol90||'';
   document.getElementById('leno-f-alita').value=r.alita||'';
   document.getElementById('leno-f-filet').value=r.filet||'';
   document.getElementById('leno-f-popcorns').value=r.popCorns||'';
   document.getElementById('leno-f-tiras').value=r.tiras||'';
   document.getElementById('leno-f-proc-alita').value=r.procesado_alita||'';
   document.getElementById('leno-f-proc-filet').value=r.procesado_filet||'';
+  calcKgLeno();
+  updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno');
   renderLenoSucPanel(r.sucursal||'');
   document.getElementById('leno-cargar-title').textContent='Editar registro';
   document.getElementById('leno-btn-guardar').innerHTML='💾 Actualizar registro';
   document.getElementById('leno-edit-banner-info').textContent=`${LENO_LABEL[r.sucursal]} · ${r.fecha}`;
   document.getElementById('leno-edit-banner').classList.add('show');
-  const btn=document.querySelector('.nav-btn[onclick*="leno"]');
-  goTab('leno',btn);
+  setModulo('leno',document.getElementById('modulo-btn-leno'));
   setLenoSubTab('cargar',document.getElementById('leno-subtab-cargar'));
   document.querySelector('#tab-leno').scrollIntoView({behavior:'smooth',block:'start'});
 };
@@ -2803,24 +3177,31 @@ window.renderReg=function(){
   const tb=document.getElementById('reg-tbody');
   if(!tb)return;
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="13"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
     document.getElementById('reg-count').textContent='';
     // reset encabezados
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
     return;
   }
 
   if(regF==='ALL'){
     // Vista combinada — tabla unificada
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
-    tb.innerHTML=rows.map(r=>`<tr>
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    tb.innerHTML=rows.map(r=>{
+      const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
+      const rMerma=Math.max(rRec-rProc,0);
+      const rMermaPct=rRec>0?(rMerma/rRec*100):0;
+      return `<tr>
       <td>${r.fecha}</td>
       <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
-      <td>${r.ped_kg||0}</td><td>${r.rec_kg||0}</td><td>${r.proc_kg||0}</td>
+      <td>${r.ped_kg||0}</td><td>${rRec}</td><td>${rProc}</td>
+      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
       <td>${r.med110||0}</td><td>${r.bol110||0}</td>
       <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
   } else {
     // Vista por sucursal — tablas separadas carne / pollo
     const sucNombre = SUC_NAMES[regF] || regF;
@@ -2841,16 +3222,25 @@ window.renderReg=function(){
       <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px;margin-bottom:18px">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th>Med 90g</th><th>Bol 90g</th><th>Med 75g</th><th></th>
+            <th>Fecha</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th>
+            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th>
+            <th>Med 90g</th><th>Bol 90g</th><th>Med 75g</th><th></th>
           </tr></thead>
-          <tbody>${rows.map(r=>`<tr>
+          <tbody>${rows.map(r=>{
+            const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
+            const rMerma=Math.max(rRec-rProc,0);
+            const rMermaPct=rRec>0?(rMerma/rRec*100):0;
+            return `<tr>
             <td>${r.fecha}</td>
             <td style="color:#FF4B6E;font-weight:600">${r.ped_kg||0}</td>
-            <td>${r.rec_kg||0}</td>
-            <td style="color:#22c55e;font-weight:600">${r.proc_kg||0}</td>
+            <td>${rRec}</td>
+            <td style="color:#22c55e;font-weight:600">${rProc}</td>
+            <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
+            <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
             <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
             <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
-          </tr>`).join('')}</tbody>
+          </tr>`;
+          }).join('')}</tbody>
         </table>
       </div>
       <div class="reg-section-hdr pollo">🐔 Pollo — ${sucNombre}</div>
@@ -3200,6 +3590,274 @@ window.exportGrafPDF=function(){
   }
   const fileName='LENO_CDP_Graficos_'+hoyG+(grafSuc!=='ALL'?'_'+grafSuc:'')+'.pdf';
   doc.save(fileName);
+};
+
+// ══════════════════════════════════════════════════════════
+// ── LENO SRL — Registros / Semanal / Mensual / Gráficos (NUEVO) ──
+// Mismos patrones que Franquicias, adaptados a LENO_DB / ubicaciones / campos propios de Leno.
+// ══════════════════════════════════════════════════════════
+const LENO_UBIC=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS'];
+
+// ── LENO — REGISTROS ──
+let lenoRegF='ALL';
+window.setLenoRegF=function(s,btn){
+  lenoRegF=s;
+  document.querySelectorAll('#leno-reg-filter .sf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLenoRegistros();
+}
+
+window.renderLenoRegistros=function(){
+  const desde=document.getElementById('leno-reg-desde')?.value||'';
+  const hasta=document.getElementById('leno-reg-hasta')?.value||'';
+  const hoy=new Date().toISOString().slice(0,10);
+  const rows=LENO_DB.filter(r=>{
+    if(lenoRegF!=='ALL'&&r.sucursal!==lenoRegF)return false;
+    if(desde&&r.fecha<desde)return false;
+    if(hasta?r.fecha>hasta:r.fecha>hoy)return false;
+    return true;
+  }).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  const tbC=document.getElementById('leno-reg-tbody-carne');
+  const tbP=document.getElementById('leno-reg-tbody-pollo');
+  const cnt=document.getElementById('leno-reg-count');
+  if(!tbC||!tbP)return;
+
+  if(!rows.length){
+    tbC.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
+    tbP.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
+    if(cnt)cnt.textContent='';
+    return;
+  }
+
+  tbC.innerHTML=rows.map(r=>{
+    const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
+    const rMerma=Math.max(rRec-rProc,0);
+    const rMermaPct=rRec>0?(rMerma/rRec*100):0;
+    return `<tr>
+      <td>${r.fecha||'—'}</td>
+      <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${LENO_LABEL[r.sucursal]||r.sucursal||'—'}</span></td>
+      <td>${rRec.toLocaleString('es-AR')}</td>
+      <td>${rProc.toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
+      <td>${r.med90||0}</td>
+      <td>${r.bol90||0}</td>
+      <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+
+  tbP.innerHTML=rows.map(r=>`<tr>
+    <td>${r.fecha||'—'}</td>
+    <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${LENO_LABEL[r.sucursal]||r.sucursal||'—'}</span></td>
+    <td>${r.alita||0}</td>
+    <td>${r.filet||0}</td>
+    <td>${r.popCorns||0}</td>
+    <td>${r.tiras||0}</td>
+    <td>${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
+    <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
+    <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
+  </tr>`).join('');
+
+  if(cnt)cnt.textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
+}
+
+// ── LENO — SEMANAL ──
+let lenoSemV='carne';
+window.setLenoSemV=function(v,btn){
+  lenoSemV=v;
+  document.querySelectorAll('#leno-sub-semanal .r-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderLenoSem();
+}
+
+window.renderLenoSem=function(){
+  const cont=document.getElementById('leno-sem-cont');
+  if(!cont)return;
+  const desde=document.getElementById('leno-sem-desde')?.value||'';
+  const hasta=document.getElementById('leno-sem-hasta')?.value||'';
+  const filtered=filterByDate(LENO_DB,desde,hasta);
+  if(!filtered.length){
+    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
+  }
+  const hoy=new Date().toISOString().slice(0,10);
+  const byWeek=groupBy(filtered.filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
+  let html='';
+  Object.keys(byWeek).sort().reverse().forEach(wk=>{
+    const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
+    html+=`<div style="margin-bottom:28px">
+      <div class="section-week-hdr">Semana ${wk} → ${wkE.toISOString().slice(0,10)}</div>
+      <div class="week-grid">`;
+    LENO_UBIC.forEach(suc=>{
+      const rows=byWeek[wk].filter(r=>r.sucursal===suc);if(!rows.length)return;
+      const col=LENO_SUC_COLOR[suc];
+      if(lenoSemV==='carne'){
+        html+=`<div class="wcard">
+          <div class="wcard-hdr" style="border-left:4px solid ${col}">
+            <h4 style="color:${col}">${LENO_LABEL[suc]}</h4>
+            <p>${rows.length} día${rows.length!==1?'s':''}</p>
+          </div><div class="wcard-body">
+          <div class="wstat"><span class="wstat-l">Pedido kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'ped_kg').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Recibido kg</span><span class="wstat-v">${sum(rows,'rec_kg').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v">${sum(rows,'proc_kg').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Medallón 90g</span><span class="wstat-v">${fmt(sum(rows,'med90'))}</span></div>
+          <div class="wstat"><span class="wstat-l">Bolita 90g</span><span class="wstat-v">${fmt(sum(rows,'bol90'))}</span></div>
+        </div></div>`;
+      } else {
+        html+=`<div class="wcard">
+          <div class="wcard-hdr" style="border-left:4px solid ${col}">
+            <h4 style="color:${col}">${LENO_LABEL[suc]}</h4>
+            <p>${rows.length} día${rows.length!==1?'s':''}</p>
+          </div><div class="wcard-body">
+          <div class="wstat"><span class="wstat-l">Proc. Alita kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'procesado_alita').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Proc. Filet kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'procesado_filet').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Alitas</span><span class="wstat-v">${fmt(sum(rows,'alita'))}</span></div>
+          <div class="wstat"><span class="wstat-l">Filet</span><span class="wstat-v">${fmt(sum(rows,'filet'))}</span></div>
+          <div class="wstat"><span class="wstat-l">Pop Corns</span><span class="wstat-v">${fmt(sum(rows,'popCorns'))}</span></div>
+          <div class="wstat"><span class="wstat-l">Tiras</span><span class="wstat-v">${fmt(sum(rows,'tiras'))}</span></div>
+        </div></div>`;
+      }
+    });
+    html+='</div></div>';
+  });
+  cont.innerHTML=html;
+}
+
+// ── LENO — MENSUAL ──
+let lenoMesV='carne';
+window.setLenoMesV=function(v,btn){
+  lenoMesV=v;
+  document.querySelectorAll('#leno-sub-mensual .r-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderLenoMes();
+}
+
+window.renderLenoMes=function(){
+  const cont=document.getElementById('leno-mes-cont');
+  if(!cont)return;
+  const desde=document.getElementById('leno-mes-desde')?.value||'';
+  const hasta=document.getElementById('leno-mes-hasta')?.value||'';
+  const filtered=filterByDate(LENO_DB,desde,hasta);
+  if(!filtered.length){
+    cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
+  }
+  const hoy=new Date().toISOString().slice(0,10);
+  const byM=groupBy(filtered.filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
+  let html='';
+  Object.keys(byM).sort().reverse().forEach(mk=>{
+    const [yr,mo]=mk.split('-');
+    html+=`<div style="margin-bottom:32px">
+      <div class="section-week-hdr">${MN[mo]} ${yr}</div>`;
+    const rows=byM[mk];
+    if(lenoMesV==='carne'){
+      html+=`<div class="kpi-row" style="margin-bottom:14px">${LENO_UBIC.map(suc=>{
+        const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+        return`<div class="kpi" style="--ac:${LENO_SUC_COLOR[suc]}">
+          <div class="kpi-label">${LENO_LABEL[suc]}</div>
+          <div class="kpi-val">${sum(sr,'proc_kg').toFixed(1)}</div>
+          <div class="kpi-sub">kg proc · ${sr.length} días</div>
+        </div>`;
+      }).join('')}</div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Ubicación</th><th>Días</th><th>Pedido kg</th><th>Recibido kg</th><th>Procesado kg</th><th>Med 90g</th><th>Bol 90g</th><th>Eficiencia</th></tr></thead>
+        <tbody>${LENO_UBIC.map(suc=>{
+          const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+          const ped=sum(sr,'ped_kg'),proc=sum(sr,'proc_kg'),eff=ped>0?((proc/ped)*100).toFixed(1):'—';
+          return`<tr>
+            <td><span class="pill ${LENO_PILL[suc]}">${LENO_LABEL[suc]}</span></td>
+            <td>${sr.length}</td><td>${ped.toFixed(1)}</td>
+            <td>${sum(sr,'rec_kg').toFixed(1)}</td><td>${proc.toFixed(1)}</td>
+            <td>${fmt(sum(sr,'med90'))}</td><td>${fmt(sum(sr,'bol90'))}</td>
+            <td class="${parseFloat(eff)>=98?'eff-ok':'eff-warn'}">${eff}%</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`;
+    } else {
+      html+=`<div class="kpi-row" style="margin-bottom:14px">${LENO_UBIC.map(suc=>{
+        const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+        const kgAlita=sum(sr,'procesado_alita'),kgFilet=sum(sr,'procesado_filet');
+        return`<div class="kpi" style="--ac:${LENO_SUC_COLOR[suc]}">
+          <div class="kpi-label">${LENO_LABEL[suc]}</div>
+          <div class="kpi-val">${(kgAlita+kgFilet).toFixed(1)}</div>
+          <div class="kpi-sub">kg proc · ${sr.length} días</div>
+          <div class="kpi-sub" style="margin-top:2px">Alita: ${kgAlita.toFixed(1)} · Filet: ${kgFilet.toFixed(1)}</div>
+        </div>`;
+      }).join('')}</div>
+      <div class="card"><div class="tbl-wrap"><table>
+        <thead><tr><th>Ubicación</th><th>Días</th><th>Proc. Alita kg</th><th>Proc. Filet kg</th><th>Total Proc. kg</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th></tr></thead>
+        <tbody>${LENO_UBIC.map(suc=>{
+          const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
+          const kgAlita=sum(sr,'procesado_alita'),kgFilet=sum(sr,'procesado_filet');
+          return`<tr>
+            <td><span class="pill ${LENO_PILL[suc]}">${LENO_LABEL[suc]}</span></td>
+            <td>${sr.length}</td>
+            <td>${kgAlita.toFixed(1)}</td><td>${kgFilet.toFixed(1)}</td>
+            <td><strong>${(kgAlita+kgFilet).toFixed(1)}</strong></td>
+            <td>${fmt(sum(sr,'alita'))}</td><td>${fmt(sum(sr,'filet'))}</td>
+            <td>${fmt(sum(sr,'popCorns'))}</td><td>${fmt(sum(sr,'tiras'))}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`;
+    }
+    html+='</div>';
+  });
+  cont.innerHTML=html;
+}
+
+// ── LENO — GRÁFICOS ──
+let lenoGrafCH={};
+var _lenoGrafTipo='ALL';
+window.setLenoGrafTipo=function(t){
+  _lenoGrafTipo=t;
+  ['ALL','carne','pollo'].forEach(k=>{
+    const id=k==='ALL'?'leno-gtipo-all':'leno-gtipo-'+k;
+    document.getElementById(id)?.classList.toggle('active',k===t);
+  });
+  renderLenoGraf();
+}
+
+window.renderLenoGraf=function(){
+  const kr=document.getElementById('leno-kpi-row');
+  if(!kr)return;
+  const grafDesde=document.getElementById('leno-graf-desde')?.value||'';
+  const grafHasta=document.getElementById('leno-graf-hasta')?.value||'';
+  const grafSuc=document.getElementById('leno-graf-suc')?.value||'ALL';
+  const hoyG=new Date().toISOString().slice(0,10);
+  const GDB=LENO_DB.filter(r=>{
+    if(grafDesde&&r.fecha<grafDesde)return false;
+    if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
+    if(grafSuc!=='ALL'&&r.sucursal!==grafSuc)return false;
+    return true;
+  });
+  const sucsFilt=grafSuc==='ALL'?LENO_UBIC:[grafSuc];
+  const showCarne=_lenoGrafTipo!=='pollo';
+  const showPollo=_lenoGrafTipo!=='carne';
+  const carneKpis=showCarne?`
+    <div class="kpi-section-label carne">🥩 Carne</div>
+    <div class="kpi kpi-sm" style="--ac:#FF4B6E"><div class="kpi-label">Kg Pedido</div><div class="kpi-val">${sum(GDB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#FF9F1C"><div class="kpi-label">Kg Procesado</div><div class="kpi-val">${sum(GDB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(GDB,'med90'))}</div><div class="kpi-sub">unidades</div></div>
+    <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(GDB,'bol90'))}</div><div class="kpi-sub">unidades</div></div>`:'';
+  const polloKpis=showPollo?`
+    <div class="kpi-section-label pollo" style="margin-top:8px">🐔 Pollo</div>
+    <div class="kpi kpi-sm" style="--ac:#9B5DE5"><div class="kpi-label">Alita Proc.</div><div class="kpi-val">${sum(GDB,'procesado_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#7B2FBE"><div class="kpi-label">Filet Proc.</div><div class="kpi-val">${sum(GDB,'procesado_filet').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
+    <div class="kpi kpi-sm" style="--ac:#F15BB5"><div class="kpi-label">Alitas (u)</div><div class="kpi-val">${fmt(sum(GDB,'alita'))}</div><div class="kpi-sub">unidades</div></div>
+    <div class="kpi kpi-sm" style="--ac:#C9184A"><div class="kpi-label">Filet (u)</div><div class="kpi-val">${fmt(sum(GDB,'filet'))}</div><div class="kpi-sub">unidades</div></div>`:'';
+  kr.innerHTML=carneKpis+polloKpis;
+  document.getElementById('leno-graf-carne-section').style.display=showCarne?'':'none';
+  document.getElementById('leno-graf-pollo-section').style.display=showPollo?'':'none';
+  if(!GDB.length)return;
+  Object.values(lenoGrafCH).forEach(c=>{try{c.destroy()}catch(e){}});lenoGrafCH={};
+  const COPT=getChartDefaults();
+  const months=[...new Set(GDB.map(r=>monthKey(r.fecha)))].sort();
+  if(showCarne)
+    lenoGrafCH.c1=new Chart(document.getElementById('leno-ch1'),{type:'bar',data:{labels:months,datasets:sucsFilt.map(s=>({label:LENO_LABEL[s],data:months.map(m=>sum(GDB.filter(r=>r.sucursal===s&&monthKey(r.fecha)===m),'proc_kg')),backgroundColor:LENO_HEX[s]+'99',borderColor:LENO_HEX[s],borderWidth:1.5,borderRadius:6,borderSkipped:false}))},options:COPT});
+  if(showPollo)
+    lenoGrafCH.c4=new Chart(document.getElementById('leno-ch4'),{type:'bar',data:{labels:sucsFilt.map(s=>LENO_LABEL[s]),datasets:[
+      {label:'Alita',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'alita')),backgroundColor:'#1D9E7599',borderColor:'#1D9E75',borderWidth:1.5,borderRadius:4},
+      {label:'Filet',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'filet')),backgroundColor:'#5DCAA599',borderColor:'#5DCAA5',borderWidth:1.5},
+      {label:'Pop Corns',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'popCorns')),backgroundColor:'#9FE1CB99',borderColor:'#9FE1CB',borderWidth:1.5},
+      {label:'Tiras',data:sucsFilt.map(s=>sum(GDB.filter(r=>r.sucursal===s),'tiras')),backgroundColor:'#BA751799',borderColor:'#BA7517',borderWidth:1.5}
+    ]},options:{...COPT,scales:{...COPT.scales,x:{...COPT.scales.x,stacked:true},y:{...COPT.scales.y,stacked:true}}}});
 };
 
 // ── MANO DE OBRA ──

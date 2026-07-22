@@ -27,6 +27,22 @@ var LENO_SUCURSALES = [
   { id: 'BARRIO NORTE', startCol: 0  },
   { id: 'YERBA BUENA',  startCol: 8  },
   { id: 'TAFI VIEJO',   startCol: 16 },
+  { id: 'EVENTOS',      startCol: 24 }, // NUEVO — bloque de Pollo de Eventos: agregar en LENO_GID
+                                        // 8 columnas a partir de la columna 25 (Y), mismo layout
+                                        // que ya usan BARRIO NORTE/YERBA BUENA/TAFI VIEJO arriba.
+];
+
+// ── CARNE de LENO SRL (NUEVO) ────────────────────────────────────
+// Bloque separado del de Pollo (arriba). El dueño del negocio debe preparar en la
+// hoja LENO_GID, a partir de la columna 33 (AH), un bloque de 8 columnas por ubicación
+// con el mismo layout que ya usa CARNE_GID para Franquicias:
+//   col+0 fecha | col+1 ped_kg | col+2 rec_kg | col+3 proc_kg | col+4 (sin uso)
+//   col+5 med90 | col+6 bol90  | col+7 (sin uso)
+var LENO_CARNE_SUCURSALES = [
+  { id: 'BARRIO NORTE', startCol: 32 },
+  { id: 'YERBA BUENA',  startCol: 40 },
+  { id: 'TAFI VIEJO',   startCol: 48 },
+  { id: 'EVENTOS',      startCol: 56 },
 ];
 
 var CARNE_DATA_ROW = 7;
@@ -148,6 +164,24 @@ function buildLeno(rowData, suc) {
   };
 }
 
+// NUEVO — Carne de LENO SRL, ver comentario de LENO_CARNE_SUCURSALES arriba.
+var LENO_CARNE_FIELDS = ['fecha','sucursal','ped_kg','rec_kg','proc_kg','med90','bol90','createdAt','source'];
+
+function buildLenoCarne(rowData, suc) {
+  const c = suc.startCol;
+  return {
+    fecha:     parseDate(rowData[c]),
+    sucursal:  suc.id,
+    ped_kg:    parseNum(rowData[c + 1]),
+    rec_kg:    parseNum(rowData[c + 2]),
+    proc_kg:   parseNum(rowData[c + 3]),
+    med90:     parseNum(rowData[c + 5]),
+    bol90:     parseNum(rowData[c + 6]),
+    createdAt: new Date().toISOString(),
+    source:    'sheets',
+  };
+}
+
 // ── Sync automático al editar ──────────────────────────────────
 
 function onEditInstalable(e) {
@@ -158,15 +192,28 @@ function onEditInstalable(e) {
 
   if (sheetId === LENO_GID) {
     if (row < LENO_DATA_ROW) return;
-    const suc = LENO_SUCURSALES.find(s => col >= s.startCol && col < s.startCol + 8);
-    if (!suc) return;
-    const rowData = sheet.getRange(row, 1, 1, 24).getValues()[0];
-    try {
-      const reg = buildLeno(rowData, suc);
-      if (!reg.fecha) return;
-      subirConMask(`${suc.id}_${reg.fecha}`, reg, LENO_FIELDS, LENO_BASE);
-    } catch (err) {
-      console.error('LENO Sync error:', err.message);
+    // Rango amplio: cubre el bloque de Pollo (cols 0-31) y el bloque de Carne (cols 32-63)
+    const rowData = sheet.getRange(row, 1, 1, 64).getValues()[0];
+
+    const sucPollo = LENO_SUCURSALES.find(s => col >= s.startCol && col < s.startCol + 8);
+    if (sucPollo) {
+      try {
+        const reg = buildLeno(rowData, sucPollo);
+        if (reg.fecha) subirConMask(`${sucPollo.id}_${reg.fecha}`, reg, LENO_FIELDS, LENO_BASE);
+      } catch (err) {
+        console.error('LENO Pollo Sync error:', err.message);
+      }
+      return;
+    }
+
+    const sucCarne = LENO_CARNE_SUCURSALES.find(s => col >= s.startCol && col < s.startCol + 8);
+    if (sucCarne) {
+      try {
+        const reg = buildLenoCarne(rowData, sucCarne);
+        if (reg.fecha) subirConMask(`${sucCarne.id}_${reg.fecha}`, reg, LENO_CARNE_FIELDS, LENO_BASE);
+      } catch (err) {
+        console.error('LENO Carne Sync error:', err.message);
+      }
     }
     return;
   }
@@ -235,6 +282,7 @@ function sincronizar() {
   addSheet(carneSheet, CARNE_DATA_ROW, buildCarne, CARNE_FIELDS, SUCURSALES);
   addSheet(polloSheet, POLLO_DATA_ROW, buildPollo, POLLO_FIELDS, SUCURSALES);
   addSheet(lenoSheet,  LENO_DATA_ROW,  buildLeno,  LENO_FIELDS,  LENO_SUCURSALES, LENO_BASE);
+  addSheet(lenoSheet,  LENO_DATA_ROW,  buildLenoCarne, LENO_CARNE_FIELDS, LENO_CARNE_SUCURSALES, LENO_BASE); // NUEVO
 
   if (!requests.length) {
     SpreadsheetApp.getUi().alert('CDP Franquicias', 'No hay registros con fecha para sincronizar.', SpreadsheetApp.getUi().ButtonSet.OK);
