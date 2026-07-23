@@ -1044,6 +1044,16 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" onclick="goTab('cobro',this)">💳 Cobro</button>
 </nav>
 
+<!-- NAV (NIVEL 2 — LENO SRL) -->
+<nav class="nav" id="leno-subnav" style="display:none">
+  <button class="nav-btn active" id="leno-subtab-cargar" onclick="setLenoSubTab('cargar',this)">+ Cargar Día</button>
+  <button class="nav-btn" id="leno-subtab-dashboard" onclick="setLenoSubTab('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-btn" id="leno-subtab-registros" onclick="setLenoSubTab('registros',this)">Registros</button>
+  <button class="nav-btn" id="leno-subtab-semanal" onclick="setLenoSubTab('semanal',this)">Semanal</button>
+  <button class="nav-btn" id="leno-subtab-mensual" onclick="setLenoSubTab('mensual',this)">Mensual</button>
+  <button class="nav-btn" id="leno-subtab-graficos" onclick="setLenoSubTab('graficos',this)">Gráficos</button>
+</nav>
+
 <div class="main">
 
 <!-- CARGAR -->
@@ -1496,15 +1506,6 @@ if('serviceWorker' in navigator){
 
 <!-- LENO SRL -->
 <div id="tab-leno" class="panel">
-
-  <nav class="nav" id="leno-subnav" style="margin-bottom:14px;border-bottom:none">
-    <button class="nav-btn active" id="leno-subtab-cargar" onclick="setLenoSubTab('cargar',this)">+ Cargar Día</button>
-    <button class="nav-btn" id="leno-subtab-dashboard" onclick="setLenoSubTab('dashboard',this)">📊 Dashboard</button>
-    <button class="nav-btn" id="leno-subtab-registros" onclick="setLenoSubTab('registros',this)">Registros</button>
-    <button class="nav-btn" id="leno-subtab-semanal" onclick="setLenoSubTab('semanal',this)">Semanal</button>
-    <button class="nav-btn" id="leno-subtab-mensual" onclick="setLenoSubTab('mensual',this)">Mensual</button>
-    <button class="nav-btn" id="leno-subtab-graficos" onclick="setLenoSubTab('graficos',this)">Gráficos</button>
-  </nav>
 
   <!-- SUB: CARGAR DÍA -->
   <div id="leno-sub-cargar" class="leno-subpanel active">
@@ -2052,13 +2053,16 @@ window.setModulo=function(mod,btn){
   document.querySelectorAll('.modulo-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   const navF=document.getElementById('nav-franquicias');
+  const navL=document.getElementById('leno-subnav');
   if(mod==='franquicias'){
     navF.style.display='';
+    navL.style.display='none';
     const t=_lastFranqTab||'cargar';
     const b=_lastFranqBtn||navF.querySelector('.nav-btn');
     goTab(t,b);
   } else {
     navF.style.display='none';
+    navL.style.display='';
     goTab('leno',null);
   }
 }
