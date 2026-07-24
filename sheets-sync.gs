@@ -109,16 +109,14 @@ function subirConMask(docId, reg, fieldNames, base) {
 
 // ── Builders por tipo ──────────────────────────────────────────
 
-var CARNE_FIELDS = ['fecha','sucursal','ped_kg','rec_kg','proc_kg','med110','bol110','med75','createdAt','source'];
-var POLLO_FIELDS = ['fecha','sucursal','ped_alita','proc_alita','ped_pechuga','proc_pechuga','alitas','filet','popCorns','tiras','createdAt','source'];
+var CARNE_FIELDS = ['fecha','sucursal','proc_kg','med110','bol110','med75','createdAt','source'];
+var POLLO_FIELDS = ['fecha','sucursal','proc_alita','proc_pechuga','alitas','filet','popCorns','tiras','createdAt','source'];
 
 function buildCarne(rowData, suc) {
   const c = suc.startCol;
   return {
     fecha:     parseDate(rowData[c]),
     sucursal:  suc.id,
-    ped_kg:    parseNum(rowData[c + 1]),
-    rec_kg:    parseNum(rowData[c + 2]),
     proc_kg:   parseNum(rowData[c + 3]),
     med110:    parseNum(rowData[c + 5]),
     bol110:    parseNum(rowData[c + 6]),
@@ -133,9 +131,7 @@ function buildPollo(rowData, suc) {
   return {
     fecha:        parseDate(rowData[c]),
     sucursal:     suc.id,
-    ped_alita:    parseNum(rowData[c + 1]),
     proc_alita:   parseNum(rowData[c + 2]),
-    ped_pechuga:  parseNum(rowData[c + 3]),
     proc_pechuga: parseNum(rowData[c + 4]),
     alitas:       parseNum(rowData[c + 6]),
     filet:        parseNum(rowData[c + 7]),
@@ -165,15 +161,13 @@ function buildLeno(rowData, suc) {
 }
 
 // NUEVO — Carne de LENO SRL, ver comentario de LENO_CARNE_SUCURSALES arriba.
-var LENO_CARNE_FIELDS = ['fecha','sucursal','ped_kg','rec_kg','proc_kg','med90','bol90','createdAt','source'];
+var LENO_CARNE_FIELDS = ['fecha','sucursal','proc_kg','med90','bol90','createdAt','source'];
 
 function buildLenoCarne(rowData, suc) {
   const c = suc.startCol;
   return {
     fecha:     parseDate(rowData[c]),
     sucursal:  suc.id,
-    ped_kg:    parseNum(rowData[c + 1]),
-    rec_kg:    parseNum(rowData[c + 2]),
     proc_kg:   parseNum(rowData[c + 3]),
     med90:     parseNum(rowData[c + 5]),
     bol90:     parseNum(rowData[c + 6]),

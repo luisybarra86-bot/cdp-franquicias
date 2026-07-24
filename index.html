@@ -695,12 +695,6 @@ tbody tr{animation:fadeUp .25s ease both}
 .pill-TV{background:var(--tv-l);color:var(--tv);border:1px solid rgba(236,72,153,.2)}
 .pill-EV{background:var(--ev-l);color:var(--ev);border:1px solid rgba(20,184,166,.2)}
 
-/* ── MERMA CARNE (NUEVO) ─────────────────────────────────────── */
-.merma-box{margin-top:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
-.merma-lbl{font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.5px}
-.merma-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#ef4444}
-.merma-pct{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#ef4444}
-
 /* ── FILTROS ─────────────────────────────────────────────── */
 .suc-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
 .sf-btn{
@@ -1099,9 +1093,7 @@ if('serviceWorker' in navigator){
         <div class="form-panel active" id="fpanel-carne">
           <div class="fpanel-bg">
             <div class="g2-form">
-              <div class="ff"><span>Pedido kg</span><input type="number" id="f-ped-kg" min="0" step="0.1" placeholder="0"></div>
-              <div class="ff"><span>Recibido kg</span><input type="number" id="f-rec-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('f-rec-kg','f-proc-kg','merma-box-carne')"></div>
-              <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('f-rec-kg','f-proc-kg','merma-box-carne')"></div>
+              <div class="ff proc"><span>Procesado kg</span><input type="number" id="f-proc-kg" min="0" step="0.1" placeholder="0"></div>
               <div class="ff"><span>Medallón 90g</span><input type="number" id="f-med110" min="0" placeholder="0" oninput="calcKg()"></div>
               <div class="ff"><span>Bolita 90g</span><input type="number" id="f-bol110" min="0" placeholder="0" oninput="calcKg()"></div>
             </div>
@@ -1124,10 +1116,6 @@ if('serviceWorker' in navigator){
                 <span class="calc-total-val" id="calc-total">0.000</span>
               </div>
             </div>
-            <div class="merma-box" id="merma-box-carne">
-              <span class="merma-lbl">⚠️ Merma estimada</span>
-              <span><span class="merma-val">0.0 kg</span> <span class="merma-pct">(0.0%)</span></span>
-            </div>
           </div>
           <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo</div>
         </div>
@@ -1136,9 +1124,7 @@ if('serviceWorker' in navigator){
         <div class="form-panel" id="fpanel-pollo">
           <div class="fpanel-bg">
             <div class="g2-form">
-              <div class="ff"><span>Pedido Alita kg</span><input type="number" id="f-ped-alita" min="0" step="0.1" placeholder="0"></div>
               <div class="ff proc"><span>Procesado Alita</span><input type="number" id="f-proc-alita" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
-              <div class="ff"><span>Pedido Filet kg</span><input type="number" id="f-ped-pechuga" min="0" step="0.1" placeholder="0"></div>
               <div class="ff proc"><span>Procesado Filet</span><input type="number" id="f-proc-pechuga" min="0" step="0.1" placeholder="0" oninput="calcPollo()"></div>
             </div>
             <div style="height:1px;background:var(--border);margin:7px 0"></div>
@@ -1243,8 +1229,7 @@ if('serviceWorker' in navigator){
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th>
-          <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th>
+          <th>Fecha</th><th>Sucursal</th><th>Proc. kg</th>
           <th>Med 110</th><th>Bol 110</th>
           <th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>
         </tr></thead>
@@ -1552,9 +1537,7 @@ if('serviceWorker' in navigator){
           <div class="form-panel active" id="leno-fpanel-carne">
             <div class="fpanel-bg">
               <div class="g2-form">
-                <div class="ff"><span>Pedido kg</span><input type="number" id="leno-f-ped-kg" min="0" step="0.1" placeholder="0"></div>
-                <div class="ff"><span>Recibido kg</span><input type="number" id="leno-f-rec-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno')"></div>
-                <div class="ff proc"><span>Procesado kg</span><input type="number" id="leno-f-proc-kg" min="0" step="0.1" placeholder="0" oninput="updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno')"></div>
+                <div class="ff proc"><span>Procesado kg</span><input type="number" id="leno-f-proc-kg" min="0" step="0.1" placeholder="0"></div>
                 <div class="ff"><span>Medallón 90g</span><input type="number" id="leno-f-med90" min="0" placeholder="0" oninput="calcKgLeno()"></div>
                 <div class="ff"><span>Bolita 90g</span><input type="number" id="leno-f-bol90" min="0" placeholder="0" oninput="calcKgLeno()"></div>
               </div>
@@ -1575,10 +1558,6 @@ if('serviceWorker' in navigator){
                   <span></span>
                   <span class="calc-total-val" id="leno-calc-total">0.000</span>
                 </div>
-              </div>
-              <div class="merma-box" id="merma-box-leno">
-                <span class="merma-lbl">⚠️ Merma estimada</span>
-                <span><span class="merma-val">0.0 kg</span> <span class="merma-pct">(0.0%)</span></span>
               </div>
             </div>
             <div class="fpanel-hint"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente: Pollo</div>
@@ -1667,8 +1646,7 @@ if('serviceWorker' in navigator){
         <table>
           <thead><tr>
             <th>Fecha</th><th>Ubicación</th>
-            <th style="color:#FF4B6E">Rec. Carne (kg)</th><th style="color:#FF4B6E">Carne proc. (kg)</th>
-            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th>
+            <th style="color:#FF4B6E">Carne proc. (kg)</th>
             <th style="color:#FF4B6E">Medallón</th><th style="color:#FF4B6E">Bolita</th>
             <th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
           </tr></thead>
@@ -1702,8 +1680,7 @@ if('serviceWorker' in navigator){
       <div class="tbl-wrap" style="border-top:none">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ubicación</th><th>Rec. Carne (kg)</th><th>Carne proc. (kg)</th>
-            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th>
+            <th>Fecha</th><th>Ubicación</th><th>Carne proc. (kg)</th>
             <th>Medallón</th><th>Bolita</th><th></th>
           </tr></thead>
           <tbody id="leno-reg-tbody-carne"></tbody>
@@ -2140,21 +2117,6 @@ window.calcKgLeno=function(){
   document.getElementById('leno-calc-total').textContent=total.toFixed(3);
 }
 
-// ── MERMA CARNE (NUEVO) — reutilizable en Franquicias y LENO SRL ──
-// merma_kg = rec_kg - proc_kg (nunca negativo); merma_pct = merma_kg / rec_kg * 100
-window.updateMerma=function(recId,procId,boxId){
-  const rec=parseFloat(document.getElementById(recId)?.value)||0;
-  const proc=parseFloat(document.getElementById(procId)?.value)||0;
-  let merma=rec-proc; if(merma<0) merma=0;
-  const pct=rec>0?(merma/rec*100):0;
-  const box=document.getElementById(boxId);
-  if(!box) return;
-  const valEl=box.querySelector('.merma-val');
-  const pctEl=box.querySelector('.merma-pct');
-  if(valEl) valEl.textContent=merma.toFixed(1)+' kg';
-  if(pctEl) pctEl.textContent='('+pct.toFixed(1)+'%)';
-}
-
 // ── FORM ──
 document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
 document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
@@ -2185,14 +2147,6 @@ window.guardar=async function(){
     return;
   }
 
-  // Aviso si procesado > pedido (no bloquea, solo avisa)
-  const pedKg=num('f-ped-kg'), procKg=num('f-proc-kg');
-  const pedAlita=num('f-ped-alita'), procAlita=num('f-proc-alita');
-  const pedPechuga=num('f-ped-pechuga'), procPechuga=num('f-proc-pechuga');
-  if(pedKg>0&&procKg>pedKg) toast(`⚠️ Carne: procesado (${procKg} kg) supera pedido (${pedKg} kg)`,'warn');
-  if(pedAlita>0&&procAlita>pedAlita) toast(`⚠️ Alita: procesado supera pedido`,'warn');
-  if(pedPechuga>0&&procPechuga>pedPechuga) toast(`⚠️ Pechuga: procesado supera pedido`,'warn');
-
   await _doGuardar(fecha,suc);
 }
 
@@ -2204,10 +2158,10 @@ async function _doGuardar(fecha,suc){
   try{
     await setDoc(doc(db,COL,docId),{
       fecha,sucursal:suc,
-      ped_kg:num('f-ped-kg'),rec_kg:num('f-rec-kg'),proc_kg:num('f-proc-kg'),
+      proc_kg:num('f-proc-kg'),
       med110:num('f-med110'),bol110:num('f-bol110'),med75:num('f-med75'),
-      ped_alita:num('f-ped-alita'),proc_alita:num('f-proc-alita'),
-      ped_pechuga:num('f-ped-pechuga'),proc_pechuga:num('f-proc-pechuga'),
+      proc_alita:num('f-proc-alita'),
+      proc_pechuga:num('f-proc-pechuga'),
       alitas:num('f-alitas'),filet:num('f-filet'),popCorns:num('f-popCorns'),tiras:num('f-tiras'),
       precio_carne:PRECIOS_ACTUALES.precio_carne||0,precio_alita:PRECIOS_ACTUALES.precio_alita||0,precio_filet:PRECIOS_ACTUALES.precio_filet||0,
       createdAt:new Date().toISOString(),
@@ -2267,8 +2221,6 @@ window.renderSucPanel=function(suc){
   const alitaSem=sumF(semRecs,'proc_alita');
   const filetSem=sumF(semRecs,'proc_pechuga');
   const polloSem=alitaSem+filetSem;
-  const pedSem=sumF(semRecs,'ped_kg');
-  const efic=pedSem>0?Math.round(carneSem/pedSem*100):null;
   const dCarne=carnePrev>0?Math.round((carneSem-carnePrev)/carnePrev*100):null;
 
   // Precios desde config centralizada
@@ -2293,14 +2245,11 @@ window.renderSucPanel=function(suc){
   const recientes=regs.slice(0,5);
   const recRows=recientes.length
     ? recientes.map(r=>{
-        const ef=r.ped_kg>0?Math.round(r.proc_kg/r.ped_kg*100):null;
-        const efColor=ef===null?'var(--text3)':ef>=95?'#22c55e':ef>=85?'#FF9F1C':'#ef4444';
         const polloR=(r.proc_alita||0)+(r.proc_pechuga||0);
         return `<div class="sp-rec-row">
           <span class="sp-rec-date">${r.fecha?.slice(5)||'—'}</span>
           <span class="sp-rec-val">🥩 <strong>${(r.proc_kg||0).toLocaleString('es-AR')} kg</strong></span>
           <span class="sp-rec-sub">🐔 <strong>${polloR.toLocaleString('es-AR')} kg</strong></span>
-          ${ef!==null?`<span class="sp-rec-ef" style="color:${efColor}">${ef}%</span>`:''}
         </div>`;
       }).join('')
     : '<p style="font-size:11px;color:var(--text3);padding:4px 0">Sin registros aún para esta sucursal.</p>';
@@ -2314,7 +2263,7 @@ window.renderSucPanel=function(suc){
       </div>
     </div>
 
-    <div class="sp-kpis">
+    <div class="sp-kpis" style="grid-template-columns:repeat(2,1fr)">
       <div class="sp-kpi">
         <div class="sp-kpi-lbl">Carne sem.</div>
         <div class="sp-kpi-val">${carneSem.toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
@@ -2324,11 +2273,6 @@ window.renderSucPanel=function(suc){
         <div class="sp-kpi-lbl">Pollo sem.</div>
         <div class="sp-kpi-val">${polloSem.toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
         <div class="sp-kpi-sub" style="color:var(--text3)">${(+alitaSem.toFixed(2)).toLocaleString('es-AR')} alita · ${(+filetSem.toFixed(2)).toLocaleString('es-AR')} filet</div>
-      </div>
-      <div class="sp-kpi">
-        <div class="sp-kpi-lbl">Eficiencia</div>
-        <div class="sp-kpi-val" style="color:${efic===null?'var(--text3)':efic>=95?'#22c55e':efic>=85?'#FF9F1C':'#ef4444'}">${efic!==null?efic+'%':'—'}</div>
-        <div class="sp-kpi-sub" style="color:var(--text3)">proc / pedido</div>
       </div>
     </div>
 
@@ -2355,18 +2299,17 @@ window.setFormTab=function(name,btn){
 };
 
 window.limpiarNumeros=function(){
-  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
-   'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
+  ['f-proc-kg','f-med110','f-bol110','f-med75',
+   'f-proc-alita','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
   calcKg();
-  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
 }
 
 window.limpiar=function(){
-  ['f-ped-kg','f-rec-kg','f-proc-kg','f-med110','f-bol110','f-med75',
-   'f-ped-alita','f-proc-alita','f-ped-pechuga','f-proc-pechuga',
+  ['f-proc-kg','f-med110','f-bol110','f-med75',
+   'f-proc-alita','f-proc-pechuga',
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
@@ -2379,7 +2322,6 @@ window.limpiar=function(){
   document.querySelectorAll('.form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   calcKg();
-  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
 }
 
 window.editReg=function(id){
@@ -2389,15 +2331,11 @@ window.editReg=function(id){
   document.getElementById('f-fecha').value=r.fecha||'';
   document.getElementById('f-suc').value=r.sucursal||'';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.toggle('active',c.dataset.v===(r.sucursal||'')));
-  document.getElementById('f-ped-kg').value=r.ped_kg||'';
-  document.getElementById('f-rec-kg').value=r.rec_kg||'';
   document.getElementById('f-proc-kg').value=r.proc_kg||'';
   document.getElementById('f-med110').value=r.med110||'';
   document.getElementById('f-bol110').value=r.bol110||'';
   document.getElementById('f-med75').value=r.med75||'';
-  document.getElementById('f-ped-alita').value=r.ped_alita||'';
   document.getElementById('f-proc-alita').value=r.proc_alita||'';
-  document.getElementById('f-ped-pechuga').value=r.ped_pechuga||'';
   document.getElementById('f-proc-pechuga').value=r.proc_pechuga||'';
   document.getElementById('f-alitas').value=r.alitas||'';
   document.getElementById('f-filet').value=r.filet||'';
@@ -2405,7 +2343,6 @@ window.editReg=function(id){
   document.getElementById('f-tiras').value=r.tiras||'';
   renderSucPanel(r.sucursal||'');
   calcKg(); calcPollo();
-  updateMerma('f-rec-kg','f-proc-kg','merma-box-carne');
   document.getElementById('cargar-title').textContent='Editar registro';
   document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
   document.getElementById('edit-banner-info').textContent=`${SUC_NAMES[r.sucursal]} · ${r.fecha}`;
@@ -2592,17 +2529,9 @@ window.renderDashboard=function(){
   const pct=(a,b)=>b>0?Math.round((a-b)/b*100):null;
 
   const carneCur=sumF(cur,'proc_kg'), carnePrev=sumF(prev,'proc_kg');
-  // Merma de carne (NUEVO) — sobre el mismo array filtrado (cur) del período/sucursal actual
-  const recKgCur=sumF(cur,'rec_kg');
-  const mermaKgCur=Math.max(recKgCur-carneCur,0);
-  const mermaPctCur=recKgCur>0?(mermaKgCur/recKgCur*100):0;
   const alitaCur=sumF(cur,'proc_alita'), alitaPrev=sumF(prev,'proc_alita');
   const filetCur=sumF(cur,'proc_pechuga'), filetPrev=sumF(prev,'proc_pechuga');
   const polloCur=alitaCur+filetCur, polloPrev=alitaPrev+filetPrev;
-  const pedCur=sumF(cur,'ped_kg'), efCarne=pedCur>0?Math.round(carneCur/pedCur*100):null;
-  const pedAlitaCur=sumF(cur,'ped_alita'),pedFiletCur=sumF(cur,'ped_pechuga');
-  const pedPolloCur=pedAlitaCur+pedFiletCur;
-  const efPollo=pedPolloCur>0?Math.round(polloCur/pedPolloCur*100):null;
 
   // Precios desde config centralizada
   const pCarne=PRECIOS_ACTUALES.precio_carne||0, pAlita=PRECIOS_ACTUALES.precio_alita||0, pFilet=PRECIOS_ACTUALES.precio_filet||0;
@@ -2638,12 +2567,6 @@ window.renderDashboard=function(){
       ${deltaHtml(dP)}
       <div style="display:flex;align-items:center;gap:5px">${semDot(dP)} <span class="sem-lbl">${dP===null?'—':Math.abs(dP)<=5?'Normal':Math.abs(dP)<=15?'Monitorear':'Revisar'}</span></div>
     </div>
-    <div class="kpi-dash kd-green">
-      <div class="kpi-dash-lbl">Eficiencia carne</div>
-      <div class="kpi-dash-val">${efCarne!==null?efCarne+'%':'—'}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">Proc / Pedido</div>
-      <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${efCarne!==null?efCarne>=95?'<span class="sem-dot g"></span>':efCarne>=85?'<span class="sem-dot y"></span>':'<span class="sem-dot r"></span>':'<span class="sem-dot" style="background:var(--text3)"></span>'} <span class="sem-lbl">${efCarne!==null?efCarne>=95?'Excelente':efCarne>=85?'Aceptable':'Revisar':'—'}</span></div>
-    </div>
     <div class="kpi-dash kd-amber">
       <div class="kpi-dash-lbl">Costo carne</div>
       <div class="kpi-dash-val" style="font-size:17px">${pCarne?'$ '+costoCarne.toLocaleString('es-AR'):'Sin precio'}</div>
@@ -2658,11 +2581,6 @@ window.renderDashboard=function(){
       <div class="kpi-dash-lbl">Costo total período</div>
       <div class="kpi-dash-val" style="font-size:17px">${costoTotal?'$ '+costoTotal.toLocaleString('es-AR'):'Sin precios'}</div>
       <div style="font-size:10px;color:var(--text3);margin-top:2px">Carne + Alita + Filet</div>
-    </div>
-    <div class="kpi-dash" style="--ac:#ef4444">
-      <div class="kpi-dash-lbl">% Merma Carne</div>
-      <div class="kpi-dash-val">${(+mermaPctCur.toFixed(1)).toLocaleString('es-AR')}%</div>
-      <div class="kpi-dash-delta">${(+mermaKgCur.toFixed(1)).toLocaleString('es-AR')} kg perdidos${pCarne?' · '+ARS(mermaKgCur*pCarne):''}</div>
     </div>
   `;
   animateKpiNumbers(kpisEl);
@@ -2722,7 +2640,6 @@ window.renderDashboard=function(){
   const alerts=[];
   if(dC!==null&&dC<-15) alerts.push({color:'#ef4444',msg:`Carne procesada bajó ${Math.abs(dC)}%`,sub:'vs período anterior — revisar operaciones'});
   if(dP!==null&&dP<-15) alerts.push({color:'#ef4444',msg:`Pollo procesado bajó ${Math.abs(dP)}%`,sub:'vs período anterior — revisar operaciones'});
-  if(efCarne!==null&&efCarne<85) alerts.push({color:'#FF9F1C',msg:`Eficiencia carne baja: ${efCarne}%`,sub:'Procesado vs pedido por debajo del 85%'});
   if(dC!==null&&dC>20) alerts.push({color:'#22c55e',msg:`Carne procesada subió ${dC}%`,sub:'vs período anterior — buen desempeño'});
   if(!pCarne&&!pAlita&&!pFilet) alerts.push({color:'#9B5DE5',msg:'Sin precios de compra registrados',sub:'Cargá precios para ver costos de producción'});
   const altEl=document.getElementById('dash-alertas');
@@ -2781,11 +2698,6 @@ window.renderLeno=function(){
   const totalKg=procAlita+procFilet;
   const tAlita=sumF(cur,'alita'), tFilet=sumF(cur,'filet'), tPop=sumF(cur,'popCorns'), tTiras=sumF(cur,'tiras');
 
-  // Merma de carne (NUEVO) — recibido - procesado, sobre el período/ubicación filtrado actual
-  const recCarne=sumF(cur,'rec_kg'), procCarne=sumF(cur,'proc_kg');
-  const mermaKg=Math.max(recCarne-procCarne,0);
-  const mermaPct=recCarne>0?(mermaKg/recCarne*100):0;
-
   const kpisEl=document.getElementById('leno-kpis');
   if(kpisEl) kpisEl.innerHTML=`
     <div class="kpi-dash kd-teal">
@@ -2803,11 +2715,6 @@ window.renderLeno=function(){
     <div class="kpi-dash kd-blue">
       <div class="kpi-dash-lbl">Registros del período</div>
       <div class="kpi-dash-val">${cur.length}</div>
-    </div>
-    <div class="kpi-dash" style="--ac:#ef4444">
-      <div class="kpi-dash-lbl">% Merma Carne</div>
-      <div class="kpi-dash-val">${(+mermaPct.toFixed(1)).toLocaleString('es-AR')}%</div>
-      <div class="kpi-dash-delta">${(+mermaKg.toFixed(1)).toLocaleString('es-AR')} kg perdidos${PRECIOS_ACTUALES.precio_carne?' · '+ARS(mermaKg*PRECIOS_ACTUALES.precio_carne):''}</div>
     </div>
   `;
   animateKpiNumbers(kpisEl);
@@ -2865,17 +2772,12 @@ window.renderLeno=function(){
   const tbody=document.getElementById('leno-tbody');
   const recientes=[...cur].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,30);
   if(tbody) tbody.innerHTML=recientes.length?recientes.map(r=>{
-    const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
-    const rMerma=Math.max(rRec-rProc,0);
-    const rMermaPct=rRec>0?(rMerma/rRec*100):0;
+    const rProc=r.proc_kg||0;
     return `
     <tr>
       <td>${r.fecha||'—'}</td>
       <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${NOMBRES[r.sucursal]||r.sucursal||'—'}</span></td>
-      <td>${rRec.toLocaleString('es-AR')}</td>
       <td>${rProc.toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
       <td>${r.med90||0}</td>
       <td>${r.bol90||0}</td>
       <td>${r.alita||0}</td>
@@ -2886,7 +2788,7 @@ window.renderLeno=function(){
       <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
     </tr>`;
-  }).join(''):'<tr><td colspan="15" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
+  }).join(''):'<tr><td colspan="12" style="text-align:center;color:var(--text3)">Sin registros para este período.</td></tr>';
 };
 
 // ── LENO SRL — Sub-tabs y formulario de carga ──
@@ -2954,10 +2856,7 @@ window.renderLenoSucPanel=function(suc){
   const totalSem=procAlitaSem+procFiletSem;
   const alitaSem=sumF(semRecs,'alita'), filetSem=sumF(semRecs,'filet'), popSem=sumF(semRecs,'popCorns'), tirasSem=sumF(semRecs,'tiras');
 
-  // Carne (NUEVO)
-  const recCarneSem=sumF(semRecs,'rec_kg'), procCarneSem=sumF(semRecs,'proc_kg');
-  const mermaSem=Math.max(recCarneSem-procCarneSem,0);
-  const mermaPctSem=recCarneSem>0?(mermaSem/recCarneSem*100):0;
+  const procCarneSem=sumF(semRecs,'proc_kg');
 
   const color=LENO_SUC_COLOR[suc]||'var(--accent)';
 
@@ -2986,7 +2885,6 @@ window.renderLenoSucPanel=function(suc){
       <div class="sp-kpi">
         <div class="sp-kpi-lbl">Carne proc. sem.</div>
         <div class="sp-kpi-val">${(+procCarneSem.toFixed(2)).toLocaleString('es-AR')} <span style="font-size:11px;color:var(--text3)">kg</span></div>
-        <div class="sp-kpi-sub" style="color:#ef4444">⚠️ ${(+mermaSem.toFixed(1)).toLocaleString('es-AR')} kg merma (${mermaPctSem.toFixed(1)}%)</div>
       </div>
       <div class="sp-kpi">
         <div class="sp-kpi-lbl">Pollo proc. sem.</div>
@@ -3037,7 +2935,7 @@ async function _doGuardarLeno(fecha,suc){
   try{
     await setDoc(doc(db,'leno_srl',docId),{
       fecha,sucursal:suc,
-      ped_kg:num('leno-f-ped-kg'),rec_kg:num('leno-f-rec-kg'),proc_kg:num('leno-f-proc-kg'),
+      proc_kg:num('leno-f-proc-kg'),
       med90:num('leno-f-med90'),bol90:num('leno-f-bol90'),
       alita:num('leno-f-alita'),filet:num('leno-f-filet'),
       popCorns:num('leno-f-popcorns'),tiras:num('leno-f-tiras'),
@@ -3054,7 +2952,7 @@ async function _doGuardarLeno(fecha,suc){
 }
 
 window.limpiarLeno=function(){
-  ['leno-f-ped-kg','leno-f-rec-kg','leno-f-proc-kg','leno-f-med90','leno-f-bol90',
+  ['leno-f-proc-kg','leno-f-med90','leno-f-bol90',
    'leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('leno-f-suc').value='';
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
@@ -3067,7 +2965,6 @@ window.limpiarLeno=function(){
   document.querySelectorAll('#leno-sub-cargar .form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('#leno-sub-cargar .form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   calcKgLeno();
-  updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno');
 };
 
 window.editRegLeno=function(id){
@@ -3077,8 +2974,6 @@ window.editRegLeno=function(id){
   document.getElementById('leno-f-fecha').value=r.fecha||'';
   document.getElementById('leno-f-suc').value=r.sucursal||'';
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.toggle('active',c.dataset.v===(r.sucursal||'')));
-  document.getElementById('leno-f-ped-kg').value=r.ped_kg||'';
-  document.getElementById('leno-f-rec-kg').value=r.rec_kg||'';
   document.getElementById('leno-f-proc-kg').value=r.proc_kg||'';
   document.getElementById('leno-f-med90').value=r.med90||'';
   document.getElementById('leno-f-bol90').value=r.bol90||'';
@@ -3089,7 +2984,6 @@ window.editRegLeno=function(id){
   document.getElementById('leno-f-proc-alita').value=r.procesado_alita||'';
   document.getElementById('leno-f-proc-filet').value=r.procesado_filet||'';
   calcKgLeno();
-  updateMerma('leno-f-rec-kg','leno-f-proc-kg','merma-box-leno');
   renderLenoSucPanel(r.sucursal||'');
   document.getElementById('leno-cargar-title').textContent='Editar registro';
   document.getElementById('leno-btn-guardar').innerHTML='💾 Actualizar registro';
@@ -3181,28 +3075,22 @@ window.renderReg=function(){
   const tb=document.getElementById('reg-tbody');
   if(!tb)return;
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="15"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
     document.getElementById('reg-count').textContent='';
     // reset encabezados
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
     return;
   }
 
   if(regF==='ALL'){
     // Vista combinada — tabla unificada
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th><th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
     tb.innerHTML=rows.map(r=>{
-      const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
-      const rMerma=Math.max(rRec-rProc,0);
-      const rMermaPct=rRec>0?(rMerma/rRec*100):0;
-      const rMermaArs=rMerma*(PRECIOS_ACTUALES.precio_carne||0);
+      const rProc=r.proc_kg||0;
       return `<tr>
       <td>${r.fecha}</td>
       <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
-      <td>${r.ped_kg||0}</td><td>${rRec}</td><td>${rProc}</td>
-      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
-      <td style="color:#ef4444">${rMermaArs?ARS(rMermaArs):'—'}</td>
+      <td>${rProc}</td>
       <td>${r.med110||0}</td><td>${r.bol110||0}</td>
       <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
@@ -3228,23 +3116,14 @@ window.renderReg=function(){
       <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px;margin-bottom:18px">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ped. kg</th><th>Rec. kg</th><th>Proc. kg</th>
-            <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th>
+            <th>Fecha</th><th>Proc. kg</th>
             <th>Med 90g</th><th>Bol 90g</th><th>Med 75g</th><th></th>
           </tr></thead>
           <tbody>${rows.map(r=>{
-            const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
-            const rMerma=Math.max(rRec-rProc,0);
-            const rMermaPct=rRec>0?(rMerma/rRec*100):0;
-            const rMermaArs=rMerma*(PRECIOS_ACTUALES.precio_carne||0);
+            const rProc=r.proc_kg||0;
             return `<tr>
             <td>${r.fecha}</td>
-            <td style="color:#FF4B6E;font-weight:600">${r.ped_kg||0}</td>
-            <td>${rRec}</td>
             <td style="color:#22c55e;font-weight:600">${rProc}</td>
-            <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
-            <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
-            <td style="color:#ef4444">${rMermaArs?ARS(rMermaArs):'—'}</td>
             <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
             <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
           </tr>`;
@@ -3255,13 +3134,11 @@ window.renderReg=function(){
       <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Ped. Alita</th><th>Proc. Alita</th><th>Ped. Pechuga</th><th>Proc. Pechuga</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th></th>
+            <th>Fecha</th><th>Proc. Alita</th><th>Proc. Pechuga</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th><th></th>
           </tr></thead>
           <tbody>${rows.map(r=>`<tr>
             <td>${r.fecha}</td>
-            <td style="color:#FF4B6E;font-weight:600">${r.ped_alita||0}</td>
             <td style="color:#22c55e;font-weight:600">${r.proc_alita||0}</td>
-            <td style="color:#FF4B6E;font-weight:600">${r.ped_pechuga||0}</td>
             <td style="color:#22c55e;font-weight:600">${r.proc_pechuga||0}</td>
             <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
             <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
@@ -3310,8 +3187,7 @@ function renderSem(){
             <h4 style="color:${col}">${SUC_NAMES[suc]}</h4>
             <p>${rows.length} día${rows.length!==1?'s':''}</p>
           </div><div class="wcard-body">
-          <div class="wstat"><span class="wstat-l">Pedido kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'ped_kg').toFixed(1)}</span></div>
-          <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v">${sum(rows,'proc_kg').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_kg').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Medallón ${gramaje}</span><span class="wstat-v">${fmt(sum(rows,'med110'))}</span></div>
           <div class="wstat"><span class="wstat-l">Bolita ${gramaje}</span><span class="wstat-v">${fmt(sum(rows,'bol110'))}</span></div>
           <div class="wstat"><span class="wstat-l">Medallón 75g</span><span class="wstat-v">${fmt(sum(rows,'med75'))}</span></div>
@@ -3324,8 +3200,6 @@ function renderSem(){
           </div><div class="wcard-body">
           <div class="wstat"><span class="wstat-l">Proc. Alita kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_alita').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Proc. Pechuga kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_pechuga').toFixed(1)}</span></div>
-          <div class="wstat"><span class="wstat-l">Ped. Alita kg</span><span class="wstat-v">${sum(rows,'ped_alita').toFixed(1)}</span></div>
-          <div class="wstat"><span class="wstat-l">Ped. Pechuga kg</span><span class="wstat-v">${sum(rows,'ped_pechuga').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Alitas</span><span class="wstat-v">${fmt(sum(rows,'alitas'))}</span></div>
           <div class="wstat"><span class="wstat-l">Filet</span><span class="wstat-v">${fmt(sum(rows,'filet'))}</span></div>
           <div class="wstat"><span class="wstat-l">Pop Corns</span><span class="wstat-v">${fmt(sum(rows,'popCorns'))}</span></div>
@@ -3370,17 +3244,15 @@ function renderMes(){
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Sucursal</th><th>Días</th><th>Pedido kg</th><th>Recibido kg</th><th>Procesado kg</th><th>Med ${gramajeMes}</th><th>Bol ${gramajeMes}</th><th>Med 75</th><th>Eficiencia</th></tr></thead>
+        <thead><tr><th>Sucursal</th><th>Días</th><th>Procesado kg</th><th>Med ${gramajeMes}</th><th>Bol ${gramajeMes}</th><th>Med 75</th></tr></thead>
         <tbody>${SUCS.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
-          const ped=sum(sr,'ped_kg'),proc=sum(sr,'proc_kg'),eff=ped>0?((proc/ped)*100).toFixed(1):'—';
+          const proc=sum(sr,'proc_kg');
           return`<tr>
             <td><span class="pill ${SL[suc]}">${suc}</span></td>
-            <td>${sr.length}</td><td>${ped.toFixed(1)}</td>
-            <td>${sum(sr,'rec_kg').toFixed(1)}</td><td>${proc.toFixed(1)}</td>
+            <td>${sr.length}</td><td>${proc.toFixed(1)}</td>
             <td>${fmt(sum(sr,'med110'))}</td><td>${fmt(sum(sr,'bol110'))}</td>
             <td>${fmt(sum(sr,'med75'))}</td>
-            <td class="${parseFloat(eff)>=98?'eff-ok':'eff-warn'}">${eff}%</td>
           </tr>`;
         }).join('')}</tbody>
       </table></div></div>`;
@@ -3396,14 +3268,13 @@ function renderMes(){
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Sucursal</th><th>Días</th><th>Ped. Alita kg</th><th>Ped. Pechuga kg</th><th>Proc. Alita kg</th><th>Proc. Pechuga kg</th><th>Total Proc. kg</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th></tr></thead>
+        <thead><tr><th>Sucursal</th><th>Días</th><th>Proc. Alita kg</th><th>Proc. Pechuga kg</th><th>Total Proc. kg</th><th>Alitas</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th></tr></thead>
         <tbody>${SUCS.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
           const kgAlita=sum(sr,'proc_alita'),kgPechuga=sum(sr,'proc_pechuga');
           return`<tr>
             <td><span class="pill ${SL[suc]}">${suc}</span></td>
             <td>${sr.length}</td>
-            <td>${sum(sr,'ped_alita').toFixed(1)}</td><td>${sum(sr,'ped_pechuga').toFixed(1)}</td>
             <td>${kgAlita.toFixed(1)}</td><td>${kgPechuga.toFixed(1)}</td>
             <td><strong>${(kgAlita+kgPechuga).toFixed(1)}</strong></td>
             <td>${fmt(sum(sr,'alitas'))}</td><td>${fmt(sum(sr,'filet'))}</td>
@@ -3460,15 +3331,12 @@ window.renderGraf=function(){
   const showPollo=_grafTipo!=='carne';
   const carneKpis=showCarne?`
     <div class="kpi-section-label carne">🥩 Carne</div>
-    <div class="kpi kpi-sm" style="--ac:#FF4B6E"><div class="kpi-label">Kg Pedido</div><div class="kpi-val">${sum(GDB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#FF9F1C"><div class="kpi-label">Kg Procesado</div><div class="kpi-val">${sum(GDB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(GDB,'med110'))}</div><div class="kpi-sub">unidades</div></div>
     <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(GDB,'bol110'))}</div><div class="kpi-sub">unidades</div></div>`:'';
   const polloKpis=showPollo?`
     <div class="kpi-section-label pollo" style="margin-top:8px">🐔 Pollo</div>
-    <div class="kpi kpi-sm" style="--ac:#9B5DE5"><div class="kpi-label">Alita Pedido</div><div class="kpi-val">${sum(GDB,'ped_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#7B2FBE"><div class="kpi-label">Alita Procesado</div><div class="kpi-val">${sum(GDB,'proc_alita').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
-    <div class="kpi kpi-sm" style="--ac:#F15BB5"><div class="kpi-label">Pechuga Pedido</div><div class="kpi-val">${sum(GDB,'ped_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#C9184A"><div class="kpi-label">Pechuga Procesado</div><div class="kpi-val">${sum(GDB,'proc_pechuga').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>`:'';
   kr.innerHTML=carneKpis+polloKpis;
   document.getElementById('graf-carne-section').style.display=showCarne?'':'none';
@@ -3535,7 +3403,6 @@ window.exportGrafPDF=function(){
     doc.setDrawColor(220,50,50);doc.setLineWidth(0.5);doc.line(14,y,W-14,y);y+=4;
     // KPIs carne en línea
     const kc=[
-      ['Kg Pedido',sum(GDB,'ped_kg').toFixed(1)+' kg'],
       ['Kg Procesado',sum(GDB,'proc_kg').toFixed(1)+' kg'],
       ['Medallón 90g',fmt(sum(GDB,'med110'))+' u'],
       ['Bolita 90g',fmt(sum(GDB,'bol110'))+' u'],
@@ -3565,9 +3432,7 @@ window.exportGrafPDF=function(){
     doc.text('🐔 Pollo',14,y);y+=2;
     doc.setDrawColor(120,60,200);doc.setLineWidth(0.5);doc.line(14,y,W-14,y);y+=4;
     const kp=[
-      ['Alita Pedido',sum(GDB,'ped_alita').toFixed(1)+' kg'],
       ['Alita Proc.',sum(GDB,'proc_alita').toFixed(1)+' kg'],
-      ['Pechuga Ped.',sum(GDB,'ped_pechuga').toFixed(1)+' kg'],
       ['Pechuga Proc.',sum(GDB,'proc_pechuga').toFixed(1)+' kg'],
     ];
     const pw=(W-28)/kp.length;
@@ -3632,25 +3497,18 @@ window.renderLenoRegistros=function(){
   if(!tbC||!tbP)return;
 
   if(!rows.length){
-    tbC.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
+    tbC.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
     tbP.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
     if(cnt)cnt.textContent='';
     return;
   }
 
   tbC.innerHTML=rows.map(r=>{
-    const rRec=r.rec_kg||0, rProc=r.proc_kg||0;
-    const rMerma=Math.max(rRec-rProc,0);
-    const rMermaPct=rRec>0?(rMerma/rRec*100):0;
-    const rMermaArs=rMerma*(PRECIOS_ACTUALES.precio_carne||0);
+    const rProc=r.proc_kg||0;
     return `<tr>
       <td>${r.fecha||'—'}</td>
       <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${LENO_LABEL[r.sucursal]||r.sucursal||'—'}</span></td>
-      <td>${rRec.toLocaleString('es-AR')}</td>
       <td>${rProc.toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${(+rMerma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${rMermaPct.toFixed(1)}%</td>
-      <td style="color:#ef4444">${rMermaArs?ARS(rMermaArs):'—'}</td>
       <td>${r.med90||0}</td>
       <td>${r.bol90||0}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
@@ -3706,9 +3564,7 @@ window.renderLenoSem=function(){
             <h4 style="color:${col}">${LENO_LABEL[suc]}</h4>
             <p>${rows.length} día${rows.length!==1?'s':''}</p>
           </div><div class="wcard-body">
-          <div class="wstat"><span class="wstat-l">Pedido kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'ped_kg').toFixed(1)}</span></div>
-          <div class="wstat"><span class="wstat-l">Recibido kg</span><span class="wstat-v">${sum(rows,'rec_kg').toFixed(1)}</span></div>
-          <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v">${sum(rows,'proc_kg').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_kg').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Medallón 90g</span><span class="wstat-v">${fmt(sum(rows,'med90'))}</span></div>
           <div class="wstat"><span class="wstat-l">Bolita 90g</span><span class="wstat-v">${fmt(sum(rows,'bol90'))}</span></div>
         </div></div>`;
@@ -3767,16 +3623,14 @@ window.renderLenoMes=function(){
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Ubicación</th><th>Días</th><th>Pedido kg</th><th>Recibido kg</th><th>Procesado kg</th><th>Med 90g</th><th>Bol 90g</th><th>Eficiencia</th></tr></thead>
+        <thead><tr><th>Ubicación</th><th>Días</th><th>Procesado kg</th><th>Med 90g</th><th>Bol 90g</th></tr></thead>
         <tbody>${LENO_UBIC.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
-          const ped=sum(sr,'ped_kg'),proc=sum(sr,'proc_kg'),eff=ped>0?((proc/ped)*100).toFixed(1):'—';
+          const proc=sum(sr,'proc_kg');
           return`<tr>
             <td><span class="pill ${LENO_PILL[suc]}">${LENO_LABEL[suc]}</span></td>
-            <td>${sr.length}</td><td>${ped.toFixed(1)}</td>
-            <td>${sum(sr,'rec_kg').toFixed(1)}</td><td>${proc.toFixed(1)}</td>
+            <td>${sr.length}</td><td>${proc.toFixed(1)}</td>
             <td>${fmt(sum(sr,'med90'))}</td><td>${fmt(sum(sr,'bol90'))}</td>
-            <td class="${parseFloat(eff)>=98?'eff-ok':'eff-warn'}">${eff}%</td>
           </tr>`;
         }).join('')}</tbody>
       </table></div></div>`;
@@ -3842,7 +3696,6 @@ window.renderLenoGraf=function(){
   const showPollo=_lenoGrafTipo!=='carne';
   const carneKpis=showCarne?`
     <div class="kpi-section-label carne">🥩 Carne</div>
-    <div class="kpi kpi-sm" style="--ac:#FF4B6E"><div class="kpi-label">Kg Pedido</div><div class="kpi-val">${sum(GDB,'ped_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#FF9F1C"><div class="kpi-label">Kg Procesado</div><div class="kpi-val">${sum(GDB,'proc_kg').toFixed(0)}</div><div class="kpi-sub">kg total</div></div>
     <div class="kpi kpi-sm" style="--ac:#2EC4B6"><div class="kpi-label">Medallón 90g</div><div class="kpi-val">${fmt(sum(GDB,'med90'))}</div><div class="kpi-sub">unidades</div></div>
     <div class="kpi kpi-sm" style="--ac:#06d6a0"><div class="kpi-label">Bolita 90g</div><div class="kpi-val">${fmt(sum(GDB,'bol90'))}</div><div class="kpi-sub">unidades</div></div>`:'';
@@ -3940,7 +3793,7 @@ window.exportExcel=function(desdeId,hastaId){
   // ── Hoja 1: Registros crudos ──
   const fechaReciente=DATA.reduce((max,r)=>r.fecha>max?r.fecha:max,'');
   const gramajeExcel=fechaReciente>=FECHA_CORTE?'90g':'110g';
-  const raw=DATA.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Pedido Kg':r.ped_kg,'Recibido Kg':r.rec_kg,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Ped. Alita Kg':r.ped_alita,'Proc. Alita Kg':r.proc_alita,'Ped. Pechuga Kg':r.ped_pechuga,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  const raw=DATA.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Proc. Alita Kg':r.proc_alita,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
@@ -3978,7 +3831,7 @@ window.exportExcel=function(desdeId,hastaId){
     const rows=DATA.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
     if(!rows.length)return;
     const gramajeM=(rows[0]?.fecha||'')>=FECHA_CORTE?'90g':'110g';
-    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Pedido Kg':sum(rows,'ped_kg').toFixed(1),'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
