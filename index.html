@@ -2717,6 +2717,7 @@ window.renderLeno=function(){
   const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS'];
   const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos'};
 
+  const procCarne=sumF(cur,'proc_kg');
   const procAlita=sumF(cur,'procesado_alita');
   const procFilet=sumF(cur,'procesado_filet');
   const totalKg=procAlita+procFilet;
@@ -2724,15 +2725,19 @@ window.renderLeno=function(){
 
   const kpisEl=document.getElementById('leno-kpis');
   if(kpisEl) kpisEl.innerHTML=`
+    <div class="kpi-dash" style="--ac:#FF4B6E">
+      <div class="kpi-dash-lbl">Carne procesada</div>
+      <div class="kpi-dash-val">${(+procCarne.toFixed(2)).toLocaleString('es-AR')} kg</div>
+    </div>
     <div class="kpi-dash kd-teal">
-      <div class="kpi-dash-lbl">Total procesado</div>
+      <div class="kpi-dash-lbl">Pollo procesado</div>
       <div class="kpi-dash-val">${(+totalKg.toFixed(2)).toLocaleString('es-AR')} kg</div>
     </div>
-    <div class="kpi-dash kd-red">
+    <div class="kpi-dash kd-amber">
       <div class="kpi-dash-lbl">Procesado Alita</div>
       <div class="kpi-dash-val">${(+procAlita.toFixed(2)).toLocaleString('es-AR')} kg</div>
     </div>
-    <div class="kpi-dash kd-amber">
+    <div class="kpi-dash kd-purple">
       <div class="kpi-dash-lbl">Procesado Filet</div>
       <div class="kpi-dash-val">${(+procFilet.toFixed(2)).toLocaleString('es-AR')} kg</div>
     </div>
@@ -2781,7 +2786,10 @@ window.renderLeno=function(){
   const COPT=getChartDefaults();
   const dias=[...new Set(cur.map(r=>r.fecha))].sort();
   const elLinea=document.getElementById('leno-ch-linea');
-  if(elLinea) lenoCH.linea=new Chart(elLinea,{type:'line',data:{labels:dias,datasets:[{label:'Kg procesados',data:dias.map(d=>{const recs=cur.filter(r=>r.fecha===d);return sumF(recs,'procesado_alita')+sumF(recs,'procesado_filet')}),borderColor:'#0F6E56',backgroundColor:'#0F6E5633',borderWidth:2,fill:true,tension:.25,pointRadius:3}]},options:COPT});
+  if(elLinea) lenoCH.linea=new Chart(elLinea,{type:'line',data:{labels:dias,datasets:[
+    {label:'Carne (kg)',data:dias.map(d=>sumF(cur.filter(r=>r.fecha===d),'proc_kg')),borderColor:'#FF4B6E',backgroundColor:'#FF4B6E33',borderWidth:2,fill:true,tension:.25,pointRadius:3},
+    {label:'Pollo (kg)',data:dias.map(d=>{const recs=cur.filter(r=>r.fecha===d);return sumF(recs,'procesado_alita')+sumF(recs,'procesado_filet')}),borderColor:'#0F6E56',backgroundColor:'#0F6E5633',borderWidth:2,fill:true,tension:.25,pointRadius:3}
+  ]},options:COPT});
 
   const ubicLbl=ubicaciones.map(u=>NOMBRES[u]);
   const elProd=document.getElementById('leno-ch-prod');
