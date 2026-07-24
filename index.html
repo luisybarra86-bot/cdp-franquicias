@@ -1064,8 +1064,8 @@ if('serviceWorker' in navigator){
 
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
-          <input type="date" id="f-fecha" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-          <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+          <input type="date" id="f-fecha" onchange="checkExistingFranq()" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
+          <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);checkExistingFranq()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
         </div>
 
         <select id="f-suc" style="display:none">
@@ -1506,8 +1506,8 @@ if('serviceWorker' in navigator){
 
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
-            <input type="date" id="leno-f-fecha" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-            <button onclick="document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10)" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+            <input type="date" id="leno-f-fecha" onchange="checkExistingLeno()" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
+            <button onclick="document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);checkExistingLeno()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
           </div>
 
           <select id="leno-f-suc" style="display:none">
@@ -2083,7 +2083,7 @@ function updatePinDots(){
 }
 
 // ── CALCULADORA ──
-window.calcKg=function(){
+window.calcKg=function(skipProc){
   const m110=parseFloat(document.getElementById('f-med110').value)||0;
   const b110=parseFloat(document.getElementById('f-bol110').value)||0;
   const kgM110=(m110*90)/1000, kgB110=(b110*90)/1000;
@@ -2093,7 +2093,7 @@ window.calcKg=function(){
   document.getElementById('calc-kg-med110').textContent=kgM110.toFixed(1);
   document.getElementById('calc-kg-bol110').textContent=kgB110.toFixed(1);
   document.getElementById('calc-total').textContent=total.toFixed(1);
-  document.getElementById('f-proc-kg').value=total.toFixed(1);
+  if(!skipProc) document.getElementById('f-proc-kg').value=total.toFixed(1);
 }
 
 window.calcPollo=function(){
@@ -2106,7 +2106,7 @@ window.calcPollo=function(){
 }
 
 // ── CARNE LENO SRL (NUEVO) — análoga a calcKg() ──
-window.calcKgLeno=function(){
+window.calcKgLeno=function(skipProc){
   const m90=parseFloat(document.getElementById('leno-f-med90').value)||0;
   const b90=parseFloat(document.getElementById('leno-f-bol90').value)||0;
   const kgM90=(m90*90)/1000, kgB90=(b90*90)/1000;
@@ -2116,7 +2116,7 @@ window.calcKgLeno=function(){
   document.getElementById('leno-calc-kg-med90').textContent=kgM90.toFixed(1);
   document.getElementById('leno-calc-kg-bol90').textContent=kgB90.toFixed(1);
   document.getElementById('leno-calc-total').textContent=total.toFixed(1);
-  document.getElementById('leno-f-proc-kg').value=total.toFixed(1);
+  if(!skipProc) document.getElementById('leno-f-proc-kg').value=total.toFixed(1);
 }
 
 // ── FORM ──
@@ -2184,6 +2184,26 @@ window.setSucChip=function(btn){
   const suc=btn.dataset.v;
   document.getElementById('f-suc').value=suc;
   renderSucPanel(suc);
+  checkExistingFranq();
+};
+
+// Si ya existe un registro para la fecha+sucursal elegida, lo carga para editar
+// en vez de dejar el formulario vacío (evita pisar datos ya guardados al re-guardar).
+window.checkExistingFranq=function(){
+  const fecha=document.getElementById('f-fecha').value;
+  const suc=document.getElementById('f-suc').value;
+  if(!fecha||!suc) return;
+  const match=DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
+  if(match){
+    if(editingId!==match._id) editReg(match._id);
+  } else if(editingId){
+    editingId=null;
+    ['f-proc-kg','f-med110','f-bol110','f-med75','f-proc-alita','f-proc-pechuga','f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
+    calcKg(true); calcPollo();
+    document.getElementById('cargar-title').textContent='Cargar envío del día';
+    document.getElementById('btn-guardar').innerHTML='💾 Guardar en la nube';
+    document.getElementById('edit-banner').classList.remove('show');
+  }
 };
 
 const SUC_COLOR={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)'};
@@ -2306,7 +2326,7 @@ window.limpiarNumeros=function(){
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
-  calcKg();
+  calcKg(true);
 }
 
 window.limpiar=function(){
@@ -2323,7 +2343,7 @@ window.limpiar=function(){
   // Volver al primer tab
   document.querySelectorAll('.form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('.form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
-  calcKg();
+  calcKg(true);
 }
 
 window.editReg=function(id){
@@ -2344,7 +2364,7 @@ window.editReg=function(id){
   document.getElementById('f-popCorns').value=r.popCorns||'';
   document.getElementById('f-tiras').value=r.tiras||'';
   renderSucPanel(r.sucursal||'');
-  calcKg(); calcPollo();
+  calcKg(true); calcPollo();
   document.getElementById('cargar-title').textContent='Editar registro';
   document.getElementById('btn-guardar').innerHTML='💾 Actualizar registro';
   document.getElementById('edit-banner-info').textContent=`${SUC_NAMES[r.sucursal]} · ${r.fecha}`;
@@ -2828,6 +2848,26 @@ window.setSucChipLeno=function(btn){
   const suc=btn.dataset.v;
   document.getElementById('leno-f-suc').value=suc;
   renderLenoSucPanel(suc);
+  checkExistingLeno();
+};
+
+// Igual que checkExistingFranq: si ya existe un registro para la fecha+ubicación
+// elegida, lo carga para editar en vez de dejar el formulario vacío.
+window.checkExistingLeno=function(){
+  const fecha=document.getElementById('leno-f-fecha').value;
+  const suc=document.getElementById('leno-f-suc').value;
+  if(!fecha||!suc) return;
+  const match=LENO_DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
+  if(match){
+    if(lenoEditingId!==match._id) editRegLeno(match._id);
+  } else if(lenoEditingId){
+    lenoEditingId=null;
+    ['leno-f-proc-kg','leno-f-med90','leno-f-bol90','leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
+    calcKgLeno(true);
+    document.getElementById('leno-cargar-title').textContent='Cargar envío del día';
+    document.getElementById('leno-btn-guardar').innerHTML='💾 Guardar';
+    document.getElementById('leno-edit-banner').classList.remove('show');
+  }
 };
 
 // ── LENO SRL — tabs Carne/Pollo del formulario de carga (NUEVO) ──
@@ -2966,7 +3006,7 @@ window.limpiarLeno=function(){
   // Volver al primer tab (Carne)
   document.querySelectorAll('#leno-sub-cargar .form-sec-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.querySelectorAll('#leno-sub-cargar .form-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
-  calcKgLeno();
+  calcKgLeno(true);
 };
 
 window.editRegLeno=function(id){
@@ -2985,7 +3025,7 @@ window.editRegLeno=function(id){
   document.getElementById('leno-f-tiras').value=r.tiras||'';
   document.getElementById('leno-f-proc-alita').value=r.procesado_alita||'';
   document.getElementById('leno-f-proc-filet').value=r.procesado_filet||'';
-  calcKgLeno();
+  calcKgLeno(true);
   renderLenoSucPanel(r.sucursal||'');
   document.getElementById('leno-cargar-title').textContent='Editar registro';
   document.getElementById('leno-btn-guardar').innerHTML='💾 Actualizar registro';
