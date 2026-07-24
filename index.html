@@ -2111,9 +2111,9 @@ window.calcPollo=function(){
   const alita=parseFloat(document.getElementById('f-proc-alita').value)||0;
   const pechuga=parseFloat(document.getElementById('f-proc-pechuga').value)||0;
   const total=alita+pechuga;
-  document.getElementById('calc-kg-alita').textContent=alita.toFixed(3);
-  document.getElementById('calc-kg-pechuga').textContent=pechuga.toFixed(3);
-  document.getElementById('calc-total-pollo').textContent=total.toFixed(3);
+  const elA=document.getElementById('calc-kg-alita'); if(elA) elA.textContent=alita.toFixed(3);
+  const elP=document.getElementById('calc-kg-pechuga'); if(elP) elP.textContent=pechuga.toFixed(3);
+  const elT=document.getElementById('calc-total-pollo'); if(elT) elT.textContent=total.toFixed(3);
 }
 
 // ── CARNE LENO SRL (NUEVO) — análoga a calcKg() ──
@@ -2148,7 +2148,7 @@ window.guardar=async function(){
 
   // Aviso duplicado
   const exists=DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
-  if(exists){
+  if(exists&&!editingId){
     showConfirm({
       icon:'⚠️',
       title:'Registro existente',
