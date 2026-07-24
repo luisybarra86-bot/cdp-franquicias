@@ -998,6 +998,19 @@ if('serviceWorker' in navigator){
 </head>
 <body>
 
+<!-- ACCESO AL SISTEMA -->
+<div class="pin-overlay" id="access-gate" style="display:flex;z-index:99999">
+  <div class="pin-box">
+    <div class="pin-icon">🔒</div>
+    <div class="pin-title">CDP Franquicias</div>
+    <div class="pin-sub">Ingresá la contraseña para continuar</div>
+    <input type="password" id="access-input" autocomplete="off" placeholder="Contraseña"
+      style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--pin-btn-border,#333);background:var(--pin-btn-bg,#1a1a1a);color:#fff;font-size:15px;text-align:center;margin-bottom:14px;outline:none">
+    <div class="pin-error" id="access-error"></div>
+    <button class="pin-key" style="width:100%;background:var(--accent);color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;padding:13px" onclick="checkAccess()">Ingresar</button>
+  </div>
+</div>
+
 <!-- HEADER -->
 <header class="hdr">
   <div class="hdr-logo">
@@ -1993,6 +2006,35 @@ function toast(msg,type='ok'){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3600);
 }
+
+// ── ACCESO AL SISTEMA ──
+const ACCESS_PASSWORD='2799cdp';
+(function initAccessGate(){
+  const gate=document.getElementById('access-gate');
+  if(!gate) return;
+  if(sessionStorage.getItem('cdp_access_ok')==='1'){
+    gate.style.display='none';
+    return;
+  }
+  const input=document.getElementById('access-input');
+  input?.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();checkAccess();} });
+  setTimeout(()=>input?.focus(),100);
+})();
+window.checkAccess=function(){
+  const input=document.getElementById('access-input');
+  const err=document.getElementById('access-error');
+  if(input.value===ACCESS_PASSWORD){
+    sessionStorage.setItem('cdp_access_ok','1');
+    document.getElementById('access-gate').style.display='none';
+  } else {
+    err.textContent='Contraseña incorrecta. Intentá de nuevo.';
+    input.value='';
+    input.focus();
+    const box=document.querySelector('#access-gate .pin-box');
+    box.style.animation='shake .4s ease';
+    setTimeout(()=>box.style.animation='',400);
+  }
+};
 
 // ── PIN ──
 const PIN_CODE='2799';
