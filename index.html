@@ -1231,6 +1231,7 @@ if('serviceWorker' in navigator){
         <thead><tr>
           <th>Fecha</th><th>Sucursal</th><th>Proc. kg</th>
           <th>Med 110</th><th>Bol 110</th>
+          <th style="color:#9B5DE5">Proc. Alita</th><th style="color:#9B5DE5">Proc. Filet</th>
           <th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>
         </tr></thead>
         <tbody id="reg-tbody"></tbody>
@@ -3117,16 +3118,16 @@ window.renderReg=function(){
   const tb=document.getElementById('reg-tbody');
   if(!tb)return;
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="12"><div class="empty"><div class="ico">📭</div><p>Sin registros todavía.<br>Cargá el primer envío del día.</p></div></td></tr>`;
     document.getElementById('reg-count').textContent='';
     // reset encabezados
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th style="color:#9B5DE5">Proc. Alita</th><th style="color:#9B5DE5">Proc. Filet</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
     return;
   }
 
   if(regF==='ALL'){
     // Vista combinada — tabla unificada
-    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
+    document.querySelector('#tab-registros thead tr').innerHTML=`<th>Fecha</th><th>Sucursal</th><th>Proc. kg</th><th>Med 90</th><th>Bol 90</th><th style="color:#9B5DE5">Proc. Alita</th><th style="color:#9B5DE5">Proc. Filet</th><th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>`;
     tb.innerHTML=rows.map(r=>{
       const rProc=r.proc_kg||0;
       return `<tr>
@@ -3134,6 +3135,7 @@ window.renderReg=function(){
       <td><span class="pill ${SL[r.sucursal]}">${r.sucursal}</span></td>
       <td>${rProc}</td>
       <td>${r.med110||0}</td><td>${r.bol110||0}</td>
+      <td style="color:#9B5DE5">${r.proc_alita||0}</td><td style="color:#9B5DE5">${r.proc_pechuga||0}</td>
       <td>${r.alitas||0}</td><td>${r.filet||0}</td><td>${r.popCorns||0}</td><td>${r.tiras||0}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
     </tr>`;
