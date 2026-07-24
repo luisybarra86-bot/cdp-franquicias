@@ -2090,9 +2090,10 @@ window.calcKg=function(){
   const total=kgM110+kgB110;
   document.getElementById('calc-q-med110').textContent=m110;
   document.getElementById('calc-q-bol110').textContent=b110;
-  document.getElementById('calc-kg-med110').textContent=kgM110.toFixed(3);
-  document.getElementById('calc-kg-bol110').textContent=kgB110.toFixed(3);
-  document.getElementById('calc-total').textContent=total.toFixed(3);
+  document.getElementById('calc-kg-med110').textContent=kgM110.toFixed(1);
+  document.getElementById('calc-kg-bol110').textContent=kgB110.toFixed(1);
+  document.getElementById('calc-total').textContent=total.toFixed(1);
+  document.getElementById('f-proc-kg').value=total.toFixed(1);
 }
 
 window.calcPollo=function(){
@@ -2112,9 +2113,10 @@ window.calcKgLeno=function(){
   const total=kgM90+kgB90;
   document.getElementById('leno-calc-q-med90').textContent=m90;
   document.getElementById('leno-calc-q-bol90').textContent=b90;
-  document.getElementById('leno-calc-kg-med90').textContent=kgM90.toFixed(3);
-  document.getElementById('leno-calc-kg-bol90').textContent=kgB90.toFixed(3);
-  document.getElementById('leno-calc-total').textContent=total.toFixed(3);
+  document.getElementById('leno-calc-kg-med90').textContent=kgM90.toFixed(1);
+  document.getElementById('leno-calc-kg-bol90').textContent=kgB90.toFixed(1);
+  document.getElementById('leno-calc-total').textContent=total.toFixed(1);
+  document.getElementById('leno-f-proc-kg').value=total.toFixed(1);
 }
 
 // ── FORM ──
