@@ -1677,24 +1677,15 @@ if('serviceWorker' in navigator){
           <button class="sf-btn" data-s="EVENTOS" onclick="setLenoRegF('EVENTOS',this)">Eventos</button>
         </div>
       </div>
-      <div class="reg-section-hdr carne">🥩 Carne</div>
       <div class="tbl-wrap" style="border-top:none">
         <table>
           <thead><tr>
             <th>Fecha</th><th>Ubicación</th><th>Carne proc. (kg)</th>
-            <th>Medallón</th><th>Bolita</th><th></th>
+            <th>Medallón</th><th>Bolita</th>
+            <th style="color:#9B5DE5">Proc. Alita</th><th style="color:#9B5DE5">Proc. Filet</th>
+            <th>Alitas</th><th>Filet</th><th>PopC.</th><th>Tiras</th><th></th>
           </tr></thead>
           <tbody id="leno-reg-tbody-carne"></tbody>
-        </table>
-      </div>
-      <div class="reg-section-hdr pollo">🐔 Pollo</div>
-      <div class="tbl-wrap" style="border-top:none;border-radius:0 0 10px 10px">
-        <table>
-          <thead><tr>
-            <th>Fecha</th><th>Ubicación</th><th>Alita</th><th>Filet</th><th>Pop Corns</th><th>Tiras</th>
-            <th>Proc. Alita (kg)</th><th>Proc. Filet (kg)</th><th></th>
-          </tr></thead>
-          <tbody id="leno-reg-tbody-pollo"></tbody>
         </table>
       </div>
       <div style="padding:12px 24px;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="leno-reg-count"></div>
@@ -3545,19 +3536,17 @@ window.renderLenoRegistros=function(){
     return true;
   }).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
 
-  const tbC=document.getElementById('leno-reg-tbody-carne');
-  const tbP=document.getElementById('leno-reg-tbody-pollo');
+  const tb=document.getElementById('leno-reg-tbody-carne');
   const cnt=document.getElementById('leno-reg-count');
-  if(!tbC||!tbP)return;
+  if(!tb)return;
 
   if(!rows.length){
-    tbC.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
-    tbP.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
+    tb.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3)">Sin registros para este filtro.</td></tr>';
     if(cnt)cnt.textContent='';
     return;
   }
 
-  tbC.innerHTML=rows.map(r=>{
+  tb.innerHTML=rows.map(r=>{
     const rProc=r.proc_kg||0;
     return `<tr>
       <td>${r.fecha||'—'}</td>
@@ -3565,21 +3554,15 @@ window.renderLenoRegistros=function(){
       <td>${rProc.toLocaleString('es-AR')}</td>
       <td>${r.med90||0}</td>
       <td>${r.bol90||0}</td>
+      <td style="color:#9B5DE5">${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
+      <td style="color:#9B5DE5">${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
+      <td>${r.alita||0}</td>
+      <td>${r.filet||0}</td>
+      <td>${r.popCorns||0}</td>
+      <td>${r.tiras||0}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
     </tr>`;
   }).join('');
-
-  tbP.innerHTML=rows.map(r=>`<tr>
-    <td>${r.fecha||'—'}</td>
-    <td><span class="pill ${LENO_PILL[r.sucursal]||''}">${LENO_LABEL[r.sucursal]||r.sucursal||'—'}</span></td>
-    <td>${r.alita||0}</td>
-    <td>${r.filet||0}</td>
-    <td>${r.popCorns||0}</td>
-    <td>${r.tiras||0}</td>
-    <td>${(+(r.procesado_alita||0).toFixed(2)).toLocaleString('es-AR')}</td>
-    <td>${(+(r.procesado_filet||0).toFixed(2)).toLocaleString('es-AR')}</td>
-    <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editRegLeno('${r._id}')">✏️</button><button class="btn btn-del" onclick="delRegLeno('${r._id}')">🗑</button></td>
-  </tr>`).join('');
 
   if(cnt)cnt.textContent=`${rows.length} registro${rows.length!==1?'s':''}`;
 }
