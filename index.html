@@ -1922,6 +1922,9 @@ onSnapshot(q, (snap)=>{
     const ov=document.getElementById('app-loading');
     ov.classList.add('hide');
     setTimeout(()=>ov.style.display='none',500);
+    // Si el usuario ya eligió fecha+sucursal antes de que terminara de sincronizar
+    // (carga inicial), reintentar ahora para no dejar pasar un registro existente.
+    if(!editingId) checkExistingFranq();
   }
   renderReg();
   renderGraf();
@@ -1941,10 +1944,17 @@ onSnapshot(q, (snap)=>{
 
 // ── LISTENER LENO SRL ──
 let LENO_DB=[];
+let _lenoFirstLoad=true;
 const qLeno = query(collection(db,'leno_srl'), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
 onSnapshot(qLeno, (snap)=>{
   LENO_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
   if(document.getElementById('tab-leno')?.classList.contains('active')) renderLenoActive();
+  if(_lenoFirstLoad){
+    _lenoFirstLoad=false;
+    // Igual que en Franquicias: reintentar si el usuario ya eligió fecha+ubicación
+    // antes de que terminara de sincronizar la carga inicial.
+    if(!lenoEditingId) checkExistingLeno();
+  }
 }, err=>console.error('LENO sync error:', err));
 
 // ── HELPERS ──
