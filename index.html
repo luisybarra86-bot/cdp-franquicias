@@ -2179,6 +2179,22 @@ window.guardar=async function(){
   if(!fecha){toast('❌ Falta la fecha','error');markError('f-fecha');return}
   if(!suc){toast('❌ Elegí una sucursal','error');markError('f-suc');return}
 
+  // Si cargaron unidades de una categoría pero se olvidaron del kg procesado, no dejar guardar.
+  // Si no cargaron nada de esa categoría (día sin actividad), no se pide nada.
+  const carneActivo=['f-med110','f-bol110'].some(id=>(parseFloat(document.getElementById(id).value)||0)>0);
+  if(carneActivo&&document.getElementById('f-proc-kg').value===''){
+    toast('❌ Cargaste Medallón/Bolita pero falta el Procesado kg de Carne','error');
+    markError('f-proc-kg');
+    return;
+  }
+  const polloActivo=['f-alitas','f-filet','f-popCorns','f-tiras'].some(id=>(parseFloat(document.getElementById(id).value)||0)>0);
+  if(polloActivo){
+    let falta=false;
+    if(document.getElementById('f-proc-alita').value===''){markError('f-proc-alita');falta=true;}
+    if(document.getElementById('f-proc-pechuga').value===''){markError('f-proc-pechuga');falta=true;}
+    if(falta){toast('❌ Cargaste unidades de Pollo pero falta el Procesado (Alita/Filet) en kg','error');return;}
+  }
+
   // Aviso duplicado
   const exists=DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
   if(exists&&!editingId){
@@ -3004,6 +3020,22 @@ window.guardarLeno=function(){
   const suc=document.getElementById('leno-f-suc').value;
   if(!fecha){toast('❌ Falta la fecha','error');markError('leno-f-fecha');return}
   if(!suc){toast('❌ Elegí una ubicación','error');markError('leno-f-suc');return}
+
+  // Mismo criterio que Franquicias: si cargaron unidades pero se olvidaron del kg
+  // procesado, bloquear. Si no cargaron nada de esa categoría, no pedir nada.
+  const carneActivoLeno=['leno-f-med90','leno-f-bol90'].some(id=>(parseFloat(document.getElementById(id).value)||0)>0);
+  if(carneActivoLeno&&document.getElementById('leno-f-proc-kg').value===''){
+    toast('❌ Cargaste Medallón/Bolita pero falta el Procesado kg de Carne','error');
+    markError('leno-f-proc-kg');
+    return;
+  }
+  const polloActivoLeno=['leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras'].some(id=>(parseFloat(document.getElementById(id).value)||0)>0);
+  if(polloActivoLeno){
+    let faltaLeno=false;
+    if(document.getElementById('leno-f-proc-alita').value===''){markError('leno-f-proc-alita');faltaLeno=true;}
+    if(document.getElementById('leno-f-proc-filet').value===''){markError('leno-f-proc-filet');faltaLeno=true;}
+    if(faltaLeno){toast('❌ Cargaste unidades de Pollo pero falta el Procesado (Alita/Filet) en kg','error');return;}
+  }
 
   const exists=LENO_DB.find(r=>r.fecha===fecha&&r.sucursal===suc);
   if(exists&&!lenoEditingId){
