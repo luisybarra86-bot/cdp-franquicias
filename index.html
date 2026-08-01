@@ -1062,6 +1062,14 @@ if('serviceWorker' in navigator){
   <button class="nav-btn" id="leno-subtab-graficos" onclick="setLenoSubTab('graficos',this)">Gráficos</button>
 </nav>
 
+<!-- NAV (NIVEL 2 — Compras) -->
+<nav class="nav" id="compras-subnav" style="display:none">
+  <button class="nav-btn active" id="compras-subtab-cargar" onclick="setComprasSubTab('cargar',this)">+ Cargar</button>
+  <button class="nav-btn" id="compras-subtab-semanal" onclick="setComprasSubTab('semanal',this)">Semanal</button>
+  <button class="nav-btn" id="compras-subtab-mensual" onclick="setComprasSubTab('mensual',this)">Mensual</button>
+  <button class="nav-btn" id="compras-subtab-graficos" onclick="setComprasSubTab('graficos',this)">Gráficos</button>
+</nav>
+
 <div class="main">
 
 <!-- CARGAR -->
@@ -1772,6 +1780,9 @@ if('serviceWorker' in navigator){
 
 <!-- COMPRAS (NUEVO) — control general, no discriminado por sucursal/módulo -->
 <div id="tab-compras" class="panel">
+
+<!-- SUB: CARGAR -->
+<div id="compras-sub-cargar" class="leno-subpanel active">
   <div class="card" style="max-width:900px">
     <div class="card-head">
       <span class="card-title">Cargar compra del día</span>
@@ -1812,7 +1823,13 @@ if('serviceWorker' in navigator){
   </div>
 
   <div class="card">
-    <div class="card-head"><span class="card-title">Historial de compras</span></div>
+    <div class="card-head">
+      <span class="card-title">Historial de compras</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-excel" onclick="exportComprasExcel()">↓ Excel</button>
+        <button class="btn" style="background:var(--accent2);color:#fff" onclick="exportComprasPDF()">↓ PDF</button>
+      </div>
+    </div>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
@@ -1823,6 +1840,33 @@ if('serviceWorker' in navigator){
       </table>
     </div>
   </div>
+</div>
+
+<!-- SUB: SEMANAL (NUEVO) -->
+<div id="compras-sub-semanal" class="leno-subpanel">
+  <div id="compras-sem-cont"></div>
+</div>
+
+<!-- SUB: MENSUAL (NUEVO) -->
+<div id="compras-sub-mensual" class="leno-subpanel">
+  <div id="compras-mes-cont"></div>
+</div>
+
+<!-- SUB: GRÁFICOS (NUEVO) -->
+<div id="compras-sub-graficos" class="leno-subpanel">
+  <div class="kpi-row" id="compras-graf-kpis"></div>
+  <div class="charts-grid">
+    <div class="chart-card full">
+      <div class="chart-title"><span class="dot" style="background:#ef4444"></span>% Merma por semana</div>
+      <div class="ch-wrap"><canvas id="compras-ch-merma"></canvas></div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Comprado vs. Procesado por semana (kg)</div>
+      <div class="ch-wrap"><canvas id="compras-ch-comparado"></canvas></div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 </div><!-- /main -->
@@ -2022,7 +2066,7 @@ let COMPRAS_DB=[];
 const qCompras = query(collection(db,'compras_carne'), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
 onSnapshot(qCompras, (snap)=>{
   COMPRAS_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
-  if(document.getElementById('tab-compras')?.classList.contains('active')) renderCompras();
+  if(document.getElementById('tab-compras')?.classList.contains('active')) renderComprasActive();
 }, err=>console.error('Compras sync error:', err));
 
 // ── HELPERS ──
@@ -2132,7 +2176,7 @@ window.goTab=function(n,btn){
   if(n==='manoobra')renderManoObra();
   if(n==='cobro')renderCobro();
   if(n==='leno')renderLenoActive();
-  if(n==='compras')renderCompras();
+  if(n==='compras')renderComprasActive();
 }
 
 window.setModulo=function(mod,btn){
@@ -2140,19 +2184,23 @@ window.setModulo=function(mod,btn){
   if(btn) btn.classList.add('active');
   const navF=document.getElementById('nav-franquicias');
   const navL=document.getElementById('leno-subnav');
+  const navC=document.getElementById('compras-subnav');
   if(mod==='franquicias'){
     navF.style.display='';
     navL.style.display='none';
+    navC.style.display='none';
     const t=_lastFranqTab||'cargar';
     const b=_lastFranqBtn||navF.querySelector('.nav-btn');
     goTab(t,b);
   } else if(mod==='leno'){
     navF.style.display='none';
     navL.style.display='';
+    navC.style.display='none';
     goTab('leno',null);
   } else {
     navF.style.display='none';
     navL.style.display='none';
+    navC.style.display='';
     goTab('compras',null);
   }
 }
@@ -4460,6 +4508,214 @@ window.renderCompras=function(){
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editCompra('${r._id}')">✏️</button><button class="btn btn-del" onclick="delCompra('${r._id}')">🗑</button></td>
     </tr>`;
   }).join('');
+};
+
+// ── Sub-tabs de Compras ──
+window.setComprasSubTab=function(name,btn){
+  document.querySelectorAll('#compras-subnav .nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#tab-compras .leno-subpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('compras-sub-'+name).classList.add('active');
+  renderComprasActive();
+};
+
+window.renderComprasActive=function(){
+  const activePanel=document.querySelector('#tab-compras .leno-subpanel.active');
+  if(!activePanel) return;
+  switch(activePanel.id){
+    case 'compras-sub-cargar': renderCompras(); break;
+    case 'compras-sub-semanal': renderComprasSem(); break;
+    case 'compras-sub-mensual': renderComprasMes(); break;
+    case 'compras-sub-graficos': renderComprasGraf(); break;
+  }
+};
+
+function sumProcCombinadoRange(desde,hasta){
+  const a=DB.filter(r=>r.fecha>=desde&&r.fecha<=hasta).reduce((s,r)=>s+(r.proc_kg||0),0);
+  const b=LENO_DB.filter(r=>r.fecha>=desde&&r.fecha<=hasta).reduce((s,r)=>s+(r.proc_kg||0),0);
+  return a+b;
+}
+
+// Agrupa COMPRAS_DB por semana/mes: Comprado y Procesado se suman, el Stock final
+// se toma del último día cargado del período (es una foto del cierre, no se suma).
+function agruparCompras(keyFn){
+  const grupos={};
+  [...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(r=>{
+    const k=keyFn(r.fecha);
+    if(!k) return;
+    if(!grupos[k]) grupos[k]={dias:[],comprado:0,stockFinal:0};
+    grupos[k].dias.push(r);
+    grupos[k].comprado+=(r.comprado_kg||0);
+    grupos[k].stockFinal=r.stock_kg||0; // el último día del período (ya viene ordenado asc)
+  });
+  return grupos;
+}
+
+window.renderComprasSem=function(){
+  const cont=document.getElementById('compras-sem-cont');
+  if(!cont) return;
+  if(!COMPRAS_DB.length){
+    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá compras para ver el resumen semanal.</p></div>';
+    return;
+  }
+  const grupos=agruparCompras(weekKey);
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  let html='';
+  Object.keys(grupos).sort().reverse().forEach(wk=>{
+    const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
+    const desde=wk, hasta=wkE.toISOString().slice(0,10);
+    const g=grupos[wk];
+    const procesado=sumProcCombinadoRange(desde,hasta);
+    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    html+=`<div style="margin-bottom:20px">
+      <div class="section-week-hdr">Semana ${desde} → ${hasta}</div>
+      <div class="week-grid">
+        <div class="wcard">
+          <div class="wcard-hdr" style="border-left:4px solid #ef4444">
+            <h4 style="color:#ef4444">Compras y Merma</h4>
+            <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
+          </div><div class="wcard-body">
+            <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Procesado (Franq. + LENO)</span><span class="wstat-v">${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock final</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Merma</span><span class="wstat-v" style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)</span></div>
+            ${pCarne?`<div class="wstat"><span class="wstat-l">Merma $</span><span class="wstat-v" style="color:#ef4444">${ARS(merma*pCarne)}</span></div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML=html;
+};
+
+window.renderComprasMes=function(){
+  const cont=document.getElementById('compras-mes-cont');
+  if(!cont) return;
+  if(!COMPRAS_DB.length){
+    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá compras para ver el resumen mensual.</p></div>';
+    return;
+  }
+  const grupos=agruparCompras(monthKey);
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  let html='';
+  Object.keys(grupos).sort().reverse().forEach(m=>{
+    const desde=`${m}-01`;
+    const ultimoDia=new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
+    const hasta=`${m}-${String(ultimoDia).padStart(2,'0')}`;
+    const g=grupos[m];
+    const procesado=sumProcCombinadoRange(desde,hasta);
+    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    html+=`<div style="margin-bottom:20px">
+      <div class="section-week-hdr">${MN[m.slice(5,7)]||m.slice(5,7)} ${m.slice(0,4)}</div>
+      <div class="week-grid">
+        <div class="wcard">
+          <div class="wcard-hdr" style="border-left:4px solid #ef4444">
+            <h4 style="color:#ef4444">Compras y Merma</h4>
+            <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
+          </div><div class="wcard-body">
+            <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Procesado (Franq. + LENO)</span><span class="wstat-v">${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock final</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Merma</span><span class="wstat-v" style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)</span></div>
+            ${pCarne?`<div class="wstat"><span class="wstat-l">Merma $</span><span class="wstat-v" style="color:#ef4444">${ARS(merma*pCarne)}</span></div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML=html;
+};
+
+let comprasCH={};
+window.renderComprasGraf=function(){
+  const grupos=agruparCompras(weekKey);
+  const semanas=Object.keys(grupos).sort();
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+
+  let mermaTotal=0, compradoTotal=0;
+  const labels=[], serieMerma=[], serieComprado=[], serieProcesado=[];
+  semanas.forEach(wk=>{
+    const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
+    const desde=wk, hasta=wkE.toISOString().slice(0,10);
+    const g=grupos[wk];
+    const procesado=sumProcCombinadoRange(desde,hasta);
+    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    labels.push(wk);
+    serieMerma.push(+pct.toFixed(1));
+    serieComprado.push(g.comprado);
+    serieProcesado.push(+procesado.toFixed(1));
+    mermaTotal+=merma; compradoTotal+=g.comprado;
+  });
+  const pctGlobal=compradoTotal>0?(mermaTotal/compradoTotal*100):0;
+
+  const kpisEl=document.getElementById('compras-graf-kpis');
+  if(kpisEl) kpisEl.innerHTML=`
+    <div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">% Merma promedio</div><div class="kpi-val">${pctGlobal.toFixed(1)}%</div><div class="kpi-sub">todo el período</div></div>
+    <div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">Merma total</div><div class="kpi-val">${(+mermaTotal.toFixed(0)).toLocaleString('es-AR')}</div><div class="kpi-sub">kg</div></div>
+    ${pCarne?`<div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">Merma total $</div><div class="kpi-val" style="font-size:20px">${ARS(mermaTotal*pCarne)}</div><div class="kpi-sub">al precio actual</div></div>`:''}
+    <div class="kpi kpi-sm" style="--ac:var(--accent)"><div class="kpi-label">Comprado total</div><div class="kpi-val">${(+compradoTotal.toFixed(0)).toLocaleString('es-AR')}</div><div class="kpi-sub">kg</div></div>
+  `;
+
+  Object.values(comprasCH).forEach(c=>{try{c.destroy()}catch(e){}}); comprasCH={};
+  const COPT=getChartDefaults();
+  const elMerma=document.getElementById('compras-ch-merma');
+  if(elMerma) comprasCH.merma=new Chart(elMerma,{type:'line',data:{labels,datasets:[{label:'% Merma',data:serieMerma,borderColor:'#ef4444',backgroundColor:'#ef444433',borderWidth:2,fill:true,tension:.25,pointRadius:3}]},options:COPT});
+  const elComp=document.getElementById('compras-ch-comparado');
+  if(elComp) comprasCH.comparado=new Chart(elComp,{type:'bar',data:{labels,datasets:[
+    {label:'Comprado',data:serieComprado,backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5,borderRadius:4},
+    {label:'Procesado',data:serieProcesado,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4}
+  ]},options:COPT});
+};
+
+window.exportComprasExcel=function(){
+  if(!COMPRAS_DB.length){toast('❌ No hay compras cargadas para exportar','error');return}
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(r=>{
+    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
+    const procesado=sumProcCombinado(r.fecha);
+    const merma=Math.max(comprado-procesado-stock,0);
+    const pct=comprado>0?(merma/comprado*100):0;
+    return {
+      'Fecha':r.fecha,'Comprado kg':comprado,'Procesado kg':+procesado.toFixed(2),
+      'Stock final kg':stock,'Merma kg':+merma.toFixed(2),'Merma %':+pct.toFixed(1),
+      'Merma $':pCarne?+(merma*pCarne).toFixed(2):''
+    };
+  });
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Compras diarias');
+  XLSX.writeFile(wb,`CDP_Compras_Merma_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('✅ Excel descargado');
+};
+
+window.exportComprasPDF=function(){
+  if(!window.jspdf){toast('PDF no disponible, recarga la página',false);return}
+  if(!COMPRAS_DB.length){toast('❌ No hay compras cargadas para exportar','error');return}
+  const {jsPDF}=window.jspdf;
+  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  const body=rows.map(r=>{
+    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
+    const procesado=sumProcCombinado(r.fecha);
+    const merma=Math.max(comprado-procesado-stock,0);
+    const pct=comprado>0?(merma/comprado*100):0;
+    return [r.fecha, comprado.toLocaleString('es-AR'), (+procesado.toFixed(1)).toLocaleString('es-AR'), stock.toLocaleString('es-AR'), (+merma.toFixed(1)).toLocaleString('es-AR'), pct.toFixed(1)+'%', pCarne?ARS(merma*pCarne):'—'];
+  });
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  doc.setFontSize(14);doc.text('CDP Franquicias — Compras y Merma de Carne',14,15);
+  doc.setFontSize(9);doc.setTextColor(120);doc.text('Generado '+new Date().toLocaleString('es-AR'),14,21);
+  doc.autoTable({
+    startY:26,
+    head:[['Fecha','Comprado (kg)','Procesado (kg)','Stock final (kg)','Merma (kg)','Merma %','Merma $']],
+    body,
+    styles:{fontSize:8},
+    headStyles:{fillColor:[38,38,58],textColor:255},
+    alternateRowStyles:{fillColor:[245,245,250]}
+  });
+  doc.save(`CDP_Compras_Merma_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('✅ PDF descargado');
 };
 
 </script>
