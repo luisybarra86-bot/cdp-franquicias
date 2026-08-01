@@ -1036,7 +1036,7 @@ if('serviceWorker' in navigator){
 <nav class="modulo-nav" id="modulo-nav">
   <button class="modulo-btn active" id="modulo-btn-franquicias" onclick="setModulo('franquicias',this)">🍔 Franquicias</button>
   <button class="modulo-btn" id="modulo-btn-leno" onclick="setModulo('leno',this)">🍔 LENO SRL</button>
-  <button class="modulo-btn" id="modulo-btn-compras" onclick="setModulo('compras',this)">📦 Compras</button>
+  <button class="modulo-btn" id="modulo-btn-compras" onclick="setModulo('compras',this)">📉 Merma</button>
 </nav>
 
 <!-- NAV (NIVEL 2 — Franquicias) -->
@@ -1785,7 +1785,7 @@ if('serviceWorker' in navigator){
 <div id="compras-sub-cargar" class="leno-subpanel active">
   <div class="card" style="max-width:900px">
     <div class="card-head">
-      <span class="card-title">Cargar compra del día</span>
+      <span class="card-title">Cargar datos del día</span>
     </div>
     <div class="card-body">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
@@ -1824,7 +1824,7 @@ if('serviceWorker' in navigator){
 
   <div class="card">
     <div class="card-head">
-      <span class="card-title">Historial de compras</span>
+      <span class="card-title">Historial de merma</span>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-excel" onclick="exportComprasExcel()">↓ Excel</button>
         <button class="btn" style="background:var(--accent2);color:#fff" onclick="exportComprasPDF()">↓ PDF</button>
@@ -4555,7 +4555,7 @@ window.renderComprasSem=function(){
   const cont=document.getElementById('compras-sem-cont');
   if(!cont) return;
   if(!COMPRAS_DB.length){
-    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá compras para ver el resumen semanal.</p></div>';
+    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá datos para ver el resumen semanal.</p></div>';
     return;
   }
   const grupos=agruparCompras(weekKey);
@@ -4573,7 +4573,7 @@ window.renderComprasSem=function(){
       <div class="week-grid">
         <div class="wcard">
           <div class="wcard-hdr" style="border-left:4px solid #ef4444">
-            <h4 style="color:#ef4444">Compras y Merma</h4>
+            <h4 style="color:#ef4444">Merma general</h4>
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
@@ -4593,7 +4593,7 @@ window.renderComprasMes=function(){
   const cont=document.getElementById('compras-mes-cont');
   if(!cont) return;
   if(!COMPRAS_DB.length){
-    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá compras para ver el resumen mensual.</p></div>';
+    cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá datos para ver el resumen mensual.</p></div>';
     return;
   }
   const grupos=agruparCompras(monthKey);
@@ -4612,7 +4612,7 @@ window.renderComprasMes=function(){
       <div class="week-grid">
         <div class="wcard">
           <div class="wcard-hdr" style="border-left:4px solid #ef4444">
-            <h4 style="color:#ef4444">Compras y Merma</h4>
+            <h4 style="color:#ef4444">Merma general</h4>
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
@@ -4686,7 +4686,7 @@ window.exportComprasExcel=function(){
   });
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Compras diarias');
-  XLSX.writeFile(wb,`CDP_Compras_Merma_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_Merma_Carne_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('✅ Excel descargado');
 };
 
@@ -4704,7 +4704,7 @@ window.exportComprasPDF=function(){
     return [r.fecha, comprado.toLocaleString('es-AR'), (+procesado.toFixed(1)).toLocaleString('es-AR'), stock.toLocaleString('es-AR'), (+merma.toFixed(1)).toLocaleString('es-AR'), pct.toFixed(1)+'%', pCarne?ARS(merma*pCarne):'—'];
   });
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  doc.setFontSize(14);doc.text('CDP Franquicias — Compras y Merma de Carne',14,15);
+  doc.setFontSize(14);doc.text('CDP Franquicias — Merma de Carne',14,15);
   doc.setFontSize(9);doc.setTextColor(120);doc.text('Generado '+new Date().toLocaleString('es-AR'),14,21);
   doc.autoTable({
     startY:26,
@@ -4714,7 +4714,7 @@ window.exportComprasPDF=function(){
     headStyles:{fillColor:[38,38,58],textColor:255},
     alternateRowStyles:{fillColor:[245,245,250]}
   });
-  doc.save(`CDP_Compras_Merma_${new Date().toISOString().slice(0,10)}.pdf`);
+  doc.save(`CDP_Merma_Carne_${new Date().toISOString().slice(0,10)}.pdf`);
   toast('✅ PDF descargado');
 };
 
