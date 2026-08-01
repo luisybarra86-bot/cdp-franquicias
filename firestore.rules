@@ -10,5 +10,8 @@ service cloud.firestore {
     match /leno_srl/{doc} {
       allow read, write: if true;
     }
+    match /compras_carne/{doc} {
+      allow read, write: if true;
+    }
   }
 }

@@ -1036,6 +1036,7 @@ if('serviceWorker' in navigator){
 <nav class="modulo-nav" id="modulo-nav">
   <button class="modulo-btn active" id="modulo-btn-franquicias" onclick="setModulo('franquicias',this)">🍔 Franquicias</button>
   <button class="modulo-btn" id="modulo-btn-leno" onclick="setModulo('leno',this)">🍔 LENO SRL</button>
+  <button class="modulo-btn" id="modulo-btn-compras" onclick="setModulo('compras',this)">📦 Compras</button>
 </nav>
 
 <!-- NAV (NIVEL 2 — Franquicias) -->
@@ -1769,6 +1770,56 @@ if('serviceWorker' in navigator){
 
 </div>
 
+<!-- COMPRAS (NUEVO) — control general, no discriminado por sucursal/módulo -->
+<div id="tab-compras" class="panel">
+  <div class="card" style="max-width:900px">
+    <div class="card-head">
+      <span class="card-title">Cargar compra del día</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
+        <input type="date" id="compras-f-fecha" onchange="checkExistingCompra()" style="flex:1;max-width:220px;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
+        <button onclick="document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);checkExistingCompra()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+      </div>
+      <div class="g2-form" style="max-width:500px">
+        <div class="ff"><span>Kg comprado (general)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>Stock final del día (general)</span><input type="number" id="compras-f-stock" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+      </div>
+      <div class="calc-box" style="margin-top:14px;margin-bottom:0;max-width:500px">
+        <div class="calc-head"><span>Dato</span><span style="text-align:center"></span><span>Kg</span></div>
+        <div class="calc-row">
+          <span class="calc-lbl">Procesado combinado (Franquicias + LENO SRL)</span>
+          <span></span>
+          <span class="calc-kg" id="compras-calc-procesado">0.0</span>
+        </div>
+        <div class="calc-row total">
+          <span class="calc-lbl" style="font-weight:700;color:#ef4444">Merma</span>
+          <span></span>
+          <span class="calc-total-val" id="compras-calc-merma" style="color:#ef4444">0.0 kg (0.0%)</span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-primary" id="compras-btn-guardar" onclick="guardarCompra()">💾 Guardar</button>
+        <button class="btn btn-ghost" onclick="limpiarCompra()">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-title">Historial de compras</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Comprado</th><th>Procesado</th><th>Stock final</th>
+          <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th></th>
+        </tr></thead>
+        <tbody id="compras-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- TOAST -->
@@ -1961,6 +2012,14 @@ onSnapshot(qLeno, (snap)=>{
   }
 }, err=>console.error('LENO sync error:', err));
 
+// ── LISTENER COMPRAS (NUEVO) — control general de merma, no discriminado por sucursal ──
+let COMPRAS_DB=[];
+const qCompras = query(collection(db,'compras_carne'), where("fecha",">=",DEFAULT_DESDE), orderBy("fecha","desc"));
+onSnapshot(qCompras, (snap)=>{
+  COMPRAS_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
+  if(document.getElementById('tab-compras')?.classList.contains('active')) renderCompras();
+}, err=>console.error('Compras sync error:', err));
+
 // ── HELPERS ──
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 const ARS = n=>'$\u00a0'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -2068,6 +2127,7 @@ window.goTab=function(n,btn){
   if(n==='manoobra')renderManoObra();
   if(n==='cobro')renderCobro();
   if(n==='leno')renderLenoActive();
+  if(n==='compras')renderCompras();
 }
 
 window.setModulo=function(mod,btn){
@@ -2081,10 +2141,14 @@ window.setModulo=function(mod,btn){
     const t=_lastFranqTab||'cargar';
     const b=_lastFranqBtn||navF.querySelector('.nav-btn');
     goTab(t,b);
-  } else {
+  } else if(mod==='leno'){
     navF.style.display='none';
     navL.style.display='';
     goTab('leno',null);
+  } else {
+    navF.style.display='none';
+    navL.style.display='none';
+    goTab('compras',null);
   }
 }
 
@@ -4258,6 +4322,136 @@ function _btnSt(col){
 
 // Funciones de Estados removidas
 
+// ═══════════════════════════════════════════════════════
+// MÓDULO: COMPRAS — control general de merma (Comprado − Procesado − Stock final)
+// No se discrimina por sucursal ni por módulo: es un solo número por día para
+// todo el negocio. El Procesado se suma solo, combinando Franquicias + LENO SRL.
+// ═══════════════════════════════════════════════════════
+function sumProcCombinado(fecha){
+  const a=DB.filter(r=>r.fecha===fecha).reduce((s,r)=>s+(r.proc_kg||0),0);
+  const b=LENO_DB.filter(r=>r.fecha===fecha).reduce((s,r)=>s+(r.proc_kg||0),0);
+  return a+b;
+}
+
+window.calcCompraMerma=function(){
+  const fecha=document.getElementById('compras-f-fecha').value;
+  const comprado=parseFloat(document.getElementById('compras-f-comprado').value)||0;
+  const stock=parseFloat(document.getElementById('compras-f-stock').value)||0;
+  const procesado=fecha?sumProcCombinado(fecha):0;
+  const merma=Math.max(comprado-procesado-stock,0);
+  const pct=comprado>0?(merma/comprado*100):0;
+  const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+procesado.toFixed(1)).toLocaleString('es-AR');
+  const elM=document.getElementById('compras-calc-merma'); if(elM) elM.textContent=`${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)`;
+};
+
+let comprasEditingId=null;
+
+window.checkExistingCompra=function(){
+  const fecha=document.getElementById('compras-f-fecha').value;
+  if(!fecha) return;
+  const match=COMPRAS_DB.find(r=>r.fecha===fecha);
+  if(match){
+    comprasEditingId=match._id;
+    document.getElementById('compras-f-comprado').value=match.comprado_kg??'';
+    document.getElementById('compras-f-stock').value=match.stock_kg??'';
+    document.getElementById('compras-btn-guardar').innerHTML='💾 Actualizar';
+  } else {
+    comprasEditingId=null;
+    document.getElementById('compras-f-comprado').value='';
+    document.getElementById('compras-f-stock').value='';
+    document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
+  }
+  calcCompraMerma();
+};
+
+window.guardarCompra=async function(){
+  const fecha=document.getElementById('compras-f-fecha').value;
+  if(!fecha){toast('❌ Falta la fecha','error');markError('compras-f-fecha');return}
+  const compradoVal=document.getElementById('compras-f-comprado').value;
+  const stockVal=document.getElementById('compras-f-stock').value;
+  if(compradoVal===''){toast('❌ Falta el Kg comprado','error');markError('compras-f-comprado');return}
+  if(stockVal===''){toast('❌ Falta el Stock final del día','error');markError('compras-f-stock');return}
+  const btn=document.getElementById('compras-btn-guardar');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
+  try{
+    await setDoc(doc(db,'compras_carne',fecha),{
+      fecha,
+      comprado_kg:parseFloat(compradoVal)||0,
+      stock_kg:parseFloat(stockVal)||0,
+      createdAt:new Date().toISOString(),
+      source:'web'
+    });
+    toast(`✅ Guardado — Compra del ${fecha}`);
+    limpiarCompra();
+  }catch(e){
+    toast('❌ Error: '+e.message,'error');
+  }
+  btn.disabled=false;btn.innerHTML='💾 Guardar';
+};
+
+window.limpiarCompra=function(){
+  document.getElementById('compras-f-comprado').value='';
+  document.getElementById('compras-f-stock').value='';
+  document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  comprasEditingId=null;
+  document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
+  calcCompraMerma();
+};
+
+window.delCompra=function(id){
+  showConfirm({
+    icon:'🗑',
+    title:'Eliminar compra',
+    msg:'Este registro de compra será eliminado de la nube permanentemente.',
+    okLabel:'Eliminar',
+    okClass:'confirm-del',
+    onOk:async()=>{
+      try{
+        await deleteDoc(doc(db,'compras_carne',id));
+        toast('✅ Eliminado');
+      }catch(e){
+        toast('❌ Error: '+e.message,'error');
+      }
+    }
+  });
+};
+
+window.editCompra=function(id){
+  const r=COMPRAS_DB.find(x=>x._id===id);
+  if(!r)return;
+  document.getElementById('compras-f-fecha').value=r.fecha||'';
+  checkExistingCompra();
+  document.querySelector('#tab-compras').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+window.renderCompras=function(){
+  if(!document.getElementById('compras-f-fecha').value){
+    document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  }
+  calcCompraMerma();
+  const tb=document.getElementById('compras-tbody');
+  if(!tb) return;
+  const rows=[...COMPRAS_DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3)">Sin compras cargadas todavía.</td></tr>';
+    return;
+  }
+  tb.innerHTML=rows.map(r=>{
+    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
+    const procesado=sumProcCombinado(r.fecha);
+    const merma=Math.max(comprado-procesado-stock,0);
+    const pct=comprado>0?(merma/comprado*100):0;
+    return `<tr>
+      <td>${r.fecha||'—'}</td>
+      <td>${comprado.toLocaleString('es-AR')} kg</td>
+      <td>${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</td>
+      <td>${stock.toLocaleString('es-AR')} kg</td>
+      <td style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${pct.toFixed(1)}%</td>
+      <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editCompra('${r._id}')">✏️</button><button class="btn btn-del" onclick="delCompra('${r._id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+};
 
 </script>
 </body>
