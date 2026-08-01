@@ -4488,7 +4488,7 @@ window.renderCompras=function(){
   if(!tb) return;
   const rows=[...COMPRAS_DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3)">Sin compras cargadas todavía.</td></tr>';
+    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
     return;
   }
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
@@ -4671,7 +4671,7 @@ window.renderComprasGraf=function(){
 };
 
 window.exportComprasExcel=function(){
-  if(!COMPRAS_DB.length){toast('❌ No hay compras cargadas para exportar','error');return}
+  if(!COMPRAS_DB.length){toast('❌ No hay datos cargados para exportar','error');return}
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(r=>{
     const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
@@ -4685,14 +4685,14 @@ window.exportComprasExcel=function(){
     };
   });
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Compras diarias');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Merma diaria');
   XLSX.writeFile(wb,`CDP_Merma_Carne_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('✅ Excel descargado');
 };
 
 window.exportComprasPDF=function(){
   if(!window.jspdf){toast('PDF no disponible, recarga la página',false);return}
-  if(!COMPRAS_DB.length){toast('❌ No hay compras cargadas para exportar','error');return}
+  if(!COMPRAS_DB.length){toast('❌ No hay datos cargados para exportar','error');return}
   const {jsPDF}=window.jspdf;
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
