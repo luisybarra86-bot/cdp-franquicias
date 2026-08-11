@@ -1802,16 +1802,27 @@ if('serviceWorker' in navigator){
         <input type="date" id="compras-f-fecha" onchange="checkExistingCompra()" style="flex:1;max-width:220px;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
         <button onclick="document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);checkExistingCompra()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
       </div>
-      <div class="g2-form" style="max-width:500px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:600px">
         <div class="ff"><span>Kg comprado (general)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
-        <div class="ff"><span>Stock final del día (general)</span><input type="number" id="compras-f-stock" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>Stock final de carne del día</span><input type="number" id="compras-f-stock" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>Stock depósito de medallones</span><input type="number" id="compras-f-deposito" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
       </div>
-      <div class="calc-box" style="margin-top:14px;margin-bottom:0;max-width:500px">
+      <div class="calc-box" style="margin-top:14px;margin-bottom:0;max-width:600px">
         <div class="calc-head"><span>Dato</span><span style="text-align:center"></span><span>Kg</span></div>
         <div class="calc-row">
-          <span class="calc-lbl">Procesado combinado (Franquicias + LENO SRL)</span>
+          <span class="calc-lbl">Despachado (Franquicias + LENO SRL)</span>
           <span></span>
           <span class="calc-kg" id="compras-calc-procesado">0.0</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-lbl" style="color:#3b82f6">Variación depósito (hoy vs. último registro)</span>
+          <span></span>
+          <span class="calc-kg" id="compras-calc-deltadep" style="color:#3b82f6">0.0</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-lbl" style="font-weight:600">Producido real</span>
+          <span></span>
+          <span class="calc-kg" id="compras-calc-realprod" style="font-weight:600">0.0</span>
         </div>
         <div class="calc-row">
           <span class="calc-lbl" style="font-weight:700;color:#ef4444">Merma</span>
@@ -1842,7 +1853,9 @@ if('serviceWorker' in navigator){
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>Fecha</th><th>Comprado</th><th>Procesado</th><th>Stock final</th>
+          <th>Fecha</th><th>Comprado</th><th>Despachado</th>
+          <th style="color:#3b82f6">Depósito</th><th style="color:#3b82f6">Producido real</th>
+          <th>Stock final carne</th>
           <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th><th></th>
         </tr></thead>
         <tbody id="compras-tbody"></tbody>
@@ -4395,18 +4408,44 @@ function sumProcCombinado(fecha){
   return a+b;
 }
 
+// Stock de depósito de medallones guardado en el registro más reciente ANTERIOR
+// a `fecha` (saldo corrido). Si no hay registro previo, se toma como 0.
+function depositoAntes(fecha){
+  const prev=[...COMPRAS_DB].filter(r=>r.fecha<fecha).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+  return prev?(prev.deposito_kg||0):0;
+}
+function deltaDeposito(fecha,depositoHoy){
+  return (depositoHoy||0)-depositoAntes(fecha);
+}
+
 window.calcCompraMerma=function(){
   const fecha=document.getElementById('compras-f-fecha').value;
   const comprado=parseFloat(document.getElementById('compras-f-comprado').value)||0;
   const stock=parseFloat(document.getElementById('compras-f-stock').value)||0;
-  const procesado=fecha?sumProcCombinado(fecha):0;
-  const merma=Math.max(comprado-procesado-stock,0);
+  const depositoHoy=parseFloat(document.getElementById('compras-f-deposito').value)||0;
+  const despachado=fecha?sumProcCombinado(fecha):0;
+  const deltaDep=fecha?deltaDeposito(fecha,depositoHoy):0;
+  const procesadoReal=despachado+deltaDep;
+  const merma=Math.max(comprado-procesadoReal-stock,0);
   const pct=comprado>0?(merma/comprado*100):0;
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
-  const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+procesado.toFixed(1)).toLocaleString('es-AR');
+  const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+despachado.toFixed(1)).toLocaleString('es-AR');
+  const elD=document.getElementById('compras-calc-deltadep'); if(elD) elD.textContent=(deltaDep>=0?'+':'')+(+deltaDep.toFixed(1)).toLocaleString('es-AR');
+  const elR=document.getElementById('compras-calc-realprod'); if(elR) elR.textContent=(+procesadoReal.toFixed(1)).toLocaleString('es-AR');
   const elM=document.getElementById('compras-calc-merma'); if(elM) elM.textContent=`${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)`;
   const elA=document.getElementById('compras-calc-merma-ars'); if(elA) elA.textContent=pCarne?ARS(merma*pCarne):'Sin precio configurado';
 };
+
+// Cálculo completo de una fila guardada (historial, exports) — misma lógica que calcCompraMerma.
+function calcMermaRow(r){
+  const comprado=r.comprado_kg||0, stock=r.stock_kg||0, depositoHoy=r.deposito_kg||0;
+  const despachado=sumProcCombinado(r.fecha);
+  const deltaDep=deltaDeposito(r.fecha,depositoHoy);
+  const procesadoReal=despachado+deltaDep;
+  const merma=Math.max(comprado-procesadoReal-stock,0);
+  const pct=comprado>0?(merma/comprado*100):0;
+  return {comprado,stock,depositoHoy,despachado,deltaDep,procesadoReal,merma,pct};
+}
 
 let comprasEditingId=null;
 
@@ -4418,11 +4457,13 @@ window.checkExistingCompra=function(){
     comprasEditingId=match._id;
     document.getElementById('compras-f-comprado').value=match.comprado_kg??'';
     document.getElementById('compras-f-stock').value=match.stock_kg??'';
+    document.getElementById('compras-f-deposito').value=match.deposito_kg??'';
     document.getElementById('compras-btn-guardar').innerHTML='💾 Actualizar';
   } else {
     comprasEditingId=null;
     document.getElementById('compras-f-comprado').value='';
     document.getElementById('compras-f-stock').value='';
+    document.getElementById('compras-f-deposito').value='';
     document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
   }
   calcCompraMerma();
@@ -4433,8 +4474,10 @@ window.guardarCompra=async function(){
   if(!fecha){toast('❌ Falta la fecha','error');markError('compras-f-fecha');return}
   const compradoVal=document.getElementById('compras-f-comprado').value;
   const stockVal=document.getElementById('compras-f-stock').value;
+  const depositoVal=document.getElementById('compras-f-deposito').value;
   if(compradoVal===''){toast('❌ Falta el Kg comprado','error');markError('compras-f-comprado');return}
-  if(stockVal===''){toast('❌ Falta el Stock final del día','error');markError('compras-f-stock');return}
+  if(stockVal===''){toast('❌ Falta el Stock final de carne','error');markError('compras-f-stock');return}
+  if(depositoVal===''){toast('❌ Falta el Stock depósito de medallones','error');markError('compras-f-deposito');return}
   const btn=document.getElementById('compras-btn-guardar');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   try{
@@ -4442,6 +4485,7 @@ window.guardarCompra=async function(){
       fecha,
       comprado_kg:parseFloat(compradoVal)||0,
       stock_kg:parseFloat(stockVal)||0,
+      deposito_kg:parseFloat(depositoVal)||0,
       createdAt:new Date().toISOString(),
       source:'web'
     });
@@ -4456,6 +4500,7 @@ window.guardarCompra=async function(){
 window.limpiarCompra=function(){
   document.getElementById('compras-f-comprado').value='';
   document.getElementById('compras-f-stock').value='';
+  document.getElementById('compras-f-deposito').value='';
   document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
   comprasEditingId=null;
   document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
@@ -4497,23 +4542,22 @@ window.renderCompras=function(){
   if(!tb) return;
   const rows=[...COMPRAS_DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
+    tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
     return;
   }
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   tb.innerHTML=rows.map(r=>{
-    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
-    const procesado=sumProcCombinado(r.fecha);
-    const merma=Math.max(comprado-procesado-stock,0);
-    const pct=comprado>0?(merma/comprado*100):0;
+    const c=calcMermaRow(r);
     return `<tr>
       <td>${r.fecha||'—'}</td>
-      <td>${comprado.toLocaleString('es-AR')} kg</td>
-      <td>${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</td>
-      <td>${stock.toLocaleString('es-AR')} kg</td>
-      <td style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${pct.toFixed(1)}%</td>
-      <td style="color:#ef4444">${pCarne?ARS(merma*pCarne):'—'}</td>
+      <td>${c.comprado.toLocaleString('es-AR')} kg</td>
+      <td>${(+c.despachado.toFixed(1)).toLocaleString('es-AR')} kg</td>
+      <td style="color:#3b82f6">${c.depositoHoy.toLocaleString('es-AR')} kg <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
+      <td style="color:#3b82f6">${(+c.procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</td>
+      <td>${c.stock.toLocaleString('es-AR')} kg</td>
+      <td style="color:#ef4444">${(+c.merma.toFixed(1)).toLocaleString('es-AR')}</td>
+      <td style="color:#ef4444">${c.pct.toFixed(1)}%</td>
+      <td style="color:#ef4444">${pCarne?ARS(c.merma*pCarne):'—'}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editCompra('${r._id}')">✏️</button><button class="btn btn-del" onclick="delCompra('${r._id}')">🗑</button></td>
     </tr>`;
   }).join('');
@@ -4545,17 +4589,21 @@ function sumProcCombinadoRange(desde,hasta){
   return a+b;
 }
 
-// Agrupa COMPRAS_DB por semana/mes: Comprado y Procesado se suman, el Stock final
-// se toma del último día cargado del período (es una foto del cierre, no se suma).
+// Agrupa COMPRAS_DB por semana/mes: Comprado se suma, el Stock final y el
+// Depósito se toman del último día cargado del período (son una foto del
+// cierre, no se suman). La variación de depósito del período se calcula
+// comparando ese cierre contra el depósito de justo antes de que arrancara
+// el período (mismo criterio que el cálculo diario).
 function agruparCompras(keyFn){
   const grupos={};
   [...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(r=>{
     const k=keyFn(r.fecha);
     if(!k) return;
-    if(!grupos[k]) grupos[k]={dias:[],comprado:0,stockFinal:0};
+    if(!grupos[k]) grupos[k]={dias:[],comprado:0,stockFinal:0,depositoFinal:0,primeraFecha:r.fecha};
     grupos[k].dias.push(r);
     grupos[k].comprado+=(r.comprado_kg||0);
     grupos[k].stockFinal=r.stock_kg||0; // el último día del período (ya viene ordenado asc)
+    grupos[k].depositoFinal=r.deposito_kg||0;
   });
   return grupos;
 }
@@ -4574,8 +4622,10 @@ window.renderComprasSem=function(){
     const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
-    const procesado=sumProcCombinadoRange(desde,hasta);
-    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const despachado=sumProcCombinadoRange(desde,hasta);
+    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const procesadoReal=despachado+deltaDep;
+    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
     html+=`<div style="margin-bottom:20px">
       <div class="section-week-hdr">Semana ${desde} → ${hasta}</div>
@@ -4586,8 +4636,10 @@ window.renderComprasSem=function(){
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
-            <div class="wstat"><span class="wstat-l">Procesado (Franq. + LENO)</span><span class="wstat-v">${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
-            <div class="wstat"><span class="wstat-l">Stock final</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Despachado (Franq. + LENO)</span><span class="wstat-v">${(+despachado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Depósito medallones</span><span class="wstat-v" style="color:#3b82f6">${g.depositoFinal.toLocaleString('es-AR')} kg (${deltaDep>=0?'+':''}${(+deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></div>
+            <div class="wstat"><span class="wstat-l">Producido real</span><span class="wstat-v" style="color:#3b82f6">${(+procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock final carne</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Merma</span><span class="wstat-v" style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)</span></div>
             ${pCarne?`<div class="wstat"><span class="wstat-l">Merma $</span><span class="wstat-v" style="color:#ef4444">${ARS(merma*pCarne)}</span></div>`:''}
           </div>
@@ -4613,8 +4665,10 @@ window.renderComprasMes=function(){
     const ultimoDia=new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
     const hasta=`${m}-${String(ultimoDia).padStart(2,'0')}`;
     const g=grupos[m];
-    const procesado=sumProcCombinadoRange(desde,hasta);
-    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const despachado=sumProcCombinadoRange(desde,hasta);
+    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const procesadoReal=despachado+deltaDep;
+    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
     html+=`<div style="margin-bottom:20px">
       <div class="section-week-hdr">${MN[m.slice(5,7)]||m.slice(5,7)} ${m.slice(0,4)}</div>
@@ -4625,8 +4679,10 @@ window.renderComprasMes=function(){
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
-            <div class="wstat"><span class="wstat-l">Procesado (Franq. + LENO)</span><span class="wstat-v">${(+procesado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
-            <div class="wstat"><span class="wstat-l">Stock final</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Despachado (Franq. + LENO)</span><span class="wstat-v">${(+despachado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Depósito medallones</span><span class="wstat-v" style="color:#3b82f6">${g.depositoFinal.toLocaleString('es-AR')} kg (${deltaDep>=0?'+':''}${(+deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></div>
+            <div class="wstat"><span class="wstat-l">Producido real</span><span class="wstat-v" style="color:#3b82f6">${(+procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock final carne</span><span class="wstat-v">${g.stockFinal.toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Merma</span><span class="wstat-v" style="color:#ef4444">${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)</span></div>
             ${pCarne?`<div class="wstat"><span class="wstat-l">Merma $</span><span class="wstat-v" style="color:#ef4444">${ARS(merma*pCarne)}</span></div>`:''}
           </div>
@@ -4649,13 +4705,15 @@ window.renderComprasGraf=function(){
     const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
-    const procesado=sumProcCombinadoRange(desde,hasta);
-    const merma=Math.max(g.comprado-procesado-g.stockFinal,0);
+    const despachado=sumProcCombinadoRange(desde,hasta);
+    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const procesadoReal=despachado+deltaDep;
+    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
     labels.push(wk);
     serieMerma.push(+pct.toFixed(1));
     serieComprado.push(g.comprado);
-    serieProcesado.push(+procesado.toFixed(1));
+    serieProcesado.push(+procesadoReal.toFixed(1));
     mermaTotal+=merma; compradoTotal+=g.comprado;
   });
   const pctGlobal=compradoTotal>0?(mermaTotal/compradoTotal*100):0;
@@ -4675,7 +4733,7 @@ window.renderComprasGraf=function(){
   const elComp=document.getElementById('compras-ch-comparado');
   if(elComp) comprasCH.comparado=new Chart(elComp,{type:'bar',data:{labels,datasets:[
     {label:'Comprado',data:serieComprado,backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5,borderRadius:4},
-    {label:'Procesado',data:serieProcesado,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4}
+    {label:'Producido real',data:serieProcesado,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4}
   ]},options:COPT});
 };
 
@@ -4683,14 +4741,12 @@ window.exportComprasExcel=function(){
   if(!COMPRAS_DB.length){toast('❌ No hay datos cargados para exportar','error');return}
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(r=>{
-    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
-    const procesado=sumProcCombinado(r.fecha);
-    const merma=Math.max(comprado-procesado-stock,0);
-    const pct=comprado>0?(merma/comprado*100):0;
+    const c=calcMermaRow(r);
     return {
-      'Fecha':r.fecha,'Comprado kg':comprado,'Procesado kg':+procesado.toFixed(2),
-      'Stock final kg':stock,'Merma kg':+merma.toFixed(2),'Merma %':+pct.toFixed(1),
-      'Merma $':pCarne?+(merma*pCarne).toFixed(2):''
+      'Fecha':r.fecha,'Comprado kg':c.comprado,'Despachado kg':+c.despachado.toFixed(2),
+      'Depósito kg':c.depositoHoy,'Variación depósito kg':+c.deltaDep.toFixed(2),'Producido real kg':+c.procesadoReal.toFixed(2),
+      'Stock final carne kg':c.stock,'Merma kg':+c.merma.toFixed(2),'Merma %':+c.pct.toFixed(1),
+      'Merma $':pCarne?+(c.merma*pCarne).toFixed(2):''
     };
   });
   const wb=XLSX.utils.book_new();
@@ -4706,18 +4762,18 @@ window.exportComprasPDF=function(){
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
   const body=rows.map(r=>{
-    const comprado=r.comprado_kg||0, stock=r.stock_kg||0;
-    const procesado=sumProcCombinado(r.fecha);
-    const merma=Math.max(comprado-procesado-stock,0);
-    const pct=comprado>0?(merma/comprado*100):0;
-    return [r.fecha, comprado.toLocaleString('es-AR'), (+procesado.toFixed(1)).toLocaleString('es-AR'), stock.toLocaleString('es-AR'), (+merma.toFixed(1)).toLocaleString('es-AR'), pct.toFixed(1)+'%', pCarne?ARS(merma*pCarne):'—'];
+    const c=calcMermaRow(r);
+    return [r.fecha, c.comprado.toLocaleString('es-AR'), (+c.despachado.toFixed(1)).toLocaleString('es-AR'),
+      c.depositoHoy.toLocaleString('es-AR')+' ('+(c.deltaDep>=0?'+':'')+(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')+')',
+      (+c.procesadoReal.toFixed(1)).toLocaleString('es-AR'), c.stock.toLocaleString('es-AR'),
+      (+c.merma.toFixed(1)).toLocaleString('es-AR'), c.pct.toFixed(1)+'%', pCarne?ARS(c.merma*pCarne):'—'];
   });
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   doc.setFontSize(14);doc.text('CDP Franquicias — Merma de Carne',14,15);
   doc.setFontSize(9);doc.setTextColor(120);doc.text('Generado '+new Date().toLocaleString('es-AR'),14,21);
   doc.autoTable({
     startY:26,
-    head:[['Fecha','Comprado (kg)','Procesado (kg)','Stock final (kg)','Merma (kg)','Merma %','Merma $']],
+    head:[['Fecha','Comprado (kg)','Despachado (kg)','Depósito (var.)','Producido real (kg)','Stock final carne (kg)','Merma (kg)','Merma %','Merma $']],
     body,
     styles:{fontSize:8},
     headStyles:{fillColor:[38,38,58],textColor:255},
