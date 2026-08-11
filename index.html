@@ -12,9 +12,9 @@
 <style>
 /* ── TEMAS ─────────────────────────────────────────────── */
 :root {
-  --ind:#FF4B6E; --per:#FF9F1C; --bar:#2EC4B6; --fli:#9B5DE5;
+  --ind:#FF4B6E; --per:#FF9F1C; --bar:#2EC4B6; --fli:#9B5DE5; --por:#FACC15;
   --ind-l:rgba(255,75,110,.12); --per-l:rgba(255,159,28,.12);
-  --bar-l:rgba(46,196,182,.12); --fli-l:rgba(155,93,229,.12);
+  --bar-l:rgba(46,196,182,.12); --fli-l:rgba(155,93,229,.12); --por-l:rgba(250,204,21,.12);
   --barn:#3B82F6; --yb:#EAB308; --tv:#EC4899; --ev:#14B8A6;
   --barn-l:rgba(59,130,246,.12); --yb-l:rgba(234,179,8,.12);
   --tv-l:rgba(236,72,153,.12); --ev-l:rgba(20,184,166,.12);
@@ -406,6 +406,7 @@ body{
 .suc-chip[data-v="PERON"].active{background:var(--per);border-color:var(--per);color:#000;}
 .suc-chip[data-v="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#000;}
 .suc-chip[data-v="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff;}
+.suc-chip[data-v="PORTAL"].active{background:var(--por);border-color:var(--por);color:#000;}
 .suc-chip[data-v="BARRIO NORTE"].active{background:var(--barn);border-color:var(--barn);color:#fff;}
 .suc-chip[data-v="YERBA BUENA"].active{background:var(--yb);border-color:var(--yb);color:#000;}
 .suc-chip[data-v="TAFI VIEJO"].active{background:var(--tv);border-color:var(--tv);color:#fff;}
@@ -690,6 +691,7 @@ tbody tr{animation:fadeUp .25s ease both}
 .pill-PER{background:var(--per-l);color:var(--per);border:1px solid rgba(255,159,28,.2)}
 .pill-BAR{background:var(--bar-l);color:var(--bar);border:1px solid rgba(46,196,182,.2)}
 .pill-FLI{background:var(--fli-l);color:var(--fli);border:1px solid rgba(155,93,229,.2)}
+.pill-POR{background:var(--por-l);color:var(--por);border:1px solid rgba(250,204,21,.2)}
 .pill-BARN{background:var(--barn-l);color:var(--barn);border:1px solid rgba(59,130,246,.2)}
 .pill-YB{background:var(--yb-l);color:var(--yb);border:1px solid rgba(234,179,8,.2)}
 .pill-TV{background:var(--tv-l);color:var(--tv);border:1px solid rgba(236,72,153,.2)}
@@ -708,6 +710,7 @@ tbody tr{animation:fadeUp .25s ease both}
 .sf-btn[data-s="PERON"].active{background:var(--per);border-color:var(--per);color:#000}
 .sf-btn[data-s="BARRIO SUR"].active{background:var(--bar);border-color:var(--bar);color:#000}
 .sf-btn[data-s="FLIP"].active{background:var(--fli);border-color:var(--fli);color:#fff}
+.sf-btn[data-s="PORTAL"].active{background:var(--por);border-color:var(--por);color:#000}
 
 /* ── TABS INTERNOS ───────────────────────────────────────── */
 .r-tabs{
@@ -1093,13 +1096,14 @@ if('serviceWorker' in navigator){
         <select id="f-suc" style="display:none">
           <option value="">— Elegir —</option>
           <option>INDEPENDENCIA</option><option>PERON</option>
-          <option>BARRIO SUR</option><option>FLIP</option>
+          <option>BARRIO SUR</option><option>FLIP</option><option>PORTAL</option>
         </select>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px">
           <button class="suc-chip" data-v="INDEPENDENCIA" onclick="setSucChip(this)">IND</button>
           <button class="suc-chip" data-v="PERON" onclick="setSucChip(this)">PER</button>
           <button class="suc-chip" data-v="BARRIO SUR" onclick="setSucChip(this)">BAR</button>
           <button class="suc-chip" data-v="FLIP" onclick="setSucChip(this)">FLIP</button>
+          <button class="suc-chip" data-v="PORTAL" onclick="setSucChip(this)">POR</button>
         </div>
 
         <div class="form-sec-tabs">
@@ -1197,6 +1201,7 @@ if('serviceWorker' in navigator){
       <option value="PERON">Perón</option>
       <option value="BARRIO SUR">Barrio Sur</option>
       <option value="FLIP">Flip</option>
+      <option value="PORTAL">Portal</option>
     </select>
   </div>
   <div class="kpi-dash-row" id="dash-kpis"></div>
@@ -1242,6 +1247,7 @@ if('serviceWorker' in navigator){
         <button class="sf-btn" data-s="PERON" onclick="setRegF('PERON',this)">Perón</button>
         <button class="sf-btn" data-s="BARRIO SUR" onclick="setRegF('BARRIO SUR',this)">Barrio Sur</button>
         <button class="sf-btn" data-s="FLIP" onclick="setRegF('FLIP',this)">Flip</button>
+        <button class="sf-btn" data-s="PORTAL" onclick="setRegF('PORTAL',this)">Portal</button>
       </div>
     </div>
     <div id="reg-old-banner" style="display:none;padding:10px 24px;background:rgba(255,159,28,.08);border-bottom:1px solid rgba(255,159,28,.15);display:none;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1311,6 +1317,7 @@ if('serviceWorker' in navigator){
         <option value="PERON">Perón</option>
         <option value="BARRIO SUR">Barrio Sur</option>
         <option value="FLIP">Flip</option>
+        <option value="PORTAL">Portal</option>
       </select>
       <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px">
         <button id="gtipo-all" class="btn-gtipo active" onclick="setGrafTipo('ALL')">Ambos</button>
@@ -1449,6 +1456,7 @@ if('serviceWorker' in navigator){
           <th style="color:var(--per)">PER kg</th><th style="color:var(--per)">PER $</th>
           <th style="color:var(--bar)">BAR kg</th><th style="color:var(--bar)">BAR $</th>
           <th style="color:var(--fli)">FLIP kg</th><th style="color:var(--fli)">FLIP $</th>
+          <th style="color:var(--por)">POR kg</th><th style="color:var(--por)">POR $</th>
           <th>Total $</th>
         </tr></thead>
         <tbody id="mo-tbody"></tbody>
@@ -1504,6 +1512,7 @@ if('serviceWorker' in navigator){
           <th style="color:var(--per)">PER alita</th><th style="color:var(--per)">PER filet</th><th style="color:var(--per)">PER $</th>
           <th style="color:var(--bar)">BAR alita</th><th style="color:var(--bar)">BAR filet</th><th style="color:var(--bar)">BAR $</th>
           <th style="color:var(--fli)">FLIP alita</th><th style="color:var(--fli)">FLIP filet</th><th style="color:var(--fli)">FLIP $</th>
+          <th style="color:var(--por)">POR alita</th><th style="color:var(--por)">POR filet</th><th style="color:var(--por)">POR $</th>
           <th>Total $</th>
         </tr></thead>
         <tbody id="co-tbody"></tbody>
@@ -1976,12 +1985,12 @@ const db  = initializeFirestore(app, {
 });
 const COL = "registros";
 
-const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP'];
-const SC={'INDEPENDENCIA':'#FF4B6E','PERON':'#FF9F1C','BARRIO SUR':'#2EC4B6','FLIP':'#9B5DE5'};
-const SL={'INDEPENDENCIA':'pill-IND','PERON':'pill-PER','BARRIO SUR':'pill-BAR','FLIP':'pill-FLI'};
+const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP','PORTAL'];
+const SC={'INDEPENDENCIA':'#FF4B6E','PERON':'#FF9F1C','BARRIO SUR':'#2EC4B6','FLIP':'#9B5DE5','PORTAL':'#FACC15'};
+const SL={'INDEPENDENCIA':'pill-IND','PERON':'pill-PER','BARRIO SUR':'pill-BAR','FLIP':'pill-FLI','PORTAL':'pill-POR'};
 const MN={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
-const SUC_NAMES={'INDEPENDENCIA':'Independencia','PERON':'Perón','BARRIO SUR':'Barrio Sur','FLIP':'Flip'};
-const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip'};
+const SUC_NAMES={'INDEPENDENCIA':'Independencia','PERON':'Perón','BARRIO SUR':'Barrio Sur','FLIP':'Flip','PORTAL':'Portal'};
+const SUC_DISPLAY={'INDEPENDENCIA':'Leno Independencia','PERON':'Leno Peron','BARRIO SUR':'Leno B. Sur','FLIP':'Leno Flip','PORTAL':'Leno Portal'};
 
 let DB=[], regF='ALL', semV='carne', mesV='carne', CHS={}, editingId=null;
 
@@ -2383,9 +2392,9 @@ window.checkExistingFranq=function(){
   }
 };
 
-const SUC_COLOR={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)'};
-const SUC_BG={INDEPENDENCIA:'var(--ind-l)',PERON:'var(--per-l)','BARRIO SUR':'var(--bar-l)',FLIP:'var(--fli-l)'};
-const SUC_LABEL={INDEPENDENCIA:'Independencia',PERON:'Perón','BARRIO SUR':'Barrio Sur',FLIP:'Flip'};
+const SUC_COLOR={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)',PORTAL:'var(--por)'};
+const SUC_BG={INDEPENDENCIA:'var(--ind-l)',PERON:'var(--per-l)','BARRIO SUR':'var(--bar-l)',FLIP:'var(--fli-l)',PORTAL:'var(--por-l)'};
+const SUC_LABEL={INDEPENDENCIA:'Independencia',PERON:'Perón','BARRIO SUR':'Barrio Sur',FLIP:'Flip',PORTAL:'Portal'};
 
 window.renderSucPanel=function(suc){
   const panel=document.getElementById('suc-panel');
@@ -2785,8 +2794,8 @@ window.renderDashboard=function(){
   animateKpiNumbers(kpisEl);
 
   // Rankings
-  const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP'];
-  const COLS={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)'};
+  const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP','PORTAL'];
+  const COLS={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)',PORTAL:'var(--por)'};
   function rankHtml(items,field,maxVal){
     return items.map((r,i)=>{
       const v=sumF(r.recs,field);
