@@ -1697,6 +1697,7 @@ if('serviceWorker' in navigator){
           <input class="search-input" type="date" id="leno-reg-desde" style="width:130px" oninput="renderLenoRegistros()" title="Desde">
           <span style="color:var(--text3);font-size:11px">→</span>
           <input class="search-input" type="date" id="leno-reg-hasta" style="width:130px" oninput="renderLenoRegistros()" title="Hasta">
+          <button class="btn btn-excel" onclick="exportLenoExcel()">↓ Excel</button>
         </div>
       </div>
       <div style="padding:14px 24px;border-bottom:1px solid var(--border)">
@@ -1734,6 +1735,7 @@ if('serviceWorker' in navigator){
         <input type="date" id="leno-sem-desde" class="search-input" style="width:135px" title="Desde" onchange="renderLenoSem()">
         <span style="color:var(--text3);font-size:11px">→</span>
         <input type="date" id="leno-sem-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderLenoSem()">
+        <button class="btn btn-excel" onclick="exportLenoExcel('leno-sem-desde','leno-sem-hasta')">↓ Excel</button>
       </div>
     </div>
     <div id="leno-sem-cont"></div>
@@ -1750,6 +1752,7 @@ if('serviceWorker' in navigator){
         <input type="date" id="leno-mes-desde" class="search-input" style="width:135px" title="Desde" onchange="renderLenoMes()">
         <span style="color:var(--text3);font-size:11px">→</span>
         <input type="date" id="leno-mes-hasta" class="search-input" style="width:135px" title="Hasta" onchange="renderLenoMes()">
+        <button class="btn btn-excel" onclick="exportLenoExcel('leno-mes-desde','leno-mes-hasta')">↓ Excel</button>
       </div>
     </div>
     <div id="leno-mes-cont"></div>
@@ -4095,6 +4098,59 @@ window.exportExcel=function(desdeId,hastaId){
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('✅ Excel descargado');
+}
+
+// ── EXPORT EXCEL — LENO SRL (mismo formato que exportExcel de Franquicias) ──
+window.exportLenoExcel=function(desdeId,hastaId){
+  const desde=desdeId?(document.getElementById(desdeId)?.value||''):'';
+  const hasta=hastaId?(document.getElementById(hastaId)?.value||''):'';
+  const DATA=filterByDate(LENO_DB,desde,hasta);
+  if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
+  const wb=XLSX.utils.book_new();
+
+  // ── Hoja 1: Registros crudos ──
+  const raw=DATA.map(r=>({'Fecha':r.fecha,'Ubicación':r.sucursal,'Procesado Kg':r.proc_kg,'Medallón 90g':r.med90,'Bolita 90g':r.bol90,'Proc. Alita Kg':r.procesado_alita,'Proc. Filet Kg':r.procesado_filet,'Alitas':r.alita,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
+  const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
+  const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
+  weeks.forEach(wk=>{
+    const wkEnd=new Date(wk+'T00:00:00');wkEnd.setDate(wkEnd.getDate()+6);
+    const wkLabel=`Semana ${wk} al ${wkEnd.toISOString().slice(0,10)}`;
+    const wkRows=byW[wk];
+    const dias=[...new Set(wkRows.map(r=>r.fecha))].sort();
+    const wsC=[];
+    wsC.push(['LENO SRL — Carne']);wsC.push([]);
+    const headerRow=[];LENO_UBIC.forEach(()=>{headerRow.push(wkLabel);headerRow.push('');headerRow.push('');});wsC.push(headerRow);
+    const subRow=[];LENO_UBIC.forEach(suc=>{subRow.push(LENO_LABEL[suc]);subRow.push('Kg Procesado');subRow.push('');});wsC.push(subRow);
+    dias.forEach(dia=>{
+      const row=[];
+      LENO_UBIC.forEach(suc=>{const recs=wkRows.filter(x=>x.fecha===dia&&x.sucursal===suc);const totalKg=recs.reduce((s,r)=>s+(r.proc_kg||0),0);row.push(dia);row.push(+totalKg.toFixed(2));row.push('');});
+      wsC.push(row);
+    });
+    const totRow=[];LENO_UBIC.forEach(suc=>{const sr=wkRows.filter(r=>r.sucursal===suc);totRow.push('Total');totRow.push(+sum(sr,'proc_kg').toFixed(1));totRow.push('');});wsC.push(totRow);
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsC),('Carne '+wk).slice(0,31));
+    const wsP=[];wsP.push(['LENO SRL — Pollo']);wsP.push([]);
+    const hRowP=[];LENO_UBIC.forEach(()=>{hRowP.push(wkLabel);hRowP.push('');hRowP.push('');hRowP.push('');});wsP.push(hRowP);
+    const subRowP=[];LENO_UBIC.forEach(suc=>{subRowP.push(LENO_LABEL[suc]);subRowP.push('Alita Proc.');subRowP.push('Filet Proc.');subRowP.push('');});wsP.push(subRowP);
+    const unitRow=[];LENO_UBIC.forEach(()=>{unitRow.push('');unitRow.push('Kg');unitRow.push('Kg');unitRow.push('');});wsP.push(unitRow);
+    dias.forEach(dia=>{
+      const row=[];
+      LENO_UBIC.forEach(suc=>{const recs=wkRows.filter(x=>x.fecha===dia&&x.sucursal===suc);row.push(dia);row.push(+(recs.reduce((s,r)=>s+(r.procesado_alita||0),0)).toFixed(2));row.push(+(recs.reduce((s,r)=>s+(r.procesado_filet||0),0)).toFixed(2));row.push('');});
+      wsP.push(row);
+    });
+    const totRowP=[];LENO_UBIC.forEach(suc=>{const sr=wkRows.filter(r=>r.sucursal===suc);totRowP.push('Total');totRowP.push(+sum(sr,'procesado_alita').toFixed(2));totRowP.push(+sum(sr,'procesado_filet').toFixed(2));totRowP.push('');});wsP.push(totRowP);
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(wsP),('Pollo '+wk).slice(0,31));
+  });
+  const months=[...new Set(DATA.filter(r=>monthKey(r.fecha)).map(r=>monthKey(r.fecha)))].filter(m=>m&&m!=='null').sort();
+  const mesD=[];
+  months.forEach(m=>{LENO_UBIC.forEach(suc=>{
+    const rows=DATA.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
+    if(!rows.length)return;
+    mesD.push({'Mes':m,'Ubicación':LENO_LABEL[suc],'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 90g':sum(rows,'med90'),'Bolita 90g':sum(rows,'bol90'),'Proc. Alita Kg':sum(rows,'procesado_alita').toFixed(1),'Proc. Filet Kg':sum(rows,'procesado_filet').toFixed(1),'Alitas':sum(rows,'alita'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+  })});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
+  XLSX.writeFile(wb,`CDP_LenoSRL_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('✅ Excel descargado');
 }
 
