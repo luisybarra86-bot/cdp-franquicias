@@ -3834,6 +3834,7 @@ window.renderLenoSem=function(){
           </div><div class="wcard-body">
           <div class="wstat"><span class="wstat-l">Proc. Alita kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'procesado_alita').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Proc. Filet kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'procesado_filet').toFixed(1)}</span></div>
+          <div class="wstat"><span class="wstat-l" style="font-weight:700">Total Proc. Pollo kg</span><span class="wstat-v" style="font-weight:700">${(sum(rows,'procesado_alita')+sum(rows,'procesado_filet')).toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Alitas</span><span class="wstat-v">${fmt(sum(rows,'alita'))}</span></div>
           <div class="wstat"><span class="wstat-l">Filet</span><span class="wstat-v">${fmt(sum(rows,'filet'))}</span></div>
           <div class="wstat"><span class="wstat-l">Pop Corns</span><span class="wstat-v">${fmt(sum(rows,'popCorns'))}</span></div>
