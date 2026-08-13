@@ -16,5 +16,8 @@ service cloud.firestore {
     match /merma_pollo/{doc} {
       allow read, write: if true;
     }
+    match /compras_stock_inicial/{doc} {
+      allow read, write: if true;
+    }
   }
 }

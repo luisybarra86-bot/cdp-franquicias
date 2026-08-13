@@ -1810,15 +1810,22 @@ if('serviceWorker' in navigator){
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
         <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
         <input type="date" id="compras-f-fecha" onchange="checkExistingCompra()" style="flex:1;max-width:220px;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-        <button onclick="document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);checkExistingCompra()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+        <button onclick="compraHoy()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+        <span id="compras-semana-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:600px">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px 4px;max-width:520px">
         <div class="ff"><span>Kg comprado (general)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>Stock inicial de la semana <span style="color:var(--text3);font-weight:400;text-transform:none">(se carga 1 vez al arrancar)</span></span><input type="number" id="compras-f-stockinicial" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
         <div class="ff"><span>Stock final de carne del día</span><input type="number" id="compras-f-stock" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
         <div class="ff"><span>Stock depósito de medallones</span><input type="number" id="compras-f-deposito" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
       </div>
       <div class="calc-box" style="margin-top:14px;margin-bottom:0;max-width:600px">
         <div class="calc-head"><span>Dato</span><span style="text-align:center"></span><span>Kg</span></div>
+        <div class="calc-row">
+          <span class="calc-lbl" style="color:#22c55e">Materia prima disponible (Comprado + Stock inicial)</span>
+          <span></span>
+          <span class="calc-kg" id="compras-calc-disponible" style="color:#22c55e">0.0</span>
+        </div>
         <div class="calc-row">
           <span class="calc-lbl">Despachado (Franquicias + LENO SRL)</span>
           <span></span>
@@ -1863,7 +1870,7 @@ if('serviceWorker' in navigator){
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>Fecha</th><th>Comprado</th><th>Despachado</th>
+          <th>Fecha</th><th>Comprado</th><th style="color:#22c55e">Stock inicial sem.</th><th>Despachado</th>
           <th style="color:#3b82f6">Depósito</th><th style="color:#3b82f6">Producido real</th>
           <th>Stock final carne</th>
           <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th><th></th>
@@ -1893,7 +1900,7 @@ if('serviceWorker' in navigator){
       <div class="ch-wrap"><canvas id="compras-ch-merma"></canvas></div>
     </div>
     <div class="chart-card full">
-      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Comprado vs. Procesado por semana (kg)</div>
+      <div class="chart-title"><span class="dot" style="background:var(--accent)"></span>Disponible vs. Producido real por semana (kg)</div>
       <div class="ch-wrap"><canvas id="compras-ch-comparado"></canvas></div>
     </div>
   </div>
@@ -2179,6 +2186,14 @@ onSnapshot(qMermaPollo, (snap)=>{
   MERMA_POLLO_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
   if(document.getElementById('tab-compras')?.classList.contains('active') && document.getElementById('merma-pollo-wrap')?.style.display!=='none') renderMermaPollo();
 }, err=>console.error('Merma pollo sync error:', err));
+
+// ── LISTENER STOCK INICIAL SEMANAL (NUEVO) — carga manual, 1 vez por semana ──
+let STOCK_INICIAL_DB=[];
+const qStockInicial = query(collection(db,'compras_stock_inicial'), orderBy("fecha","desc"));
+onSnapshot(qStockInicial, (snap)=>{
+  STOCK_INICIAL_DB = snap.docs.map(d=>({...d.data(), _id:d.id}));
+  if(document.getElementById('tab-compras')?.classList.contains('active') && document.getElementById('merma-carne-wrap')?.style.display!=='none') renderComprasActive();
+}, err=>console.error('Stock inicial sync error:', err));
 
 // ── HELPERS ──
 function num(id){return parseFloat(document.getElementById(id).value)||0}
@@ -4564,17 +4579,28 @@ function deltaDeposito(fecha,depositoHoy){
   return (depositoHoy||0)-depositoAntes(fecha);
 }
 
+// Stock inicial de la semana (carga manual, 1 vez al arrancar). No se mezcla
+// entre semanas: cada semana tiene el suyo, guardado aparte del stock final.
+function getStockInicial(fecha){
+  const monday=weekKey(fecha);
+  const match=STOCK_INICIAL_DB.find(r=>r.fecha===monday);
+  return match?(match.stock_inicial_kg||0):0;
+}
+
 window.calcCompraMerma=function(){
   const fecha=document.getElementById('compras-f-fecha').value;
   const comprado=parseFloat(document.getElementById('compras-f-comprado').value)||0;
+  const stockInicial=parseFloat(document.getElementById('compras-f-stockinicial').value)||0;
   const stock=parseFloat(document.getElementById('compras-f-stock').value)||0;
   const depositoHoy=parseFloat(document.getElementById('compras-f-deposito').value)||0;
+  const disponible=comprado+stockInicial;
   const despachado=fecha?sumProcCombinado(fecha):0;
   const deltaDep=fecha?deltaDeposito(fecha,depositoHoy):0;
   const procesadoReal=despachado+deltaDep;
-  const merma=Math.max(comprado-procesadoReal-stock,0);
-  const pct=comprado>0?(merma/comprado*100):0;
+  const merma=Math.max(disponible-procesadoReal-stock,0);
+  const pct=disponible>0?(merma/disponible*100):0;
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  const elDisp=document.getElementById('compras-calc-disponible'); if(elDisp) elDisp.textContent=(+disponible.toFixed(1)).toLocaleString('es-AR');
   const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+despachado.toFixed(1)).toLocaleString('es-AR');
   const elD=document.getElementById('compras-calc-deltadep'); if(elD) elD.textContent=(deltaDep>=0?'+':'')+(+deltaDep.toFixed(1)).toLocaleString('es-AR');
   const elR=document.getElementById('compras-calc-realprod'); if(elR) elR.textContent=(+procesadoReal.toFixed(1)).toLocaleString('es-AR');
@@ -4585,12 +4611,14 @@ window.calcCompraMerma=function(){
 // Cálculo completo de una fila guardada (historial, exports) — misma lógica que calcCompraMerma.
 function calcMermaRow(r){
   const comprado=r.comprado_kg||0, stock=r.stock_kg||0, depositoHoy=r.deposito_kg||0;
+  const stockInicial=getStockInicial(r.fecha);
+  const disponible=comprado+stockInicial;
   const despachado=sumProcCombinado(r.fecha);
   const deltaDep=deltaDeposito(r.fecha,depositoHoy);
   const procesadoReal=despachado+deltaDep;
-  const merma=Math.max(comprado-procesadoReal-stock,0);
-  const pct=comprado>0?(merma/comprado*100):0;
-  return {comprado,stock,depositoHoy,despachado,deltaDep,procesadoReal,merma,pct};
+  const merma=Math.max(disponible-procesadoReal-stock,0);
+  const pct=disponible>0?(merma/disponible*100):0;
+  return {comprado,stockInicial,disponible,stock,depositoHoy,despachado,deltaDep,procesadoReal,merma,pct};
 }
 
 let comprasEditingId=null;
@@ -4612,6 +4640,9 @@ window.checkExistingCompra=function(){
     document.getElementById('compras-f-deposito').value='';
     document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
   }
+  const monday=weekKey(fecha);
+  const stockIniMatch=STOCK_INICIAL_DB.find(r=>r.fecha===monday);
+  document.getElementById('compras-f-stockinicial').value=stockIniMatch?(stockIniMatch.stock_inicial_kg??''):'';
   calcCompraMerma();
 };
 
@@ -4619,19 +4650,28 @@ window.guardarCompra=async function(){
   const fecha=document.getElementById('compras-f-fecha').value;
   if(!fecha){toast('❌ Falta la fecha','error');markError('compras-f-fecha');return}
   const compradoVal=document.getElementById('compras-f-comprado').value;
+  const stockIniVal=document.getElementById('compras-f-stockinicial').value;
   const stockVal=document.getElementById('compras-f-stock').value;
   const depositoVal=document.getElementById('compras-f-deposito').value;
   if(compradoVal===''){toast('❌ Falta el Kg comprado','error');markError('compras-f-comprado');return}
+  if(stockIniVal===''){toast('❌ Falta el Stock inicial de la semana','error');markError('compras-f-stockinicial');return}
   if(stockVal===''){toast('❌ Falta el Stock final de carne','error');markError('compras-f-stock');return}
   if(depositoVal===''){toast('❌ Falta el Stock depósito de medallones','error');markError('compras-f-deposito');return}
   const btn=document.getElementById('compras-btn-guardar');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   try{
+    const monday=weekKey(fecha);
     await setDoc(doc(db,'compras_carne',fecha),{
       fecha,
       comprado_kg:parseFloat(compradoVal)||0,
       stock_kg:parseFloat(stockVal)||0,
       deposito_kg:parseFloat(depositoVal)||0,
+      createdAt:new Date().toISOString(),
+      source:'web'
+    });
+    await setDoc(doc(db,'compras_stock_inicial',monday),{
+      fecha:monday,
+      stock_inicial_kg:parseFloat(stockIniVal)||0,
       createdAt:new Date().toISOString(),
       source:'web'
     });
@@ -4645,9 +4685,11 @@ window.guardarCompra=async function(){
 
 window.limpiarCompra=function(){
   document.getElementById('compras-f-comprado').value='';
+  document.getElementById('compras-f-stockinicial').value='';
   document.getElementById('compras-f-stock').value='';
   document.getElementById('compras-f-deposito').value='';
   document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  aplicarLimiteSemanaActual();
   comprasEditingId=null;
   document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
   calcCompraMerma();
@@ -4674,21 +4716,47 @@ window.delCompra=function(id){
 window.editCompra=function(id){
   const r=COMPRAS_DB.find(x=>x._id===id);
   if(!r)return;
-  document.getElementById('compras-f-fecha').value=r.fecha||'';
+  const inp=document.getElementById('compras-f-fecha');
+  inp.removeAttribute('min'); inp.removeAttribute('max'); // permite abrir semanas ya cerradas para corregir
+  inp.value=r.fecha||'';
   checkExistingCompra();
   document.querySelector('#tab-compras').scrollIntoView({behavior:'smooth',block:'start'});
 };
 
+// Cierre automático por fecha: mientras se está cargando (no editando un
+// registro viejo), solo se puede elegir una fecha dentro de la semana en
+// curso. Al llegar el lunes siguiente, la semana pasada queda cerrada sola
+// (deja de poder elegirse) y arranca una nueva con el acumulado en 0.
+function aplicarLimiteSemanaActual(){
+  const hoy=new Date().toISOString().slice(0,10);
+  const monday=weekKey(hoy);
+  const {hasta}=semanaRango(monday);
+  const inp=document.getElementById('compras-f-fecha');
+  if(!inp) return;
+  inp.min=monday; inp.max=hasta;
+  const lbl=document.getElementById('compras-semana-label');
+  if(lbl) lbl.textContent=`Semana en curso: ${monday} → ${hasta}`;
+}
+
+window.compraHoy=function(){
+  document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  aplicarLimiteSemanaActual();
+  checkExistingCompra();
+};
+
 window.renderCompras=function(){
+  aplicarLimiteSemanaActual();
   if(!document.getElementById('compras-f-fecha').value){
     document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+    checkExistingCompra();
+  } else {
+    calcCompraMerma();
   }
-  calcCompraMerma();
   const tb=document.getElementById('compras-tbody');
   if(!tb) return;
   const rows=[...COMPRAS_DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
+    tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
     return;
   }
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
@@ -4697,6 +4765,7 @@ window.renderCompras=function(){
     return `<tr>
       <td>${r.fecha||'—'}</td>
       <td>${c.comprado.toLocaleString('es-AR')} kg</td>
+      <td style="color:#22c55e">${c.stockInicial.toLocaleString('es-AR')} kg</td>
       <td>${(+c.despachado.toFixed(1)).toLocaleString('es-AR')} kg</td>
       <td style="color:#3b82f6">${c.depositoHoy.toLocaleString('es-AR')} kg <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
       <td style="color:#3b82f6">${(+c.procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</td>
@@ -4745,13 +4814,19 @@ function agruparCompras(keyFn){
   [...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(r=>{
     const k=keyFn(r.fecha);
     if(!k) return;
-    if(!grupos[k]) grupos[k]={dias:[],comprado:0,stockFinal:0,depositoFinal:0,primeraFecha:r.fecha};
+    if(!grupos[k]) grupos[k]={dias:[],comprado:0,stockFinal:0,depositoFinal:0,primeraFecha:r.fecha,semanas:new Set()};
     grupos[k].dias.push(r);
     grupos[k].comprado+=(r.comprado_kg||0);
     grupos[k].stockFinal=r.stock_kg||0; // el último día del período (ya viene ordenado asc)
     grupos[k].depositoFinal=r.deposito_kg||0;
+    grupos[k].semanas.add(weekKey(r.fecha)); // semana(s) ISO que toca este período (un mes puede tocar 4-5)
   });
   return grupos;
+}
+// Suma el Stock inicial de cada semana distinta que compone el grupo (semanal
+// = 1 sola semana; mensual = puede abarcar varias, cada una con su propio inicial).
+function stockInicialDeGrupo(g){
+  return [...g.semanas].reduce((s,wk)=>s+getStockInicial(wk),0);
 }
 
 window.renderComprasSem=function(){
@@ -4768,11 +4843,13 @@ window.renderComprasSem=function(){
     const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
+    const stockInicial=stockInicialDeGrupo(g);
+    const disponible=g.comprado+stockInicial;
     const despachado=sumProcCombinadoRange(desde,hasta);
     const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
     const procesadoReal=despachado+deltaDep;
-    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
-    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    const merma=Math.max(disponible-procesadoReal-g.stockFinal,0);
+    const pct=disponible>0?(merma/disponible*100):0;
     html+=`<div style="margin-bottom:20px">
       <div class="section-week-hdr">Semana ${desde} → ${hasta}</div>
       <div class="week-grid">
@@ -4782,6 +4859,7 @@ window.renderComprasSem=function(){
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock inicial semana</span><span class="wstat-v" style="color:#22c55e">${stockInicial.toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Despachado (Franq. + LENO)</span><span class="wstat-v">${(+despachado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Depósito medallones</span><span class="wstat-v" style="color:#3b82f6">${g.depositoFinal.toLocaleString('es-AR')} kg (${deltaDep>=0?'+':''}${(+deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></div>
             <div class="wstat"><span class="wstat-l">Producido real</span><span class="wstat-v" style="color:#3b82f6">${(+procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
@@ -4811,11 +4889,13 @@ window.renderComprasMes=function(){
     const ultimoDia=new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
     const hasta=`${m}-${String(ultimoDia).padStart(2,'0')}`;
     const g=grupos[m];
+    const stockInicial=stockInicialDeGrupo(g);
+    const disponible=g.comprado+stockInicial;
     const despachado=sumProcCombinadoRange(desde,hasta);
     const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
     const procesadoReal=despachado+deltaDep;
-    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
-    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    const merma=Math.max(disponible-procesadoReal-g.stockFinal,0);
+    const pct=disponible>0?(merma/disponible*100):0;
     html+=`<div style="margin-bottom:20px">
       <div class="section-week-hdr">${MN[m.slice(5,7)]||m.slice(5,7)} ${m.slice(0,4)}</div>
       <div class="week-grid">
@@ -4825,6 +4905,7 @@ window.renderComprasMes=function(){
             <p>${g.dias.length} día${g.dias.length!==1?'s':''} cargado${g.dias.length!==1?'s':''}</p>
           </div><div class="wcard-body">
             <div class="wstat"><span class="wstat-l">Comprado</span><span class="wstat-v">${g.comprado.toLocaleString('es-AR')} kg</span></div>
+            <div class="wstat"><span class="wstat-l">Stock inicial (semanas del mes)</span><span class="wstat-v" style="color:#22c55e">${stockInicial.toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Despachado (Franq. + LENO)</span><span class="wstat-v">${(+despachado.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
             <div class="wstat"><span class="wstat-l">Depósito medallones</span><span class="wstat-v" style="color:#3b82f6">${g.depositoFinal.toLocaleString('es-AR')} kg (${deltaDep>=0?'+':''}${(+deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></div>
             <div class="wstat"><span class="wstat-l">Producido real</span><span class="wstat-v" style="color:#3b82f6">${(+procesadoReal.toFixed(1)).toLocaleString('es-AR')} kg</span></div>
@@ -4851,16 +4932,18 @@ window.renderComprasGraf=function(){
     const wkE=new Date(wk+'T00:00:00'); wkE.setDate(wkE.getDate()+6);
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
+    const stockInicial=stockInicialDeGrupo(g);
+    const disponible=g.comprado+stockInicial;
     const despachado=sumProcCombinadoRange(desde,hasta);
     const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
     const procesadoReal=despachado+deltaDep;
-    const merma=Math.max(g.comprado-procesadoReal-g.stockFinal,0);
-    const pct=g.comprado>0?(merma/g.comprado*100):0;
+    const merma=Math.max(disponible-procesadoReal-g.stockFinal,0);
+    const pct=disponible>0?(merma/disponible*100):0;
     labels.push(wk);
     serieMerma.push(+pct.toFixed(1));
-    serieComprado.push(g.comprado);
+    serieComprado.push(disponible);
     serieProcesado.push(+procesadoReal.toFixed(1));
-    mermaTotal+=merma; compradoTotal+=g.comprado;
+    mermaTotal+=merma; compradoTotal+=disponible;
   });
   const pctGlobal=compradoTotal>0?(mermaTotal/compradoTotal*100):0;
 
@@ -4869,7 +4952,7 @@ window.renderComprasGraf=function(){
     <div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">% Merma promedio</div><div class="kpi-val">${pctGlobal.toFixed(1)}%</div><div class="kpi-sub">todo el período</div></div>
     <div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">Merma total</div><div class="kpi-val">${(+mermaTotal.toFixed(0)).toLocaleString('es-AR')}</div><div class="kpi-sub">kg</div></div>
     ${pCarne?`<div class="kpi kpi-sm" style="--ac:#ef4444"><div class="kpi-label">Merma total $</div><div class="kpi-val" style="font-size:20px">${ARS(mermaTotal*pCarne)}</div><div class="kpi-sub">al precio actual</div></div>`:''}
-    <div class="kpi kpi-sm" style="--ac:var(--accent)"><div class="kpi-label">Comprado total</div><div class="kpi-val">${(+compradoTotal.toFixed(0)).toLocaleString('es-AR')}</div><div class="kpi-sub">kg</div></div>
+    <div class="kpi kpi-sm" style="--ac:var(--accent)"><div class="kpi-label">Disponible total (Comprado + Inicial)</div><div class="kpi-val">${(+compradoTotal.toFixed(0)).toLocaleString('es-AR')}</div><div class="kpi-sub">kg</div></div>
   `;
 
   Object.values(comprasCH).forEach(c=>{try{c.destroy()}catch(e){}}); comprasCH={};
@@ -4878,7 +4961,7 @@ window.renderComprasGraf=function(){
   if(elMerma) comprasCH.merma=new Chart(elMerma,{type:'line',data:{labels,datasets:[{label:'% Merma',data:serieMerma,borderColor:'#ef4444',backgroundColor:'#ef444433',borderWidth:2,fill:true,tension:.25,pointRadius:3}]},options:COPT});
   const elComp=document.getElementById('compras-ch-comparado');
   if(elComp) comprasCH.comparado=new Chart(elComp,{type:'bar',data:{labels,datasets:[
-    {label:'Comprado',data:serieComprado,backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5,borderRadius:4},
+    {label:'Disponible (Comprado+Inicial)',data:serieComprado,backgroundColor:'#FF9F1C99',borderColor:'#FF9F1C',borderWidth:1.5,borderRadius:4},
     {label:'Producido real',data:serieProcesado,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4}
   ]},options:COPT});
 };
@@ -4889,7 +4972,8 @@ window.exportComprasExcel=function(){
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(r=>{
     const c=calcMermaRow(r);
     return {
-      'Fecha':r.fecha,'Comprado kg':c.comprado,'Despachado kg':+c.despachado.toFixed(2),
+      'Fecha':r.fecha,'Comprado kg':c.comprado,'Stock inicial semana kg':c.stockInicial,'Disponible kg':+c.disponible.toFixed(2),
+      'Despachado kg':+c.despachado.toFixed(2),
       'Depósito kg':c.depositoHoy,'Variación depósito kg':+c.deltaDep.toFixed(2),'Producido real kg':+c.procesadoReal.toFixed(2),
       'Stock final carne kg':c.stock,'Merma kg':+c.merma.toFixed(2),'Merma %':+c.pct.toFixed(1),
       'Merma $':pCarne?+(c.merma*pCarne).toFixed(2):''
@@ -4909,7 +4993,7 @@ window.exportComprasPDF=function(){
   const rows=[...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
   const body=rows.map(r=>{
     const c=calcMermaRow(r);
-    return [r.fecha, c.comprado.toLocaleString('es-AR'), (+c.despachado.toFixed(1)).toLocaleString('es-AR'),
+    return [r.fecha, c.comprado.toLocaleString('es-AR'), c.stockInicial.toLocaleString('es-AR'), (+c.despachado.toFixed(1)).toLocaleString('es-AR'),
       c.depositoHoy.toLocaleString('es-AR')+' ('+(c.deltaDep>=0?'+':'')+(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')+')',
       (+c.procesadoReal.toFixed(1)).toLocaleString('es-AR'), c.stock.toLocaleString('es-AR'),
       (+c.merma.toFixed(1)).toLocaleString('es-AR'), c.pct.toFixed(1)+'%', pCarne?ARS(c.merma*pCarne):'—'];
@@ -4919,7 +5003,7 @@ window.exportComprasPDF=function(){
   doc.setFontSize(9);doc.setTextColor(120);doc.text('Generado '+new Date().toLocaleString('es-AR'),14,21);
   doc.autoTable({
     startY:26,
-    head:[['Fecha','Comprado (kg)','Despachado (kg)','Depósito (var.)','Producido real (kg)','Stock final carne (kg)','Merma (kg)','Merma %','Merma $']],
+    head:[['Fecha','Comprado (kg)','Stock inicial sem. (kg)','Despachado (kg)','Depósito (var.)','Producido real (kg)','Stock final carne (kg)','Merma (kg)','Merma %','Merma $']],
     body,
     styles:{fontSize:8},
     headStyles:{fillColor:[38,38,58],textColor:255},
