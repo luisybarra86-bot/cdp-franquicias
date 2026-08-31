@@ -4557,13 +4557,18 @@ function sumProcCombinado(fecha){
 }
 
 // Stock de depósito de medallones guardado en el registro más reciente ANTERIOR
-// a `fecha` (saldo corrido). Si no hay registro previo, se toma como 0.
+// a `fecha` (saldo corrido). Si no hay ningún registro previo (primera carga
+// real, sin historial todavía), devuelve null — no hay que asumir que el
+// depósito venía en 0, porque eso inventaría una "producción" falsa con todo
+// lo que ya hubiera físicamente guardado antes de empezar a usar el sistema.
 function depositoAntes(fecha){
   const prev=[...COMPRAS_DB].filter(r=>r.fecha<fecha).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
-  return prev?(prev.deposito_kg||0):0;
+  return prev?(prev.deposito_kg||0):null;
 }
 function deltaDeposito(fecha,depositoHoy){
-  return (depositoHoy||0)-depositoAntes(fecha);
+  const antes=depositoAntes(fecha);
+  if(antes===null) return 0; // primera carga real: no hay con qué comparar, variación neutra
+  return (depositoHoy||0)-antes;
 }
 
 // Toda la carne comprada se transforma en medallones (no queda materia
@@ -4765,6 +4770,14 @@ function sumProcCombinadoRange(desde,hasta){
 // contra el depósito de justo antes de que arrancara el período (mismo
 // criterio que el cálculo diario). No hay "stock final de carne": toda la
 // materia prima comprada se transforma en medallones, no queda cruda.
+// Variación de depósito de un período (semana/mes) ya agrupado: si no hay
+// ningún registro anterior al período (primera carga real), la variación es
+// neutra (0) en vez de inventar una producción falsa con todo el depósito.
+function deltaDepositoPeriodo(g){
+  const antes=depositoAntes(g.primeraFecha);
+  return antes===null?0:(g.depositoFinal-antes);
+}
+
 function agruparCompras(keyFn){
   const grupos={};
   [...COMPRAS_DB].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(r=>{
@@ -4793,7 +4806,7 @@ window.renderComprasSem=function(){
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
     const despachado=sumProcCombinadoRange(desde,hasta);
-    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const deltaDep=deltaDepositoPeriodo(g);
     const producido=despachado+deltaDep;
     const merma=Math.max(g.comprado-producido,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
@@ -4835,7 +4848,7 @@ window.renderComprasMes=function(){
     const hasta=`${m}-${String(ultimoDia).padStart(2,'0')}`;
     const g=grupos[m];
     const despachado=sumProcCombinadoRange(desde,hasta);
-    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const deltaDep=deltaDepositoPeriodo(g);
     const producido=despachado+deltaDep;
     const merma=Math.max(g.comprado-producido,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
@@ -4874,7 +4887,7 @@ window.renderComprasGraf=function(){
     const desde=wk, hasta=wkE.toISOString().slice(0,10);
     const g=grupos[wk];
     const despachado=sumProcCombinadoRange(desde,hasta);
-    const deltaDep=g.depositoFinal-depositoAntes(g.primeraFecha);
+    const deltaDep=deltaDepositoPeriodo(g);
     const producido=despachado+deltaDep;
     const merma=Math.max(g.comprado-producido,0);
     const pct=g.comprado>0?(merma/g.comprado*100):0;
