@@ -1814,8 +1814,10 @@ if('serviceWorker' in navigator){
         <span id="compras-semana-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;max-width:500px">
-        <div class="ff"><span>¿Cuánta carne se compró?</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
-        <div class="ff"><span>¿Cuántos medallones hay guardados ahora?</span><input type="number" id="compras-f-deposito" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>¿Cuánta carne se compró? (kg)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span>¿Cuántos medallones hay guardados ahora? (unidades, 90g c/u)</span><input type="number" id="compras-f-deposito" min="0" step="1" placeholder="0" oninput="calcCompraMerma()">
+          <span style="font-size:11px;color:var(--text3)">= <span id="compras-deposito-kg">0.0</span> kg</span>
+        </div>
       </div>
       <div class="calc-box" style="margin-top:14px;margin-bottom:0;max-width:600px">
         <div class="calc-head"><span>Dato</span><span style="text-align:center"></span><span>Kg</span></div>
@@ -4574,16 +4576,23 @@ function deltaDeposito(fecha,depositoHoy){
 // Toda la carne comprada se transforma en medallones (no queda materia
 // prima cruda en stock) — por eso la merma sale directo de comparar lo
 // comprado contra lo producido, sin "stock final de carne" de por medio.
+// El depósito se carga en UNIDADES de medallón (90g c/u) — igual que en el
+// resto del sistema — y se convierte a kg antes de usarlo en la fórmula.
+const MEDALLON_G=90;
+function medallonesAKg(unidades){ return (unidades*MEDALLON_G)/1000; }
+
 window.calcCompraMerma=function(){
   const fecha=document.getElementById('compras-f-fecha').value;
   const comprado=parseFloat(document.getElementById('compras-f-comprado').value)||0;
-  const depositoHoy=parseFloat(document.getElementById('compras-f-deposito').value)||0;
+  const depositoUnidades=parseFloat(document.getElementById('compras-f-deposito').value)||0;
+  const depositoHoy=medallonesAKg(depositoUnidades);
   const despachado=fecha?sumProcCombinado(fecha):0;
   const deltaDep=fecha?deltaDeposito(fecha,depositoHoy):0;
   const producido=despachado+deltaDep;
   const merma=Math.max(comprado-producido,0);
   const pct=comprado>0?(merma/comprado*100):0;
   const pCarne=PRECIOS_ACTUALES.precio_carne||0;
+  const elKg=document.getElementById('compras-deposito-kg'); if(elKg) elKg.textContent=depositoHoy.toFixed(1);
   const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+despachado.toFixed(1)).toLocaleString('es-AR');
   const elD=document.getElementById('compras-calc-deltadep'); if(elD) elD.textContent=(deltaDep>=0?'+':'')+(+deltaDep.toFixed(1)).toLocaleString('es-AR');
   const elR=document.getElementById('compras-calc-realprod'); if(elR) elR.textContent=(+producido.toFixed(1)).toLocaleString('es-AR');
@@ -4594,12 +4603,13 @@ window.calcCompraMerma=function(){
 // Cálculo completo de una fila guardada (historial, exports) — misma lógica que calcCompraMerma.
 function calcMermaRow(r){
   const comprado=r.comprado_kg||0, depositoHoy=r.deposito_kg||0;
+  const depositoUnidades=r.deposito_unidades??Math.round(depositoHoy/(MEDALLON_G/1000));
   const despachado=sumProcCombinado(r.fecha);
   const deltaDep=deltaDeposito(r.fecha,depositoHoy);
   const producido=despachado+deltaDep;
   const merma=Math.max(comprado-producido,0);
   const pct=comprado>0?(merma/comprado*100):0;
-  return {comprado,depositoHoy,despachado,deltaDep,producido,merma,pct};
+  return {comprado,depositoHoy,depositoUnidades,despachado,deltaDep,producido,merma,pct};
 }
 
 let comprasEditingId=null;
@@ -4611,7 +4621,7 @@ window.checkExistingCompra=function(){
   if(match){
     comprasEditingId=match._id;
     document.getElementById('compras-f-comprado').value=match.comprado_kg??'';
-    document.getElementById('compras-f-deposito').value=match.deposito_kg??'';
+    document.getElementById('compras-f-deposito').value=match.deposito_unidades??'';
     document.getElementById('compras-btn-guardar').innerHTML='💾 Actualizar';
   } else {
     comprasEditingId=null;
@@ -4632,10 +4642,12 @@ window.guardarCompra=async function(){
   const btn=document.getElementById('compras-btn-guardar');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Guardando...';
   try{
+    const depositoUnidades=parseFloat(depositoVal)||0;
     await setDoc(doc(db,'compras_carne',fecha),{
       fecha,
       comprado_kg:parseFloat(compradoVal)||0,
-      deposito_kg:parseFloat(depositoVal)||0,
+      deposito_unidades:depositoUnidades,
+      deposito_kg:medallonesAKg(depositoUnidades),
       createdAt:new Date().toISOString(),
       source:'web'
     });
@@ -4728,7 +4740,7 @@ window.renderCompras=function(){
       <td>${r.fecha||'—'}</td>
       <td>${c.comprado.toLocaleString('es-AR')} kg</td>
       <td>${(+c.despachado.toFixed(1)).toLocaleString('es-AR')} kg</td>
-      <td style="color:#3b82f6">${c.depositoHoy.toLocaleString('es-AR')} kg <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
+      <td style="color:#3b82f6">${c.depositoUnidades.toLocaleString('es-AR')} u (${(+c.depositoHoy.toFixed(1)).toLocaleString('es-AR')} kg) <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
       <td style="color:#3b82f6">${(+c.producido.toFixed(1)).toLocaleString('es-AR')} kg</td>
       <td style="color:#ef4444">${(+c.merma.toFixed(1)).toLocaleString('es-AR')}</td>
       <td style="color:#ef4444">${c.pct.toFixed(1)}%</td>
@@ -4925,7 +4937,8 @@ window.exportComprasExcel=function(){
     const c=calcMermaRow(r);
     return {
       'Fecha':r.fecha,'Comprado kg':c.comprado,'Despachado kg':+c.despachado.toFixed(2),
-      'Depósito kg':c.depositoHoy,'Variación depósito kg':+c.deltaDep.toFixed(2),'Producido kg':+c.producido.toFixed(2),
+      'Depósito (unidades)':c.depositoUnidades,'Depósito kg':+c.depositoHoy.toFixed(2),
+      'Variación depósito kg':+c.deltaDep.toFixed(2),'Producido kg':+c.producido.toFixed(2),
       'Merma kg':+c.merma.toFixed(2),'Merma %':+c.pct.toFixed(1),
       'Merma $':pCarne?+(c.merma*pCarne).toFixed(2):''
     };
@@ -4945,7 +4958,7 @@ window.exportComprasPDF=function(){
   const body=rows.map(r=>{
     const c=calcMermaRow(r);
     return [r.fecha, c.comprado.toLocaleString('es-AR'), (+c.despachado.toFixed(1)).toLocaleString('es-AR'),
-      c.depositoHoy.toLocaleString('es-AR')+' ('+(c.deltaDep>=0?'+':'')+(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')+')',
+      c.depositoUnidades.toLocaleString('es-AR')+' u ('+(+c.depositoHoy.toFixed(1)).toLocaleString('es-AR')+' kg, '+(c.deltaDep>=0?'+':'')+(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')+')',
       (+c.producido.toFixed(1)).toLocaleString('es-AR'),
       (+c.merma.toFixed(1)).toLocaleString('es-AR'), c.pct.toFixed(1)+'%', pCarne?ARS(c.merma*pCarne):'—'];
   });
@@ -4954,7 +4967,7 @@ window.exportComprasPDF=function(){
   doc.setFontSize(9);doc.setTextColor(120);doc.text('Generado '+new Date().toLocaleString('es-AR'),14,21);
   doc.autoTable({
     startY:26,
-    head:[['Fecha','Comprado (kg)','Despachado (kg)','Depósito (var.)','Producido (kg)','Merma (kg)','Merma %','Merma $']],
+    head:[['Fecha','Comprado (kg)','Despachado (kg)','Depósito (u / kg / var.)','Producido (kg)','Merma (kg)','Merma %','Merma $']],
     body,
     styles:{fontSize:8},
     headStyles:{fillColor:[38,38,58],textColor:255},
