@@ -1814,8 +1814,8 @@ if('serviceWorker' in navigator){
         <span id="compras-semana-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;max-width:500px">
-        <div class="ff"><span>¿Cuánta carne se compró? (kg)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
-        <div class="ff"><span>¿Cuántos medallones hay guardados ahora? (unidades, 90g c/u)</span><input type="number" id="compras-f-deposito" min="0" step="1" placeholder="0" oninput="calcCompraMerma()">
+        <div class="ff"><span style="min-height:22px;display:block">¿Cuánta carne se compró? (kg)</span><input type="number" id="compras-f-comprado" min="0" step="0.1" placeholder="0" oninput="calcCompraMerma()"></div>
+        <div class="ff"><span style="min-height:22px;display:block">¿Cuántos medallones hay guardados ahora? (unidades, 90g c/u)</span><input type="number" id="compras-f-deposito" min="0" step="1" placeholder="0" oninput="calcCompraMerma()">
           <span style="font-size:11px;color:var(--text3)">= <span id="compras-deposito-kg">0.0</span> kg</span>
         </div>
       </div>
