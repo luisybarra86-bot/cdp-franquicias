@@ -4596,7 +4596,8 @@ window.calcCompraMerma=function(){
   const elP=document.getElementById('compras-calc-procesado'); if(elP) elP.textContent=(+despachado.toFixed(1)).toLocaleString('es-AR');
   const elD=document.getElementById('compras-calc-deltadep'); if(elD) elD.textContent=(deltaDep>=0?'+':'')+(+deltaDep.toFixed(1)).toLocaleString('es-AR');
   const elR=document.getElementById('compras-calc-realprod'); if(elR) elR.textContent=(+producido.toFixed(1)).toLocaleString('es-AR');
-  const elM=document.getElementById('compras-calc-merma'); if(elM) elM.textContent=`${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pct.toFixed(1)}%)`;
+  const pctTxt=comprado>0?`${pct.toFixed(1)}%`:(merma>0?'sin Comprado — no se puede sacar %':'0.0%');
+  const elM=document.getElementById('compras-calc-merma'); if(elM) elM.textContent=`${(+merma.toFixed(1)).toLocaleString('es-AR')} kg (${pctTxt})`;
   const elA=document.getElementById('compras-calc-merma-ars'); if(elA) elA.textContent=pCarne?ARS(merma*pCarne):'Sin precio configurado';
 };
 
@@ -4743,7 +4744,7 @@ window.renderCompras=function(){
       <td style="color:#3b82f6">${c.depositoUnidades.toLocaleString('es-AR')} u (${(+c.depositoHoy.toFixed(1)).toLocaleString('es-AR')} kg) <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
       <td style="color:#3b82f6">${(+c.producido.toFixed(1)).toLocaleString('es-AR')} kg</td>
       <td style="color:#ef4444">${(+c.merma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${c.pct.toFixed(1)}%</td>
+      <td style="color:#ef4444">${c.comprado>0?c.pct.toFixed(1)+'%':(c.merma>0?'— (sin Comprado)':'0.0%')}</td>
       <td style="color:#ef4444">${pCarne?ARS(c.merma*pCarne):'—'}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editCompra('${r._id}')">✏️</button><button class="btn btn-del" onclick="delCompra('${r._id}')">🗑</button></td>
     </tr>`;
