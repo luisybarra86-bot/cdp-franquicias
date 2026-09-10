@@ -4583,8 +4583,23 @@ function medallonesAKg(unidades){ return (unidades*MEDALLON_G)/1000; }
 
 window.calcCompraMerma=function(){
   const fecha=document.getElementById('compras-f-fecha').value;
-  const comprado=parseFloat(document.getElementById('compras-f-comprado').value)||0;
-  const depositoUnidades=parseFloat(document.getElementById('compras-f-deposito').value)||0;
+  const compradoStr=document.getElementById('compras-f-comprado').value;
+  const depositoStr=document.getElementById('compras-f-deposito').value;
+  const elKg0=document.getElementById('compras-deposito-kg');
+  // Si todavía no se cargó NADA del día (los dos campos vacíos), no mostrar
+  // ningún cálculo — evita la falsa alarma de "faltan $X de merma" cuando en
+  // realidad es solo que el formulario está en blanco, esperando datos.
+  if(compradoStr===''&&depositoStr===''){
+    if(elKg0) elKg0.textContent='0.0';
+    ['compras-calc-procesado','compras-calc-deltadep','compras-calc-realprod'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.textContent='—';
+    });
+    const elM0=document.getElementById('compras-calc-merma'); if(elM0) elM0.textContent='Completá los datos de hoy para ver el cálculo';
+    const elA0=document.getElementById('compras-calc-merma-ars'); if(elA0) elA0.textContent='—';
+    return;
+  }
+  const comprado=parseFloat(compradoStr)||0;
+  const depositoUnidades=parseFloat(depositoStr)||0;
   const depositoHoy=medallonesAKg(depositoUnidades);
   const despachado=fecha?sumProcCombinado(fecha):0;
   const deltaDep=fecha?deltaDeposito(fecha,depositoHoy):0;
