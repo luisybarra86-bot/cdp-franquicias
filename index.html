@@ -4801,9 +4801,13 @@ function sumProcCombinadoRange(desde,hasta){
 // Variación de depósito de un período (semana/mes) ya agrupado: si no hay
 // ningún registro anterior al período (primera carga real), la variación es
 // neutra (0) en vez de inventar una producción falsa con todo el depósito.
+// Variación de depósito de un período = SUMA de la variación de cada día que
+// lo compone (cada una ya se calcula bien, día contra el día anterior). Esto
+// evita el bug de "primer período sin historial": antes se saltaba directo
+// del inicio del período al final y, al no encontrar nada anterior a TODO
+// el período, se descartaba el crecimiento real ya trackeado día a día.
 function deltaDepositoPeriodo(g){
-  const antes=depositoAntes(g.primeraFecha);
-  return antes===null?0:(g.depositoFinal-antes);
+  return g.dias.reduce((s,d)=>s+deltaDeposito(d.fecha,d.deposito_kg||0),0);
 }
 
 function agruparCompras(keyFn){
