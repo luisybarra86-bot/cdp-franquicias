@@ -3475,14 +3475,14 @@ window.renderReg=function(){
         <table>
           <thead><tr>
             <th>Fecha</th><th>Proc. kg</th>
-            <th>Med 90g</th><th>Bol 90g</th><th>Med 75g</th><th></th>
+            <th>Med 90g</th><th>Bol 90g</th><th></th>
           </tr></thead>
           <tbody>${rows.map(r=>{
             const rProc=r.proc_kg||0;
             return `<tr>
             <td>${r.fecha}</td>
             <td style="color:#22c55e;font-weight:600">${rProc}</td>
-            <td>${r.med110||0}</td><td>${r.bol110||0}</td><td>${r.med75||0}</td>
+            <td>${r.med110||0}</td><td>${r.bol110||0}</td>
             <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editReg('${r._id}')">✏️</button><button class="btn btn-del" onclick="delReg('${r._id}')">🗑</button></td>
           </tr>`;
           }).join('')}</tbody>
@@ -3548,7 +3548,6 @@ function renderSem(){
           <div class="wstat"><span class="wstat-l">Procesado kg</span><span class="wstat-v" style="color:${col}">${sum(rows,'proc_kg').toFixed(1)}</span></div>
           <div class="wstat"><span class="wstat-l">Medallón ${gramaje}</span><span class="wstat-v">${fmt(sum(rows,'med110'))}</span></div>
           <div class="wstat"><span class="wstat-l">Bolita ${gramaje}</span><span class="wstat-v">${fmt(sum(rows,'bol110'))}</span></div>
-          <div class="wstat"><span class="wstat-l">Medallón 75g</span><span class="wstat-v">${fmt(sum(rows,'med75'))}</span></div>
         </div></div>`;
       } else {
         html+=`<div class="wcard">
@@ -3603,7 +3602,7 @@ function renderMes(){
         </div>`;
       }).join('')}</div>
       <div class="card"><div class="tbl-wrap"><table>
-        <thead><tr><th>Sucursal</th><th>Días</th><th>Procesado kg</th><th>Med ${gramajeMes}</th><th>Bol ${gramajeMes}</th><th>Med 75</th></tr></thead>
+        <thead><tr><th>Sucursal</th><th>Días</th><th>Procesado kg</th><th>Med ${gramajeMes}</th><th>Bol ${gramajeMes}</th></tr></thead>
         <tbody>${SUCS.map(suc=>{
           const sr=rows.filter(r=>r.sucursal===suc);if(!sr.length)return'';
           const proc=sum(sr,'proc_kg');
@@ -3611,7 +3610,6 @@ function renderMes(){
             <td><span class="pill ${SL[suc]}">${suc}</span></td>
             <td>${sr.length}</td><td>${proc.toFixed(1)}</td>
             <td>${fmt(sum(sr,'med110'))}</td><td>${fmt(sum(sr,'bol110'))}</td>
-            <td>${fmt(sum(sr,'med75'))}</td>
           </tr>`;
         }).join('')}</tbody>
       </table></div></div>`;
@@ -4145,7 +4143,7 @@ window.exportExcel=function(desdeId,hastaId){
   // ── Hoja 1: Registros crudos ──
   const fechaReciente=DATA.reduce((max,r)=>r.fecha>max?r.fecha:max,'');
   const gramajeExcel=fechaReciente>=FECHA_CORTE?'90g':'110g';
-  const raw=DATA.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Medallón 75':r.med75,'Proc. Alita Kg':r.proc_alita,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
+  const raw=DATA.map(r=>({'Fecha':r.fecha,'Sucursal':r.sucursal,'Procesado Kg':r.proc_kg,['Medallón '+gramajeExcel]:r.med110,['Bolita '+gramajeExcel]:r.bol110,'Proc. Alita Kg':r.proc_alita,'Proc. Pechuga Kg':r.proc_pechuga,'Alitas':r.alitas,'Filet':r.filet,'Pop Corns':r.popCorns,'Tiras':r.tiras}));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(raw),'Registros');
   const byW=groupBy(DATA.filter(r=>weekKey(r.fecha)),r=>weekKey(r.fecha));
   const weeks=Object.keys(byW).filter(wk=>wk&&wk!=='null').sort();
@@ -4183,7 +4181,7 @@ window.exportExcel=function(desdeId,hastaId){
     const rows=DATA.filter(r=>r.sucursal===suc&&monthKey(r.fecha)===m);
     if(!rows.length)return;
     const gramajeM=(rows[0]?.fecha||'')>=FECHA_CORTE?'90g':'110g';
-    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Medallón 75':sum(rows,'med75'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
+    mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
   XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
