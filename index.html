@@ -1866,8 +1866,7 @@ if('serviceWorker' in navigator){
       <table>
         <thead><tr>
           <th>Fecha</th><th>Comprado</th><th>Despachado</th>
-          <th style="color:#3b82f6">Depósito</th><th style="color:#3b82f6">Producido</th>
-          <th style="color:#ef4444">Merma kg</th><th style="color:#ef4444">Merma %</th><th style="color:#ef4444">Merma $</th><th></th>
+          <th style="color:#3b82f6">Depósito</th><th style="color:#3b82f6">Producido</th><th></th>
         </tr></thead>
         <tbody id="compras-tbody"></tbody>
       </table>
@@ -4744,10 +4743,9 @@ window.renderCompras=function(){
   if(!tb) return;
   const rows=[...COMPRAS_DB].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3)">Sin datos cargados todavía.</td></tr>';
     return;
   }
-  const pCarne=PRECIOS_ACTUALES.precio_carne||0;
   tb.innerHTML=rows.map(r=>{
     const c=calcMermaRow(r);
     return `<tr>
@@ -4756,9 +4754,6 @@ window.renderCompras=function(){
       <td>${(+c.despachado.toFixed(1)).toLocaleString('es-AR')} kg</td>
       <td style="color:#3b82f6">${c.depositoUnidades.toLocaleString('es-AR')} u (${(+c.depositoHoy.toFixed(1)).toLocaleString('es-AR')} kg) <span style="color:var(--text3);font-size:10px">(${c.deltaDep>=0?'+':''}${(+c.deltaDep.toFixed(1)).toLocaleString('es-AR')})</span></td>
       <td style="color:#3b82f6">${(+c.producido.toFixed(1)).toLocaleString('es-AR')} kg</td>
-      <td style="color:#ef4444">${(+c.merma.toFixed(1)).toLocaleString('es-AR')}</td>
-      <td style="color:#ef4444">${c.comprado>0?c.pct.toFixed(1)+'%':(c.merma>0?'— (sin Comprado)':'0.0%')}</td>
-      <td style="color:#ef4444">${pCarne?ARS(c.merma*pCarne):'—'}</td>
       <td style="display:flex;gap:5px"><button class="btn-edit" onclick="editCompra('${r._id}')">✏️</button><button class="btn btn-del" onclick="delCompra('${r._id}')">🗑</button></td>
     </tr>`;
   }).join('');
