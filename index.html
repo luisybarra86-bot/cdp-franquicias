@@ -1090,7 +1090,7 @@ if('serviceWorker' in navigator){
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
           <input type="date" id="f-fecha" onchange="checkExistingFranq()" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-          <button onclick="document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);checkExistingFranq()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+          <button onclick="document.getElementById('f-fecha').value=hoyISO();checkExistingFranq()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
         </div>
 
         <select id="f-suc" style="display:none">
@@ -1539,7 +1539,7 @@ if('serviceWorker' in navigator){
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:34px">Fecha</label>
             <input type="date" id="leno-f-fecha" onchange="checkExistingLeno()" style="flex:1;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-            <button onclick="document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);checkExistingLeno()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
+            <button onclick="document.getElementById('leno-f-fecha').value=hoyISO();checkExistingLeno()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
           </div>
 
           <select id="leno-f-suc" style="display:none">
@@ -1911,7 +1911,7 @@ if('serviceWorker' in navigator){
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
         <label style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:60px">Semana</label>
         <input type="date" id="mp-f-semana" onchange="checkExistingMermaPollo()" style="flex:1;max-width:220px;padding:6px 9px;border:1px solid var(--border2);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;outline:none">
-        <button onclick="document.getElementById('mp-f-semana').value=new Date().toISOString().slice(0,10);checkExistingMermaPollo()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">ESTA SEMANA</button>
+        <button onclick="document.getElementById('mp-f-semana').value=hoyISO();checkExistingMermaPollo()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">ESTA SEMANA</button>
         <span id="mp-semana-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div class="g2-form" style="max-width:500px">
@@ -2114,6 +2114,11 @@ function setSyncStatus(s){
   else if(s==='error'){dot.classList.add('error');lbl.textContent='Sin conexión'}
   else{lbl.textContent='Conectando...'}
 }
+
+// "Hoy" en fecha LOCAL (Argentina), no UTC — new Date().toISOString() usa UTC,
+// que va 3hs adelantado: entre las 21:00 y las 23:59 hora local ya devolvía el
+// día siguiente, haciendo que "HOY" cargara con la fecha de mañana.
+function hoyISO(){ return new Date().toLocaleDateString('en-CA'); }
 
 // ── LISTENER — últimos 6 meses por defecto ──
 const _d6m = new Date(); _d6m.setMonth(_d6m.getMonth()-6);
@@ -2394,8 +2399,8 @@ window.calcKgLeno=function(skipProc){
 }
 
 // ── FORM ──
-document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
-document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
+document.getElementById('f-fecha').value=hoyISO();
+document.getElementById('leno-f-fecha').value=hoyISO();
 
 function markError(id){
   const el=document.getElementById(id);
@@ -2625,7 +2630,7 @@ window.limpiar=function(){
    'f-alitas','f-filet','f-popCorns','f-tiras'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-suc').value='';
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
-  document.getElementById('f-fecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f-fecha').value=hoyISO();
   editingId=null;
   document.getElementById('edit-banner').classList.remove('show');
   document.getElementById('cargar-title').textContent='Cargar envío del día';
@@ -3312,7 +3317,7 @@ window.limpiarLeno=function(){
    'leno-f-alita','leno-f-filet','leno-f-popcorns','leno-f-tiras','leno-f-proc-alita','leno-f-proc-filet'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('leno-f-suc').value='';
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
-  document.getElementById('leno-f-fecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('leno-f-fecha').value=hoyISO();
   lenoEditingId=null;
   document.getElementById('leno-edit-banner').classList.remove('show');
   document.getElementById('leno-cargar-title').textContent='Cargar envío del día';
@@ -3419,7 +3424,7 @@ window.renderReg=function(){
   const banner=document.getElementById('reg-old-banner');
   if(banner) banner.style.display=needsOld&&!_extDB?'flex':'none';
   const source=_extDB||DB;
-  const hoyReg=new Date().toISOString().slice(0,10);
+  const hoyReg=hoyISO();
   const rows=source.filter(r=>{
     if(regF!=='ALL'&&r.sucursal!==regF)return false;
     if(desde&&r.fecha<desde)return false;
@@ -3526,7 +3531,7 @@ function renderSem(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
   }
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const byWeek=groupBy(DB.filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
   let html='';
   Object.keys(byWeek).sort().reverse().forEach(wk=>{
@@ -3582,7 +3587,7 @@ function renderMes(){
   if(!DB.length){
     cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
   }
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const byM=groupBy(DB.filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
   let html='';
   Object.keys(byM).sort().reverse().forEach(mk=>{
@@ -3675,7 +3680,7 @@ window.renderGraf=function(){
   const grafDesde=document.getElementById('graf-desde')?.value||'';
   const grafHasta=document.getElementById('graf-hasta')?.value||'';
   const grafSuc=document.getElementById('graf-suc')?.value||'ALL';
-  const hoyG=new Date().toISOString().slice(0,10);
+  const hoyG=hoyISO();
   const GDB=DB.filter(r=>{
     if(grafDesde&&r.fecha<grafDesde)return false;
     if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
@@ -3718,7 +3723,7 @@ window.exportGrafPDF=function(){
   const grafDesde=document.getElementById('graf-desde')?.value||'';
   const grafHasta=document.getElementById('graf-hasta')?.value||'';
   const grafSuc=document.getElementById('graf-suc')?.value||'ALL';
-  const hoyG=new Date().toISOString().slice(0,10);
+  const hoyG=hoyISO();
   const GDB=DB.filter(r=>{
     if(grafDesde&&r.fecha<grafDesde)return false;
     if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
@@ -3839,7 +3844,7 @@ window.setLenoRegF=function(s,btn){
 window.renderLenoRegistros=function(){
   const desde=document.getElementById('leno-reg-desde')?.value||'';
   const hasta=document.getElementById('leno-reg-hasta')?.value||'';
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const rows=LENO_DB.filter(r=>{
     if(lenoRegF!=='ALL'&&r.sucursal!==lenoRegF)return false;
     if(desde&&r.fecha<desde)return false;
@@ -3895,7 +3900,7 @@ window.renderLenoSem=function(){
   if(!filtered.length){
     cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
   }
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const byWeek=groupBy(filtered.filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
   let html='';
   Object.keys(byWeek).sort().reverse().forEach(wk=>{
@@ -3954,7 +3959,7 @@ window.renderLenoMes=function(){
   if(!filtered.length){
     cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
   }
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const byM=groupBy(filtered.filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
   let html='';
   Object.keys(byM).sort().reverse().forEach(mk=>{
@@ -4033,7 +4038,7 @@ window.renderLenoGraf=function(){
   const grafDesde=document.getElementById('leno-graf-desde')?.value||'';
   const grafHasta=document.getElementById('leno-graf-hasta')?.value||'';
   const grafSuc=document.getElementById('leno-graf-suc')?.value||'ALL';
-  const hoyG=new Date().toISOString().slice(0,10);
+  const hoyG=hoyISO();
   const GDB=LENO_DB.filter(r=>{
     if(grafDesde&&r.fecha<grafDesde)return false;
     if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
@@ -4183,7 +4188,7 @@ window.exportExcel=function(desdeId,hastaId){
     mesD.push({'Mes':m,'Sucursal':suc,'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),['Medallón '+gramajeM]:sum(rows,'med110'),['Bolita '+gramajeM]:sum(rows,'bol110'),'Proc. Alita Kg':sum(rows,'proc_alita').toFixed(1),'Proc. Pechuga Kg':sum(rows,'proc_pechuga').toFixed(1),'Alitas':sum(rows,'alitas'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
-  XLSX.writeFile(wb,`CDP_Franquicias_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_Franquicias_${hoyISO()}.xlsx`);
   toast('✅ Excel descargado');
 }
 
@@ -4236,7 +4241,7 @@ window.exportLenoExcel=function(desdeId,hastaId){
     mesD.push({'Mes':m,'Ubicación':LENO_LABEL[suc],'Días':rows.length,'Procesado Kg':sum(rows,'proc_kg').toFixed(1),'Medallón 90g':sum(rows,'med90'),'Bolita 90g':sum(rows,'bol90'),'Proc. Alita Kg':sum(rows,'procesado_alita').toFixed(1),'Proc. Filet Kg':sum(rows,'procesado_filet').toFixed(1),'Alitas':sum(rows,'alita'),'Filet':sum(rows,'filet'),'Pop Corns':sum(rows,'popCorns'),'Tiras':sum(rows,'tiras')});
   })});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mesD),'Resumen Mensual');
-  XLSX.writeFile(wb,`CDP_LenoSRL_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_LenoSRL_${hoyISO()}.xlsx`);
   toast('✅ Excel descargado');
 }
 
@@ -4368,7 +4373,7 @@ window.exportCobro=function(){
     row['Total $']=+totS.toFixed(2);semRows.push(row);
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
-  XLSX.writeFile(wb,`CDP_Cobro_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_Cobro_${hoyISO()}.xlsx`);
   toast('✅ Excel de cobro descargado');
 }
 
@@ -4498,7 +4503,7 @@ window.exportCobroPDF=function(suc){
   doc.setTextColor(180,180,180);doc.setFontSize(7);doc.setFont('helvetica','bold');doc.text('LENO CDP',M,H-3.5);
   doc.setFont('helvetica','normal');doc.setFontSize(6.5);
   doc.text('Documento generado automaticamente  |  CDP Franquicias',W-M,H-3.5,{align:'right'});
-  doc.save('LENO_CDP_Cobro_'+nombre.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+  doc.save('LENO_CDP_Cobro_'+nombre.replace(/\s+/g,'_')+'_'+hoyISO()+'.pdf');
   toast('PDF '+nombre+' descargado');
 }
 window.exportManoObra=function(){
@@ -4524,7 +4529,7 @@ window.exportManoObra=function(){
     row['Total $']=+(totS*precio).toFixed(2);semRows.push(row);
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(semRows),'Detalle Semanal');
-  XLSX.writeFile(wb,`CDP_ManoObra_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_ManoObra_${hoyISO()}.xlsx`);
   toast('✅ Excel mano de obra descargado');
 }
 
@@ -4689,7 +4694,7 @@ window.guardarCompra=async function(){
 window.limpiarCompra=function(){
   document.getElementById('compras-f-comprado').value='';
   document.getElementById('compras-f-deposito').value='';
-  document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('compras-f-fecha').value=hoyISO();
   aplicarLimiteSemanaActual();
   comprasEditingId=null;
   document.getElementById('compras-btn-guardar').innerHTML='💾 Guardar';
@@ -4729,7 +4734,7 @@ window.editCompra=function(id){
 // curso. Al llegar el lunes siguiente, la semana pasada queda cerrada sola
 // (deja de poder elegirse) y arranca una nueva con el acumulado en 0.
 function aplicarLimiteSemanaActual(){
-  const hoy=new Date().toISOString().slice(0,10);
+  const hoy=hoyISO();
   const monday=weekKey(hoy);
   const {hasta}=semanaRango(monday);
   const inp=document.getElementById('compras-f-fecha');
@@ -4740,7 +4745,7 @@ function aplicarLimiteSemanaActual(){
 }
 
 window.compraHoy=function(){
-  document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('compras-f-fecha').value=hoyISO();
   aplicarLimiteSemanaActual();
   checkExistingCompra();
 };
@@ -4748,7 +4753,7 @@ window.compraHoy=function(){
 window.renderCompras=function(){
   aplicarLimiteSemanaActual();
   if(!document.getElementById('compras-f-fecha').value){
-    document.getElementById('compras-f-fecha').value=new Date().toISOString().slice(0,10);
+    document.getElementById('compras-f-fecha').value=hoyISO();
     checkExistingCompra();
   } else {
     calcCompraMerma();
@@ -4972,7 +4977,7 @@ window.exportComprasExcel=function(){
   });
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Merma diaria');
-  XLSX.writeFile(wb,`CDP_Merma_Carne_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`CDP_Merma_Carne_${hoyISO()}.xlsx`);
   toast('✅ Excel descargado');
 };
 
@@ -5000,7 +5005,7 @@ window.exportComprasPDF=function(){
     headStyles:{fillColor:[38,38,58],textColor:255},
     alternateRowStyles:{fillColor:[245,245,250]}
   });
-  doc.save(`CDP_Merma_Carne_${new Date().toISOString().slice(0,10)}.pdf`);
+  doc.save(`CDP_Merma_Carne_${hoyISO()}.pdf`);
   toast('✅ PDF descargado');
 };
 
@@ -5114,7 +5119,7 @@ window.guardarMermaPollo=async function(){
 window.limpiarMermaPollo=function(){
   document.getElementById('mp-f-desp-alita').value='';
   document.getElementById('mp-f-desp-filet').value='';
-  document.getElementById('mp-f-semana').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mp-f-semana').value=hoyISO();
   mpEditingId=null;
   document.getElementById('mp-btn-guardar').innerHTML='💾 Guardar';
   calcMermaPollo();
@@ -5148,7 +5153,7 @@ window.editMermaPollo=function(id){
 
 window.renderMermaPollo=function(){
   if(!document.getElementById('mp-f-semana').value){
-    document.getElementById('mp-f-semana').value=new Date().toISOString().slice(0,10);
+    document.getElementById('mp-f-semana').value=hoyISO();
   }
   calcMermaPollo();
   const tb=document.getElementById('mp-tbody');
