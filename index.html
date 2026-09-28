@@ -1542,15 +1542,16 @@ if('serviceWorker' in navigator){
             <button onclick="document.getElementById('leno-f-fecha').value=hoyISO();checkExistingLeno()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
           </div>
 
+          <!-- Barrio Norte dejó de operar — se oculta acá para no permitir cargar
+               envíos nuevos, pero sigue disponible en Registros/Semanal/Mensual/
+               Gráficos/Exports para consultar lo ya cargado. -->
           <select id="leno-f-suc" style="display:none">
             <option value="">— Elegir —</option>
-            <option value="BARRIO NORTE">BARRIO NORTE</option>
             <option value="YERBA BUENA">YERBA BUENA</option>
             <option value="TAFI VIEJO">TAFI VIEJO</option>
             <option value="EVENTOS">EVENTOS</option>
           </select>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
-            <button class="suc-chip" data-v="BARRIO NORTE" onclick="setSucChipLeno(this)">BN</button>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px">
             <button class="suc-chip" data-v="YERBA BUENA" onclick="setSucChipLeno(this)">YB</button>
             <button class="suc-chip" data-v="TAFI VIEJO" onclick="setSucChipLeno(this)">TV</button>
             <button class="suc-chip" data-v="EVENTOS" onclick="setSucChipLeno(this)">EV</button>
