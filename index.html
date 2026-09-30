@@ -1093,16 +1093,21 @@ if('serviceWorker' in navigator){
           <button onclick="document.getElementById('f-fecha').value=hoyISO();checkExistingFranq()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
         </div>
 
+        <!-- FLIP pasó a ser sucursal de LENO SRL — se saca el botón para no permitir
+             cargar envíos nuevos, pero la <option> se deja (oculta) para que al
+             EDITAR un registro viejo de FLIP el <select> pueda seguir tomando ese
+             valor sin perderlo. Sigue disponible en Registros/Semanal/Mensual/
+             Gráficos/Exports de Franquicias para consultar lo ya cargado. -->
         <select id="f-suc" style="display:none">
           <option value="">— Elegir —</option>
           <option>INDEPENDENCIA</option><option>PERON</option>
-          <option>BARRIO SUR</option><option>FLIP</option><option>PORTAL</option>
+          <option>BARRIO SUR</option><option>PORTAL</option>
+          <option>FLIP</option>
         </select>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
           <button class="suc-chip" data-v="INDEPENDENCIA" onclick="setSucChip(this)">IND</button>
           <button class="suc-chip" data-v="PERON" onclick="setSucChip(this)">PER</button>
           <button class="suc-chip" data-v="BARRIO SUR" onclick="setSucChip(this)">BAR</button>
-          <button class="suc-chip" data-v="FLIP" onclick="setSucChip(this)">FLIP</button>
           <button class="suc-chip" data-v="PORTAL" onclick="setSucChip(this)">POR</button>
         </div>
 
@@ -1542,19 +1547,24 @@ if('serviceWorker' in navigator){
             <button onclick="document.getElementById('leno-f-fecha').value=hoyISO();checkExistingLeno()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px">HOY</button>
           </div>
 
-          <!-- Barrio Norte dejó de operar — se oculta acá para no permitir cargar
-               envíos nuevos, pero sigue disponible en Registros/Semanal/Mensual/
-               Gráficos/Exports para consultar lo ya cargado. -->
+          <!-- Barrio Norte dejó de operar — se saca el botón para no permitir cargar
+               envíos nuevos, pero la <option> se deja (oculta) para que al EDITAR
+               un registro viejo de Barrio Norte el <select> pueda seguir tomando
+               ese valor sin perderlo. Sigue disponible en Registros/Semanal/
+               Mensual/Gráficos/Exports para consultar lo ya cargado. -->
           <select id="leno-f-suc" style="display:none">
             <option value="">— Elegir —</option>
             <option value="YERBA BUENA">YERBA BUENA</option>
             <option value="TAFI VIEJO">TAFI VIEJO</option>
             <option value="EVENTOS">EVENTOS</option>
+            <option value="FLIP">FLIP</option>
+            <option value="BARRIO NORTE">BARRIO NORTE</option>
           </select>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px">
             <button class="suc-chip" data-v="YERBA BUENA" onclick="setSucChipLeno(this)">YB</button>
             <button class="suc-chip" data-v="TAFI VIEJO" onclick="setSucChipLeno(this)">TV</button>
             <button class="suc-chip" data-v="EVENTOS" onclick="setSucChipLeno(this)">EV</button>
+            <button class="suc-chip" data-v="FLIP" onclick="setSucChipLeno(this)">FLIP</button>
           </div>
 
           <div class="form-sec-tabs">
@@ -1650,6 +1660,7 @@ if('serviceWorker' in navigator){
         <option value="YERBA BUENA">Yerba Buena</option>
         <option value="TAFI VIEJO">Tafí Viejo</option>
         <option value="EVENTOS">Eventos</option>
+        <option value="FLIP">Flip</option>
       </select>
     </div>
     <div class="kpi-dash-row" id="leno-kpis"></div>
@@ -1708,6 +1719,7 @@ if('serviceWorker' in navigator){
           <button class="sf-btn" data-s="YERBA BUENA" onclick="setLenoRegF('YERBA BUENA',this)">Yerba Buena</button>
           <button class="sf-btn" data-s="TAFI VIEJO" onclick="setLenoRegF('TAFI VIEJO',this)">Tafí Viejo</button>
           <button class="sf-btn" data-s="EVENTOS" onclick="setLenoRegF('EVENTOS',this)">Eventos</button>
+          <button class="sf-btn" data-s="FLIP" onclick="setLenoRegF('FLIP',this)">Flip</button>
         </div>
       </div>
       <div class="tbl-wrap" style="border-top:none">
@@ -1773,6 +1785,7 @@ if('serviceWorker' in navigator){
           <option value="YERBA BUENA">Yerba Buena</option>
           <option value="TAFI VIEJO">Tafí Viejo</option>
           <option value="EVENTOS">Eventos</option>
+          <option value="FLIP">Flip</option>
         </select>
         <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px">
           <button id="leno-gtipo-all" class="btn-gtipo active" onclick="setLenoGrafTipo('ALL')">Ambos</button>
@@ -3008,8 +3021,8 @@ window.renderLeno=function(){
   if(sucF!=='ALL') cur=cur.filter(r=>r.sucursal===sucF);
 
   const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
-  const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS'];
-  const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos'};
+  const ubicaciones=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS','FLIP'];
+  const NOMBRES={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos','FLIP':'Flip'};
 
   const procCarne=sumF(cur,'proc_kg');
   const procAlita=sumF(cur,'procesado_alita');
@@ -3139,12 +3152,12 @@ window.renderLenoActive=function(){
   }
 };
 
-const LENO_LABEL={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos'};
-const LENO_SUC_COLOR={'BARRIO NORTE':'var(--barn)','YERBA BUENA':'var(--yb)','TAFI VIEJO':'var(--tv)','EVENTOS':'var(--ev)'};
-const LENO_SUC_BG={'BARRIO NORTE':'var(--barn-l)','YERBA BUENA':'var(--yb-l)','TAFI VIEJO':'var(--tv-l)','EVENTOS':'var(--ev-l)'};
-const LENO_PILL={'BARRIO NORTE':'pill-BARN','YERBA BUENA':'pill-YB','TAFI VIEJO':'pill-TV','EVENTOS':'pill-EV'};
+const LENO_LABEL={'BARRIO NORTE':'Barrio Norte','YERBA BUENA':'Yerba Buena','TAFI VIEJO':'Tafí Viejo','EVENTOS':'Eventos','FLIP':'Flip'};
+const LENO_SUC_COLOR={'BARRIO NORTE':'var(--barn)','YERBA BUENA':'var(--yb)','TAFI VIEJO':'var(--tv)','EVENTOS':'var(--ev)','FLIP':'var(--fli)'};
+const LENO_SUC_BG={'BARRIO NORTE':'var(--barn-l)','YERBA BUENA':'var(--yb-l)','TAFI VIEJO':'var(--tv-l)','EVENTOS':'var(--ev-l)','FLIP':'var(--fli-l)'};
+const LENO_PILL={'BARRIO NORTE':'pill-BARN','YERBA BUENA':'pill-YB','TAFI VIEJO':'pill-TV','EVENTOS':'pill-EV','FLIP':'pill-FLI'};
 // Colores en hex (para Chart.js — los canvas no resuelven var(--x), a diferencia del CSS del DOM)
-const LENO_HEX={'BARRIO NORTE':'#3B82F6','YERBA BUENA':'#EAB308','TAFI VIEJO':'#EC4899','EVENTOS':'#14B8A6'};
+const LENO_HEX={'BARRIO NORTE':'#3B82F6','YERBA BUENA':'#EAB308','TAFI VIEJO':'#EC4899','EVENTOS':'#14B8A6','FLIP':'#9B5DE5'};
 
 window.setSucChipLeno=function(btn){
   document.querySelectorAll('#leno-sub-cargar .suc-chip').forEach(c=>c.classList.remove('active'));
@@ -3831,7 +3844,7 @@ window.exportGrafPDF=function(){
 // ── LENO SRL — Registros / Semanal / Mensual / Gráficos (NUEVO) ──
 // Mismos patrones que Franquicias, adaptados a LENO_DB / ubicaciones / campos propios de Leno.
 // ══════════════════════════════════════════════════════════
-const LENO_UBIC=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS'];
+const LENO_UBIC=['BARRIO NORTE','YERBA BUENA','TAFI VIEJO','EVENTOS','FLIP'];
 
 // ── LENO — REGISTROS ──
 let lenoRegF='ALL';
