@@ -1205,7 +1205,6 @@ if('serviceWorker' in navigator){
       <option value="INDEPENDENCIA">Independencia</option>
       <option value="PERON">Perón</option>
       <option value="BARRIO SUR">Barrio Sur</option>
-      <option value="FLIP">Flip</option>
       <option value="PORTAL">Portal</option>
     </select>
   </div>
@@ -1251,7 +1250,6 @@ if('serviceWorker' in navigator){
         <button class="sf-btn" data-s="INDEPENDENCIA" onclick="setRegF('INDEPENDENCIA',this)">Independencia</button>
         <button class="sf-btn" data-s="PERON" onclick="setRegF('PERON',this)">Perón</button>
         <button class="sf-btn" data-s="BARRIO SUR" onclick="setRegF('BARRIO SUR',this)">Barrio Sur</button>
-        <button class="sf-btn" data-s="FLIP" onclick="setRegF('FLIP',this)">Flip</button>
         <button class="sf-btn" data-s="PORTAL" onclick="setRegF('PORTAL',this)">Portal</button>
       </div>
     </div>
@@ -1321,7 +1319,6 @@ if('serviceWorker' in navigator){
         <option value="INDEPENDENCIA">Independencia</option>
         <option value="PERON">Perón</option>
         <option value="BARRIO SUR">Barrio Sur</option>
-        <option value="FLIP">Flip</option>
         <option value="PORTAL">Portal</option>
       </select>
       <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-left:4px">
@@ -1460,7 +1457,6 @@ if('serviceWorker' in navigator){
           <th style="color:var(--ind)">IND kg</th><th style="color:var(--ind)">IND $</th>
           <th style="color:var(--per)">PER kg</th><th style="color:var(--per)">PER $</th>
           <th style="color:var(--bar)">BAR kg</th><th style="color:var(--bar)">BAR $</th>
-          <th style="color:var(--fli)">FLIP kg</th><th style="color:var(--fli)">FLIP $</th>
           <th style="color:var(--por)">POR kg</th><th style="color:var(--por)">POR $</th>
           <th>Total $</th>
         </tr></thead>
@@ -1516,7 +1512,6 @@ if('serviceWorker' in navigator){
           <th style="color:var(--ind)">IND alita</th><th style="color:var(--ind)">IND filet</th><th style="color:var(--ind)">IND $</th>
           <th style="color:var(--per)">PER alita</th><th style="color:var(--per)">PER filet</th><th style="color:var(--per)">PER $</th>
           <th style="color:var(--bar)">BAR alita</th><th style="color:var(--bar)">BAR filet</th><th style="color:var(--bar)">BAR $</th>
-          <th style="color:var(--fli)">FLIP alita</th><th style="color:var(--fli)">FLIP filet</th><th style="color:var(--fli)">FLIP $</th>
           <th style="color:var(--por)">POR alita</th><th style="color:var(--por)">POR filet</th><th style="color:var(--por)">POR $</th>
           <th>Total $</th>
         </tr></thead>
@@ -2093,7 +2088,13 @@ const db  = initializeFirestore(app, {
 });
 const COL = "registros";
 
-const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP','PORTAL'];
+const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','PORTAL'];
+// FLIP pasó a ser sucursal de LENO SRL — se usa en las pantallas de Franquicias
+// (Dashboard, Registros, Semanal, Mensual, Gráficos, Mano de Obra, Cobro) para
+// que ningún registro viejo de FLIP vuelva a aparecer ahí. El cálculo de Merma
+// Carne (sumProcCombinado/Range) sigue usando DB completo, sin este filtro,
+// para no alterar el histórico de despacho ya calculado.
+function dbVisible(){ return DB.filter(r=>r.sucursal!=='FLIP'); }
 const SC={'INDEPENDENCIA':'#FF4B6E','PERON':'#FF9F1C','BARRIO SUR':'#2EC4B6','FLIP':'#9B5DE5','PORTAL':'#FACC15'};
 const SL={'INDEPENDENCIA':'pill-IND','PERON':'pill-PER','BARRIO SUR':'pill-BAR','FLIP':'pill-FLI','PORTAL':'pill-POR'};
 const MN={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
@@ -2852,8 +2853,8 @@ window.renderDashboard=function(){
   const {desde,hasta}=getDashDates();
   const {desde:pDesde,hasta:pHasta}=getPrevDates();
 
-  let cur=DB.filter(r=>r.fecha>=desde&&r.fecha<=hasta);
-  let prev=DB.filter(r=>r.fecha>=pDesde&&r.fecha<=pHasta);
+  let cur=dbVisible().filter(r=>r.fecha>=desde&&r.fecha<=hasta);
+  let prev=dbVisible().filter(r=>r.fecha>=pDesde&&r.fecha<=pHasta);
   if(sucF!=='ALL'){cur=cur.filter(r=>r.sucursal===sucF);prev=prev.filter(r=>r.sucursal===sucF);}
 
   const sumF=(arr,f)=>arr.reduce((s,r)=>s+(r[f]||0),0);
@@ -2917,7 +2918,7 @@ window.renderDashboard=function(){
   animateKpiNumbers(kpisEl);
 
   // Rankings
-  const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','FLIP','PORTAL'];
+  const SUCS=['INDEPENDENCIA','PERON','BARRIO SUR','PORTAL'];
   const COLS={INDEPENDENCIA:'var(--ind)',PERON:'var(--per)','BARRIO SUR':'var(--bar)',FLIP:'var(--fli)',PORTAL:'var(--por)'};
   function rankHtml(items,field,maxVal){
     return items.map((r,i)=>{
@@ -3437,7 +3438,7 @@ window.renderReg=function(){
   const needsOld=desde&&desde<DEFAULT_DESDE;
   const banner=document.getElementById('reg-old-banner');
   if(banner) banner.style.display=needsOld&&!_extDB?'flex':'none';
-  const source=_extDB||DB;
+  const source=(_extDB||DB).filter(r=>r.sucursal!=='FLIP');
   const hoyReg=hoyISO();
   const rows=source.filter(r=>{
     if(regF!=='ALL'&&r.sucursal!==regF)return false;
@@ -3546,7 +3547,7 @@ function renderSem(){
     cont.innerHTML='<div class="empty"><div class="ico">📅</div><p>Cargá registros para ver el resumen semanal.</p></div>';return;
   }
   const hoy=hoyISO();
-  const byWeek=groupBy(DB.filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
+  const byWeek=groupBy(dbVisible().filter(r=>weekKey(r.fecha)&&r.fecha<=hoy),r=>weekKey(r.fecha));
   let html='';
   Object.keys(byWeek).sort().reverse().forEach(wk=>{
     const wkE=new Date(wk+'T00:00:00');wkE.setDate(wkE.getDate()+6);
@@ -3602,7 +3603,7 @@ function renderMes(){
     cont.innerHTML='<div class="empty"><div class="ico">📆</div><p>Cargá registros para ver el resumen mensual.</p></div>';return;
   }
   const hoy=hoyISO();
-  const byM=groupBy(DB.filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
+  const byM=groupBy(dbVisible().filter(r=>monthKey(r.fecha)&&r.fecha<=hoy),r=>monthKey(r.fecha));
   let html='';
   Object.keys(byM).sort().reverse().forEach(mk=>{
     const [yr,mo]=mk.split('-');
@@ -3695,7 +3696,7 @@ window.renderGraf=function(){
   const grafHasta=document.getElementById('graf-hasta')?.value||'';
   const grafSuc=document.getElementById('graf-suc')?.value||'ALL';
   const hoyG=hoyISO();
-  const GDB=DB.filter(r=>{
+  const GDB=dbVisible().filter(r=>{
     if(grafDesde&&r.fecha<grafDesde)return false;
     if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
     if(grafSuc!=='ALL'&&r.sucursal!==grafSuc)return false;
@@ -3738,7 +3739,7 @@ window.exportGrafPDF=function(){
   const grafHasta=document.getElementById('graf-hasta')?.value||'';
   const grafSuc=document.getElementById('graf-suc')?.value||'ALL';
   const hoyG=hoyISO();
-  const GDB=DB.filter(r=>{
+  const GDB=dbVisible().filter(r=>{
     if(grafDesde&&r.fecha<grafDesde)return false;
     if(grafHasta?r.fecha>grafHasta:r.fecha>hoyG)return false;
     if(grafSuc!=='ALL'&&r.sucursal!==grafSuc)return false;
@@ -4096,7 +4097,7 @@ window.renderManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
   const moDesde=document.getElementById('mo-desde')?.value||'';
   const moHasta=document.getElementById('mo-hasta')?.value||'';
-  const DATA=filterByDate(DB,moDesde,moHasta);
+  const DATA=filterByDate(dbVisible(),moDesde,moHasta);
   const cards=document.getElementById('mo-cards');
   const tbody=document.getElementById('mo-tbody');
   const periodo=document.getElementById('mo-periodo');
@@ -4154,7 +4155,7 @@ window.renderManoObra=function(){
 window.exportExcel=function(desdeId,hastaId){
   const desde=desdeId?(document.getElementById(desdeId)?.value||''):'';
   const hasta=hastaId?(document.getElementById(hastaId)?.value||''):'';
-  const DATA=filterByDate(DB,desde,hasta);
+  const DATA=filterByDate(dbVisible(),desde,hasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
 
@@ -4277,7 +4278,7 @@ window.renderCobro=function(){
   const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
-  const DATA=filterByDate(DB,coDesde,coHasta);
+  const DATA=filterByDate(dbVisible(),coDesde,coHasta);
   const cards=document.getElementById('co-cards');
   const tbody=document.getElementById('co-tbody');
   const periodo=document.getElementById('co-periodo');
@@ -4353,7 +4354,7 @@ window.exportCobro=function(){
   const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
-  const DATA=filterByDate(DB,coDesde,coHasta);
+  const DATA=filterByDate(dbVisible(),coDesde,coHasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
   const kgAlita={},kgFilet={};
@@ -4397,7 +4398,7 @@ window.exportCobroPDF=function(suc){
   const coDesde=document.getElementById('co-desde')?.value||'';
   const coHasta=document.getElementById('co-hasta')?.value||'';
   if(!pAlita&&!pFilet){toast('Ingresa al menos un precio por kg primero',false);return}
-  const DATA=filterByDate(DB,coDesde,coHasta).filter(r=>r.sucursal===suc);
+  const DATA=filterByDate(dbVisible(),coDesde,coHasta).filter(r=>r.sucursal===suc);
   if(!DATA.length){toast('No hay datos para esta sucursal en el periodo',false);return}
   if(!window.jspdf){toast('PDF no disponible, recarga la pagina',false);return}
   const {jsPDF}=window.jspdf;
@@ -4524,7 +4525,7 @@ window.exportManoObra=function(){
   const precio=parseFloat(document.getElementById('mo-precio')?.value)||0;
   const moDesde=document.getElementById('mo-desde')?.value||'';
   const moHasta=document.getElementById('mo-hasta')?.value||'';
-  const DATA=filterByDate(DB,moDesde,moHasta);
+  const DATA=filterByDate(dbVisible(),moDesde,moHasta);
   if(!DATA.length){toast('❌ No hay datos para exportar',false);return}
   const wb=XLSX.utils.book_new();
   const kgSuc={};SUCS.forEach(s=>kgSuc[s]=0);
