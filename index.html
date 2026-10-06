@@ -962,6 +962,25 @@ tbody tr{animation:fadeUp .25s ease both}
 .confirm-ok{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3) !important}
 .confirm-ok:hover{background:rgba(239,68,68,.25)}
 
+/* ── IMPORTAR GESDATTA ───────────────────────────────────── */
+#gd-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:9996}
+#gd-modal.open{display:flex}
+.gd-box{background:var(--modal-bg);border:1px solid var(--border2);border-radius:18px;padding:22px;width:min(900px,94vw);max-height:88vh;overflow:auto;box-shadow:0 24px 64px rgba(0,0,0,.55)}
+.gd-box h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;color:var(--text);margin-bottom:4px}
+.gd-sum{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.gd-chip{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text2)}
+.gd-chip b{display:block;font-size:20px;color:var(--text)}
+.gd-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.gd-tbl th,.gd-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.gd-tbl th{color:var(--text3);font-weight:500;font-size:11px}
+.gd-tbl td:first-child,.gd-tbl th:first-child,.gd-tbl td:nth-child(2),.gd-tbl th:nth-child(2){text-align:left}
+.gd-st{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.gd-st.igual{background:rgba(34,197,94,.15);color:#22c55e}
+.gd-st.nuevo{background:rgba(59,130,246,.15);color:#3b82f6}
+.gd-st.dif{background:rgba(255,159,28,.15);color:#FF9F1C}
+.gd-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.gd-btns button{padding:10px 16px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+
 /* ── INPUT ERROR ─────────────────────────────────────────── */
 .input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.18) !important;animation:shake .35s ease}
 .toast.warn{border-left-color:#FF9F1C !important}
@@ -1242,6 +1261,7 @@ if('serviceWorker' in navigator){
         <input class="search-input" type="date" id="reg-hasta" style="width:130px" oninput="renderReg()" title="Hasta">
         <input class="search-input" type="text" id="reg-search" placeholder="Buscar..." oninput="renderReg()">
         <button class="btn btn-excel" onclick="exportExcel()">↓ Excel</button>
+        <button class="btn btn-excel" onclick="gdAbrir()">⇄ Controlar Gesdatta</button>
       </div>
     </div>
     <div style="padding:14px 24px;border-bottom:1px solid var(--border)">
@@ -2036,6 +2056,21 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 
+<!-- IMPORTAR GESDATTA -->
+<div id="gd-modal">
+  <div class="gd-box">
+    <h3>Controlar con Gesdatta</h3>
+    <div style="font-size:12px;color:var(--text2)">Subí el reporte de remitos de venta a franquicias (.xlsx) y se compara contra lo cargado en CDP. No se guarda nada a menos que marques filas y confirmes.</div>
+    <input type="file" id="gd-file" accept=".xlsx,.xls" onchange="gdArchivo(this.files[0])" style="margin-top:12px;font-size:12px;color:var(--text2)">
+    <div id="gd-resumen"></div>
+    <div id="gd-tabla" style="overflow-x:auto"></div>
+    <div class="gd-btns">
+      <button class="confirm-cancel" onclick="gdCerrar()">Cancelar</button>
+      <button class="confirm-ok" id="gd-ok" onclick="gdImportar()" style="display:none;background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)">Importar seleccionados</button>
+    </div>
+  </div>
+</div>
+
 <!-- THEME SCRIPT -->
 <script>
 function setTheme(t){
@@ -2487,6 +2522,131 @@ async function _doGuardar(fecha,suc){
   }
   btn.disabled=false;btn.innerHTML='💾 Guardar en la nube';
 }
+
+
+// ── CONTROL / IMPORT GESDATTA (solo Franquicias: remitos de venta) ──
+// El operario sigue cargando normal en CDP; esto compara el Excel de Gesdatta
+// contra lo cargado y, opcionalmente, importa filas marcadas a mano.
+const GD_SUC={'plaza independencia':'INDEPENDENCIA','av peron':'PERON','barrio sur':'BARRIO SUR','portal':'PORTAL'};
+const GD_ART={'medallon de carne 90grs (und)':'med110','bolita de carne 90gr (und)':'bol110','alitas (kg)':'proc_alita','filet pollo (kg)':'proc_pechuga','alitas de pollo (und)':'alitas','filet de pollo (und)':'filet','pop corn (und)':'popCorns','tiras de pollo (und)':'tiras'};
+const GD_CAMPOS=['proc_kg','med110','bol110','proc_alita','proc_pechuga','alitas','filet','popCorns','tiras'];
+const GD_LBL={proc_kg:'Carne kg',med110:'Medallón',bol110:'Bolita',proc_alita:'Alita kg',proc_pechuga:'Filet kg',alitas:'Alitas u',filet:'Filet u',popCorns:'PopC u',tiras:'Tiras u'};
+let GD_ROWS=[];
+const gdNorm=s=>String(s==null?"":s).normalize('NFD').replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+const gdNum=v=>{const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n};
+function gdFecha(v){
+  if(typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);return d?`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`:null}
+  const m=String(v||"").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:null;
+}
+window.gdAbrir=function(){
+  GD_ROWS=[];
+  document.getElementById('gd-file').value="";
+  document.getElementById('gd-resumen').innerHTML="";
+  document.getElementById('gd-tabla').innerHTML="";
+  document.getElementById('gd-ok').style.display='none';
+  document.getElementById('gd-modal').classList.add('open');
+};
+window.gdCerrar=function(){document.getElementById('gd-modal').classList.remove('open')};
+window.gdArchivo=async function(file){
+  if(!file) return;
+  let rows;
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""});
+  }catch(e){toast('❌ No se pudo leer el archivo','error');return}
+  const get=(r,name)=>{const k=Object.keys(r).find(x=>gdNorm(x)===name);return k?r[k]:""};
+  const grupos={};
+  let fMin='9999',fMax='0000';
+  rows.forEach(r=>{
+    const fecha=gdFecha(get(r,'fecha'));
+    if(!fecha) return;
+    if(fecha<fMin)fMin=fecha; if(fecha>fMax)fMax=fecha;
+    const suc=GD_SUC[gdNorm(get(r,'centro costo')).replace(/^\(f\)\s*/,"")];
+    const campo=GD_ART[gdNorm(get(r,'articulo'))];
+    if(!suc||!campo) return;
+    const k=`${suc}_${fecha}`;
+    const g=grupos[k]||(grupos[k]={fecha,sucursal:suc,vals:{}});
+    g.vals[campo]=(g.vals[campo]||0)+gdNum(get(r,'cantidad'));
+  });
+  if(fMax==='0000'){toast('❌ El archivo no tiene fechas válidas','error');return}
+  const claves=new Set();
+  GD_ROWS=Object.values(grupos).map(g=>{
+    const v={};GD_CAMPOS.forEach(c=>v[c]=0);
+    Object.assign(v,g.vals);
+    v.proc_kg=(v.med110+v.bol110)*0.09;
+    GD_CAMPOS.forEach(c=>v[c]=Math.round(v[c]*10)/10);
+    if(GD_CAMPOS.every(c=>!v[c])) return null;
+    claves.add(`${g.sucursal}_${g.fecha}`);
+    const ex=DB.find(r=>r.fecha===g.fecha&&r.sucursal===g.sucursal);
+    let estado='nuevo',difs=[];
+    if(ex){
+      difs=GD_CAMPOS.filter(c=>Math.abs((ex[c]||0)-v[c])>0.05).map(c=>({c,cdp:ex[c]||0,gd:v[c]}));
+      estado=difs.length?'dif':'igual';
+    }
+    return {fecha:g.fecha,sucursal:g.sucursal,v,ex,estado,difs,sel:false};
+  }).filter(Boolean);
+  DB.filter(r=>SUCS.includes(r.sucursal)&&r.fecha>=fMin&&r.fecha<=fMax&&!claves.has(`${r.sucursal}_${r.fecha}`)&&GD_CAMPOS.some(c=>r[c]))
+    .forEach(r=>GD_ROWS.push({fecha:r.fecha,sucursal:r.sucursal,v:null,ex:r,estado:'soloCdp',difs:[],sel:false}));
+  GD_ROWS.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.sucursal.localeCompare(b.sucursal));
+  gdRender(fMin,fMax);
+};
+function gdRender(fMin,fMax){
+  const cnt=e=>GD_ROWS.filter(r=>r.estado===e).length;
+  document.getElementById('gd-resumen').innerHTML=`<div class="gd-sum">
+    <div class="gd-chip">Período<b style="font-size:14px">${fMin} → ${fMax}</b></div>
+    <div class="gd-chip">Iguales<b style="color:#22c55e">${cnt('igual')}</b></div>
+    <div class="gd-chip">Con diferencias<b style="color:#FF9F1C">${cnt('dif')}</b></div>
+    <div class="gd-chip">Solo en Gesdatta<b style="color:#3b82f6">${cnt('nuevo')}</b></div>
+    <div class="gd-chip">Solo en CDP<b style="color:#ef4444">${cnt('soloCdp')}</b></div></div>`;
+  const vac='<span style="color:var(--text3)">–</span>';
+  const fm=n=>String(n).replace('.',',');
+  const cel=(r,c)=>{
+    const g=r.v?r.v[c]:null, x=r.ex?(r.ex[c]||0):null;
+    if(r.estado==='igual'||r.estado==='nuevo') return g?fm(g):vac;
+    if(r.estado==='soloCdp') return x?fm(x):vac;
+    return Math.abs(g-x)>0.05?`<span style="color:#FF9F1C">${fm(x)} → ${fm(g)}</span>`:(g?fm(g):vac);
+  };
+  const ST={igual:['igual','Igual'],dif:['dif','Diferencia'],nuevo:['nuevo','Solo Gesdatta'],soloCdp:['dif','Solo en CDP']};
+  document.getElementById('gd-tabla').innerHTML=`<table class="gd-tbl"><thead><tr><th>Fecha</th><th>Sucursal</th>${GD_CAMPOS.map(c=>`<th>${GD_LBL[c]}</th>`).join("")}<th>Estado</th><th></th></tr></thead><tbody>${
+    GD_ROWS.map((r,i)=>`<tr><td>${r.fecha.slice(8)}/${r.fecha.slice(5,7)}</td><td>${SUC_NAMES[r.sucursal]||r.sucursal}</td>${GD_CAMPOS.map(c=>`<td>${cel(r,c)}</td>`).join("")}<td><span class="gd-st ${ST[r.estado][0]}">${ST[r.estado][1]}</span></td><td>${(r.estado==='nuevo'||r.estado==='dif')?`<input type="checkbox" onchange="gdSel(${i},this.checked)">`:""}</td></tr>`).join("")
+  }</tbody></table>`;
+  gdBtn();
+}
+window.gdSel=function(i,v){GD_ROWS[i].sel=v;gdBtn()};
+function gdBtn(){
+  const n=GD_ROWS.filter(r=>r.sel).length;
+  const b=document.getElementById('gd-ok');
+  b.style.display=n?'':'none';
+  b.textContent=`Importar ${n} seleccionado${n!==1?'s':''}`;
+}
+window.gdImportar=async function(){
+  const sel=GD_ROWS.filter(r=>r.sel);
+  if(!sel.length) return;
+  const btn=document.getElementById('gd-ok');
+  btn.disabled=true;
+  setSyncStatus('syncing');
+  try{
+    for(const r of sel){
+      if(r.ex){
+        const upd={source:'gesdatta'};GD_CAMPOS.forEach(c=>upd[c]=r.v[c]);
+        await setDoc(doc(db,COL,r.ex._id),upd,{merge:true});
+      } else {
+        await setDoc(doc(db,COL,`${r.sucursal}_${r.fecha}`),{
+          fecha:r.fecha,sucursal:r.sucursal,...r.v,med75:0,
+          precio_carne:PRECIOS_ACTUALES.precio_carne||0,precio_alita:PRECIOS_ACTUALES.precio_alita||0,precio_filet:PRECIOS_ACTUALES.precio_filet||0,
+          createdAt:new Date().toISOString(),source:'gesdatta'
+        });
+      }
+    }
+    toast(`✅ ${sel.length} registro${sel.length!==1?'s':''} importado${sel.length!==1?'s':''} desde Gesdatta`);
+    gdCerrar();
+  }catch(e){
+    toast('❌ Error: '+e.message,'error');
+    setSyncStatus('error');
+  }
+  btn.disabled=false;
+};
 
 window.setSucChip=function(btn){
   document.querySelectorAll('.suc-chip').forEach(c=>c.classList.remove('active'));
