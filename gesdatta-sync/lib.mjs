@@ -28,17 +28,30 @@ export const norm = (s) =>
 const normKey = (k) => norm(k).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 export function fechaISO(v) {
+  if (typeof v === 'number') {
+    if (v > 1e11) return new Date(v).toISOString().slice(0, 10);
+    if (v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);
+    return null;
+  }
   const s = String(v == null ? '' : v).trim();
-  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  let m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
   if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
-  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+  m = s.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
+  return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : null;
 }
 
 const num = (v) => {
   const n = parseFloat(String(v).replace(',', '.'));
   return isNaN(n) ? 0 : n;
 };
+
+export function campoAny(reg, nombres) {
+  for (const n of nombres) {
+    const v = campo(reg, n);
+    if (v !== '') return v;
+  }
+  return '';
+}
 
 export function campo(reg, nombre) {
   const k = Object.keys(reg).find((x) => normKey(x) === nombre);
@@ -110,15 +123,34 @@ export function periodoDeNota(nota, fechaFactura) {
   return null;
 }
 
+// La API no trae las notas con el período: se infiere por la fecha de la factura.
+// Pollo = factura semanal emitida después de cerrar la semana (cubre la semana anterior).
+// Medallones y bolitas = factura mensual emitida después de cerrar el mes (cubre el mes anterior).
+export function periodoPorFecha(col, fecha) {
+  const [y, mo, d] = fecha.split('-').map(Number);
+  if (col === 'med110' || col === 'bol110') {
+    const ini = new Date(Date.UTC(y, mo - 2, 1));
+    const fin = new Date(Date.UTC(y, mo - 1, 0));
+    return { tipo: 'mes', desde: ini.toISOString().slice(0, 10), hasta: fin.toISOString().slice(0, 10) };
+  }
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  const lunes = new Date(dt);
+  lunes.setUTCDate(dt.getUTCDate() - ((dt.getUTCDay() + 6) % 7));
+  const ini = new Date(lunes);
+  ini.setUTCDate(lunes.getUTCDate() - 7);
+  const fin = new Date(lunes);
+  fin.setUTCDate(lunes.getUTCDate() - 1);
+  return { tipo: 'semana', desde: ini.toISOString().slice(0, 10), hasta: fin.toISOString().slice(0, 10) };
+}
+
 export function agruparFacturas(registros) {
   const grupos = {};
   for (const reg of registros) {
     const campoArt = ART_FRANQ[norm(campo(reg, 'articulo'))];
-    const suc = CC_FRANQ[norm(campo(reg, 'centro de costo')).replace(/^\(f\)\s*/, '')];
+    const suc = CC_FRANQ[norm(campoAny(reg, ['centro de costo', 'centro costo'])).replace(/^\(f\)\s*/, '')];
     const fecha = fechaISO(campo(reg, 'fecha'));
     if (!campoArt || !suc || !fecha) continue;
-    const per = periodoDeNota(campo(reg, 'notas'), fecha);
-    if (!per) continue;
+    const per = periodoDeNota(campo(reg, 'notas'), fecha) || periodoPorFecha(campoArt, fecha);
     const id = `${per.tipo === 'semana' ? 'S' : 'M'}_${per.desde}_${suc.replace(/ /g, '_')}`;
     const g = (grupos[id] ||= { tipo: per.tipo, desde: per.desde, hasta: per.hasta, sucursal: suc, med110: 0, bol110: 0, proc_alita: 0, proc_pechuga: 0, facturas: new Set() });
     g[campoArt] += num(campo(reg, 'cantidad'));
