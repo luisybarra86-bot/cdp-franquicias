@@ -160,13 +160,19 @@ export function agruparFacturas(registros) {
     if (!campoArt || !suc || !fecha) continue;
     const per = periodoDeNota(campo(reg, 'notas'), fecha) || periodoPorFecha(campoArt, fecha);
     const id = `${per.tipo === 'semana' ? 'S' : 'M'}_${per.desde}_${suc.replace(/ /g, '_')}`;
-    const g = (grupos[id] ||= { tipo: per.tipo, desde: per.desde, hasta: per.hasta, sucursal: suc, med110: 0, bol110: 0, proc_alita: 0, proc_pechuga: 0, facturas: new Set() });
+    const g = (grupos[id] ||= { tipo: per.tipo, desde: per.desde, hasta: per.hasta, sucursal: suc, med110: 0, bol110: 0, proc_alita: 0, proc_pechuga: 0, facturas: new Set(), det: {}, fechasLineas: new Set() });
     g[campoArt] += num(campo(reg, 'cantidad'));
     g.facturas.add(String(campo(reg, 'comprobante')));
+    (g.det[campoArt] ||= []).push(num(campo(reg, 'cantidad')));
+    g.fechasLineas.add(fecha);
   }
   for (const g of Object.values(grupos)) {
     for (const c of CAMPOS_FRANQ) g[c] = Math.round(g[c] * 10) / 10;
     g.facturas = [...g.facturas].join(', ');
+    g.detalle = Object.entries(g.det).map(([c, a]) => `${c}: ${a.length} líneas [${a.join('+')}]`).join(' ; ').slice(0, 1500);
+    g.fechasTxt = [...g.fechasLineas].sort().join(', ').slice(0, 300);
+    delete g.det;
+    delete g.fechasLineas;
   }
   return grupos;
 }

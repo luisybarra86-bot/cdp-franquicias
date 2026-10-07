@@ -67,6 +67,8 @@ for (const id of ids) {
     hasta: val(g.hasta),
     sucursal: val(g.sucursal),
     facturas: val(g.facturas),
+    detalle: val(g.detalle),
+    fechas_lineas: val(g.fechasTxt),
   };
   for (const c of CAMPOS_FRANQ) fields[c] = val(g[c]);
   await fs(`${COL}/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) });
