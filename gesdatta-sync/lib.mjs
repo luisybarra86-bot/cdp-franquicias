@@ -49,8 +49,13 @@ export function fechaISO(v) {
   return null;
 }
 
+// La API manda cantidades como texto en formato español: "1.664" = 1664 y "4,9" = 4,9.
 const num = (v) => {
-  const n = parseFloat(String(v).replace(',', '.'));
+  if (typeof v === 'number') return v;
+  let t = String(v == null ? '' : v).trim();
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  const n = parseFloat(t);
   return isNaN(n) ? 0 : n;
 };
 
