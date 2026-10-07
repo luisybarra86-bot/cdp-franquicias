@@ -19,3 +19,10 @@ jobs:
           GESDATTA_EMAIL: ${{ secrets.GESDATTA_EMAIL }}
           GESDATTA_PASSWORD: ${{ secrets.GESDATTA_PASSWORD }}
         run: node sync.mjs
+      - name: Traer facturas a franquiciados de Gesdatta y guardarlas en Firestore
+        if: always()
+        working-directory: gesdatta-sync
+        env:
+          GESDATTA_EMAIL: ${{ secrets.GESDATTA_EMAIL }}
+          GESDATTA_PASSWORD: ${{ secrets.GESDATTA_PASSWORD }}
+        run: node sync-facturas.mjs

@@ -19,6 +19,9 @@ service cloud.firestore {
     match /gesdatta_leno/{doc} {
       allow read, write: if true;
     }
+    match /gesdatta_franq/{doc} {
+      allow read, write: if true;
+    }
     match /compras_stock_inicial/{doc} {
       allow read, write: if true;
     }
