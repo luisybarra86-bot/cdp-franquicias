@@ -1,4 +1,4 @@
-import { agruparFacturas, CAMPOS_FRANQ } from './lib.mjs';
+import { agruparFacturas, CAMPOS_FRANQ, campo, norm, fechaISO, ART_FRANQ, CC_FRANQ, periodoDeNota } from './lib.mjs';
 
 const API = 'https://app.gesdatta.com/reportesApi/preciosVenta';
 const FS = 'https://firestore.googleapis.com/v1/projects/cdp-franquicias/databases/(default)/documents';
@@ -40,6 +40,18 @@ console.log(`Líneas recibidas: ${datos.length}. Campos: ${Object.keys(datos[0])
 const grupos = agruparFacturas(datos);
 const ids = Object.keys(grupos);
 console.log(`Períodos por sucursal con carne o pollo facturado: ${ids.length}`);
+
+// Diagnóstico: en qué paso se pierden las líneas (solo nombres de productos, sucursales y conteos)
+const cc = (r) => norm(campo(r, 'centro de costo')).replace(/^\(f\)\s*/, '');
+const nArt = datos.filter((r) => ART_FRANQ[norm(campo(r, 'articulo'))]).length;
+const nCC = datos.filter((r) => CC_FRANQ[cc(r)]).length;
+const nFecha = datos.filter((r) => fechaISO(campo(r, 'fecha'))).length;
+const nAmbos = datos.filter((r) => ART_FRANQ[norm(campo(r, 'articulo'))] && CC_FRANQ[cc(r)] && fechaISO(campo(r, 'fecha'))).length;
+const nPer = datos.filter((r) => ART_FRANQ[norm(campo(r, 'articulo'))] && CC_FRANQ[cc(r)] && fechaISO(campo(r, 'fecha')) && periodoDeNota(campo(r, 'notas'), fechaISO(campo(r, 'fecha')))).length;
+const arts = [...new Set(datos.map((r) => norm(campo(r, 'articulo'))).filter((a) => /alita|medall|bolita|filet/.test(a)))].slice(0, 8).join(' | ');
+const ccs = [...new Set(datos.map(cc))].slice(0, 12).join(' | ');
+const diag = `campos=${Object.keys(datos[0]).join(',')} | articulo ok=${nArt} | centro ok=${nCC} | fecha ok=${nFecha} | art+centro+fecha=${nAmbos} | con periodo=${nPer} | articulos=${arts} | centros=${ccs}`;
+console.log('Diagnóstico:', diag);
 
 const val = (v) => (typeof v === 'number' ? { doubleValue: v } : { stringValue: String(v) });
 
@@ -91,8 +103,13 @@ await fs(`${COL}/_meta`, {
       desde: val(desde),
       hasta: val(hasta),
       lineas: val(datos.length),
+      diagnostico: val(diag),
     },
   }),
 });
 
 console.log(`Listo: ${ids.length} períodos guardados, ${borrados} obsoletos borrados.`);
+if (!ids.length) {
+  console.error('Ninguna línea coincidió con carne o pollo de franquicias. Revisá el diagnóstico de arriba.');
+  process.exit(1);
+}

@@ -40,7 +40,7 @@ const num = (v) => {
   return isNaN(n) ? 0 : n;
 };
 
-function campo(reg, nombre) {
+export function campo(reg, nombre) {
   const k = Object.keys(reg).find((x) => normKey(x) === nombre);
   return k === undefined ? '' : reg[k];
 }
