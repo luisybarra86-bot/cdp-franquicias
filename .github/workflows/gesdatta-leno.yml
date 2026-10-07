@@ -1,0 +1,21 @@
+name: Gesdatta LENO SRL
+
+on:
+  schedule:
+    - cron: '0 5,13,19,23 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Traer movimientos de Gesdatta y guardarlos en Firestore
+        working-directory: gesdatta-sync
+        env:
+          GESDATTA_EMAIL: ${{ secrets.GESDATTA_EMAIL }}
+          GESDATTA_PASSWORD: ${{ secrets.GESDATTA_PASSWORD }}
+        run: node sync.mjs
