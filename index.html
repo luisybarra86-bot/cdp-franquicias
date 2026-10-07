@@ -1047,6 +1047,7 @@ if('serviceWorker' in navigator){
       <div class="sync-dot" id="sync-dot"></div>
       <span id="sync-label">Conectando...</span>
     </div>
+    <button id="admin-btn" onclick="adminToggle()" title="Acceso administrador" style="background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;letter-spacing:.5px;opacity:.6">Admin</button>
     <div class="theme-toggle">
       <button class="theme-btn active" id="theme-dark" onclick="setTheme('dark')" title="Tema oscuro">🌑</button>
       <button class="theme-btn" id="theme-light" onclick="setTheme('light')" title="Tema claro">☀️</button>
@@ -1261,7 +1262,7 @@ if('serviceWorker' in navigator){
         <input class="search-input" type="date" id="reg-hasta" style="width:130px" oninput="renderReg()" title="Hasta">
         <input class="search-input" type="text" id="reg-search" placeholder="Buscar..." oninput="renderReg()">
         <button class="btn btn-excel" onclick="exportExcel()">↓ Excel</button>
-        <button class="btn btn-excel" onclick="gdAbrir()">⇄ Controlar Gesdatta</button>
+        <button class="btn btn-excel" id="gd-btn-open" onclick="gdAbrir()" style="display:none">⇄ Controlar Gesdatta</button>
       </div>
     </div>
     <div style="padding:14px 24px;border-bottom:1px solid var(--border)">
@@ -2106,6 +2107,7 @@ fetch('leno.png').then(r=>r.blob()).then(blob=>{
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, setDoc, getDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, where, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2524,6 +2526,31 @@ async function _doGuardar(fecha,suc){
 }
 
 
+// ── ACCESO ADMIN (login con Google + lista de mails permitidos) ──
+// Solo oculta/muestra pantallas de control: las reglas de Firestore siguen
+// abiertas, esto no es seguridad de datos.
+const ADMIN_EMAILS=['luisybarra86@gmail.com'];
+const auth=getAuth(app);
+let ES_ADMIN=false;
+onAuthStateChanged(auth,user=>{
+  const email=(user&&user.email||'').toLowerCase();
+  if(user&&!ADMIN_EMAILS.includes(email)){
+    signOut(auth);
+    toast('❌ Ese correo no tiene acceso de administrador','error');
+    return;
+  }
+  ES_ADMIN=!!user;
+  const b=document.getElementById('gd-btn-open');
+  if(b) b.style.display=ES_ADMIN?'':'none';
+  const a=document.getElementById('admin-btn');
+  if(a){a.textContent=ES_ADMIN?'Admin ✓ salir':'Admin';a.style.opacity=ES_ADMIN?'1':'.6';}
+});
+window.adminToggle=async function(){
+  if(ES_ADMIN){await signOut(auth);return}
+  try{await signInWithPopup(auth,new GoogleAuthProvider())}
+  catch(e){if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')toast('❌ No se pudo iniciar sesión: '+(e.code||e.message),'error')}
+};
+
 // ── CONTROL / IMPORT GESDATTA (solo Franquicias: remitos de venta) ──
 // El operario sigue cargando normal en CDP; esto compara el Excel de Gesdatta
 // contra lo cargado y, opcionalmente, importa filas marcadas a mano.
@@ -2540,6 +2567,7 @@ function gdFecha(v){
   return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:null;
 }
 window.gdAbrir=function(){
+  if(!ES_ADMIN) return;
   GD_ROWS=[];
   document.getElementById('gd-file').value="";
   document.getElementById('gd-resumen').innerHTML="";
