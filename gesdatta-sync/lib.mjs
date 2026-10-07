@@ -1,3 +1,5 @@
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
 export const DEPOSITOS = {
   'aconquija': 'YERBA BUENA',
   'tafi viejo': 'TAFI VIEJO',
@@ -37,7 +39,14 @@ export function fechaISO(v) {
   let m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
   if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   m = s.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
-  return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : null;
+  if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+  // "martes, 1 de septiembre de 2026"
+  m = norm(s).match(/(\d{1,2}) de ([a-z]+) de (\d{4})/);
+  if (m) {
+    const mi = MESES.indexOf(m[2].slice(0, 3) === 'set' ? 'sep' : m[2].slice(0, 3));
+    if (mi >= 0) return `${m[3]}-${String(mi + 1).padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  }
+  return null;
 }
 
 const num = (v) => {
@@ -98,7 +107,6 @@ export const ART_FRANQ = {
 
 export const CAMPOS_FRANQ = ['med110', 'bol110', 'proc_alita', 'proc_pechuga'];
 
-const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const p2 = (n) => String(n).padStart(2, '0');
 
 // El período sale de las notas de la factura: "Semana 28-09 al 04-10" o "Sept. 2026".
