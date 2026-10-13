@@ -2069,6 +2069,7 @@ if('serviceWorker' in navigator){
     <div id="gd-tabla" style="overflow-x:auto"></div>
     <div class="gd-btns">
       <button class="confirm-cancel" onclick="gdCerrar()">Cancelar</button>
+      <button class="confirm-cancel" id="gd-pdf" onclick="gdPdf()" style="display:none">Descargar PDF</button>
       <button class="confirm-ok" id="gd-ok" onclick="gdImportar()" style="display:none;background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)">Importar seleccionados</button>
     </div>
   </div>
@@ -2585,6 +2586,7 @@ window.gdAbrir=function(){
   document.getElementById('gd-resumen').innerHTML="";
   document.getElementById('gd-tabla').innerHTML="";
   document.getElementById('gd-ok').style.display='none';
+  GD_INFORME=null;document.getElementById('gd-pdf').style.display='none';
   document.getElementById('gd-modal').classList.add('open');
 };
 window.gdCerrar=function(){document.getElementById('gd-modal').classList.remove('open')};
@@ -2603,6 +2605,7 @@ window.gdlAbrir=async function(){
   document.getElementById('gd-resumen').innerHTML='<div style="font-size:12px;color:var(--text2);margin:12px 0">Consultando...</div>';
   document.getElementById('gd-tabla').innerHTML='';
   document.getElementById('gd-ok').style.display='none';
+  GD_INFORME=null;document.getElementById('gd-pdf').style.display='none';
   document.getElementById('gd-modal').classList.add('open');
   let meta=null;const gd=[];
   try{
@@ -2623,7 +2626,7 @@ window.gdlAbrir=async function(){
     .forEach(r=>GD_ROWS.push({fecha:r.fecha,sucursal:r.sucursal,v:null,ex:r,estado:'soloCdp',difs:[],sel:false}));
   GD_ROWS.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.sucursal.localeCompare(b.sucursal));
   const act=new Date(meta.actualizado).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  gdRender(desdeCtl,meta.hasta,{campos:GDL_CAMPOS,lbl:GDL_LBL,nombres:LENO_LABEL,imp:false,extra:`<div class="gd-chip">Actualizado<b style="font-size:14px">${act}</b></div>`});
+  gdRender(desdeCtl,meta.hasta,{titulo:'LENO SRL - movimientos de Gesdatta (API)',campos:GDL_CAMPOS,lbl:GDL_LBL,nombres:LENO_LABEL,imp:false,extra:`<div class="gd-chip">Actualizado<b style="font-size:14px">${act}</b></div>`});
   document.getElementById('gd-resumen').insertAdjacentHTML('beforeend',GD_NOTA_DESDE);
 };
 // ── CONTROL FACTURAS (Franquicias): lo facturado en Gesdatta vs lo cargado en CDP ──
@@ -2640,6 +2643,7 @@ window.gdfAbrir=async function(){
   document.getElementById('gd-resumen').innerHTML='<div style="font-size:12px;color:var(--text2);margin:12px 0">Consultando...</div>';
   document.getElementById('gd-tabla').innerHTML='';
   document.getElementById('gd-ok').style.display='none';
+  GD_INFORME=null;document.getElementById('gd-pdf').style.display='none';
   document.getElementById('gd-modal').classList.add('open');
   let meta=null;const fac=[];
   try{
@@ -2667,6 +2671,14 @@ window.gdfAbrir=async function(){
     <div class="gd-chip">Iguales<b style="color:#22c55e">${ig}</b></div>
     <div class="gd-chip">Con diferencias<b style="color:#FF9F1C">${df}</b></div></div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Donde hay diferencia se muestra: cargado en CDP → facturado en Gesdatta.</div>${GD_NOTA_DESDE}${rows.length?'':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Todavía no hay facturas para controlar. La primera semana a controlar (05/10 al 11/10) se factura el lunes 12/10.</div>'}`;
+  const perTxt=g=>g.tipo==='mes'?`${MN[g.desde.slice(5,7)]} ${g.desde.slice(0,4)}`:`Semana ${dm(g.desde)} al ${dm(g.hasta)}`;
+  GD_INFORME={
+    titulo:'Facturas a franquiciados (Gesdatta, API)',
+    periodo:rows.length?`${rows.map(r=>r.desde).sort()[0]} al ${rows.map(r=>r.hasta).sort().slice(-1)[0]}`:'sin facturas todavia',
+    iguales:ig,
+    items:rows.filter(r=>r.dif).map(r=>({cuando:perTxt(r),suc:SUC_NAMES[r.sucursal]||r.sucursal,lineas:r.ap.filter(c=>Math.abs((r.cdp[c]||0)-(r[c]||0))>0.05).map(c=>({t:`${GDF_LBL[c]}: CDP ${gdFm(r.cdp[c])} / facturado ${gdFm(r[c]||0)}`,e:gdFraseFac(c,r.cdp[c]||0,r[c]||0)}))}))
+  };
+  document.getElementById('gd-pdf').style.display=GD_INFORME.items.length?'':'none';
   document.getElementById('gd-tabla').innerHTML=`<table class="gd-tbl"><thead><tr><th>Período</th><th>Sucursal</th>${GDF_CAMPOS.map(c=>`<th>${GDF_LBL[c]}</th>`).join("")}<th>Estado</th></tr></thead><tbody>${
     rows.map(r=>`<tr><td>${per(r)}</td><td>${SUC_NAMES[r.sucursal]||r.sucursal}</td>${GDF_CAMPOS.map(c=>`<td>${celda(r,c)}</td>`).join("")}<td><span class="gd-st ${r.dif?'dif':'igual'}">${r.dif?'Diferencia':'Igual'}</span></td></tr>`).join("")
   }</tbody></table>`;
@@ -2714,8 +2726,91 @@ window.gdArchivo=async function(file){
   GD_ROWS.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.sucursal.localeCompare(b.sucursal));
   gdRender(fMin,fMax);
 };
+// ── INFORME PDF de diferencias (para pasarle a los operarios) ──
+let GD_INFORME=null;
+const GD_NOM={proc_kg:'kg de carne',med110:'medallones',med90:'medallones',bol110:'bolitas',bol90:'bolitas',proc_alita:'kg de alita',proc_pechuga:'kg de filet',alitas:'unidades de alitas',alita:'unidades de alitas',filet:'unidades de filet',popCorns:'unidades de pop corn',tiras:'unidades de tiras'};
+const gdFm=n=>(+(+n).toFixed(1)).toLocaleString('es-AR');
+function gdFrase(c,x,g){
+  const nom=GD_NOM[c]||c;
+  if(!x&&g) return `Gesdatta registra ${gdFm(g)} ${nom} y en CDP no figura ninguno. Probablemente falta cargarlo en CDP.`;
+  if(x&&!g) return `En CDP figuran ${gdFm(x)} ${nom} y en Gesdatta no figura ninguno. Revisar si se cargó de más en CDP o si falta el movimiento en Gesdatta.`;
+  return `CDP tiene ${gdFm(x)} ${nom} y Gesdatta ${gdFm(g)} (diferencia de ${gdFm(Math.abs(x-g))}). Revisar cuál de los dos es el correcto.`;
+}
+function gdFraseFac(c,x,g){
+  const nom=GD_NOM[c]||c;
+  if(g>x) return `Se facturaron ${gdFm(g)} ${nom} y en CDP figuran ${gdFm(x)} (faltan ${gdFm(g-x)}). Probablemente falta cargar ${gdFm(g-x)} en CDP.`;
+  return `Se facturaron ${gdFm(g)} ${nom} y en CDP figuran ${gdFm(x)} (sobran ${gdFm(x-g)}). Revisar si se cargó de más en CDP o si falta facturar.`;
+}
+function gdInforme(fMin,fMax,cfg){
+  const items=[];
+  GD_ROWS.forEach(r=>{
+    const cuando=`${r.fecha.slice(8)}/${r.fecha.slice(5,7)}`,suc=cfg.nombres[r.sucursal]||r.sucursal;
+    if(r.estado==='dif'){
+      const dif=cfg.campos.filter(c=>gdDifiere(c,r.ex[c]||0,r.v[c]));
+      const hayUnidades=dif.some(c=>/^(med|bol)/.test(c));
+      items.push({cuando,suc,lineas:dif.filter(c=>!(c==='proc_kg'&&hayUnidades)).map(c=>({t:`${cfg.lbl[c]}: CDP ${gdFm(r.ex[c]||0)} / Gesdatta ${gdFm(r.v[c])}`,e:gdFrase(c,r.ex[c]||0,r.v[c])}))});
+    } else if(r.estado==='nuevo'){
+      items.push({cuando,suc,lineas:[{t:'Solo en Gesdatta',e:'Gesdatta tiene un envío este día y en CDP no hay registro cargado. Falta cargarlo en CDP.'}]});
+    } else if(r.estado==='soloCdp'){
+      items.push({cuando,suc,lineas:[{t:'Solo en CDP',e:'Hay un registro cargado en CDP este día pero Gesdatta no tiene remito ni movimiento. Revisar si se cargó con otra fecha o por error.'}]});
+    }
+  });
+  GD_INFORME={titulo:cfg.titulo||'Control con Gesdatta',periodo:`${fMin} al ${fMax}`,iguales:GD_ROWS.filter(r=>r.estado==='igual').length,items};
+  document.getElementById('gd-pdf').style.display=items.length?'':'none';
+}
+window.gdPdf=function(){
+  const inf=GD_INFORME;
+  if(!inf) return;
+  if(!window.jspdf){toast('❌ PDF no disponible, recargá la página','error');return}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297,M=14,IW=182;
+  const BLK=[17,17,17],RED=[190,15,15],GRY=[110,110,110],DRK=[30,30,30],BDR=[224,224,224];
+  const hoy=new Date().toLocaleDateString('es-AR');
+  const header=()=>{
+    doc.setFillColor(...BLK);doc.rect(0,0,W,24,'F');
+    if(window._lenoLogoB64){doc.setFillColor(255,255,255);doc.roundedRect(M,4,32,16,1.5,1.5,'F');try{doc.addImage(window._lenoLogoB64,'PNG',M+1,5,30,14);}catch(e){}}
+    doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('CDP FRANQUICIAS',M+38,12);
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(170,170,170);doc.text('INFORME DE DIFERENCIAS CON GESDATTA',M+38,18);
+    doc.setTextColor(200,200,200);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(hoy,W-M,12,{align:'right'});
+    doc.setDrawColor(...RED);doc.setLineWidth(1.2);doc.line(0,24,W,24);
+  };
+  header();
+  let y=34;
+  doc.setTextColor(...DRK);doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.splitTextToSize(inf.titulo,IW).forEach(l=>{doc.text(l,M,y);y+=6;});
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...GRY);
+  doc.text(`Período controlado: ${inf.periodo}`,M,y);y+=5;
+  doc.text(`${inf.items.length} con diferencia  |  ${inf.iguales} iguales`,M,y);y+=4;
+  doc.setDrawColor(...BDR);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=7;
+  if(!inf.items.length){
+    doc.setTextColor(...DRK);doc.setFontSize(10);doc.text('Sin diferencias en este período.',M,y);
+  }
+  inf.items.forEach(it=>{
+    const bloques=it.lineas.map(l=>({t:doc.splitTextToSize(l.t,IW-8),e:doc.splitTextToSize(l.e,IW-8)}));
+    let h=8;bloques.forEach(b=>{h+=b.t.length*4.4+b.e.length*4.2+2;});
+    if(y+h>H-16){doc.addPage();header();y=34;}
+    doc.setFillColor(...RED);doc.rect(M,y-4,2,h-2,'F');
+    doc.setTextColor(...DRK);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    doc.text(`${it.cuando}  -  ${it.suc}`,M+5,y);y+=6;
+    bloques.forEach(b=>{
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...DRK);
+      b.t.forEach(l=>{doc.text(l,M+5,y);y+=4.4;});
+      doc.setFont('helvetica','normal');doc.setTextColor(70,70,70);
+      b.e.forEach(l=>{doc.text(l,M+5,y);y+=4.2;});
+      y+=2;
+    });
+    y+=4;
+  });
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){
+    doc.setPage(i);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...GRY);
+    doc.text(`Pagina ${i} de ${n}`,W-M,H-8,{align:'right'});
+  }
+  doc.save(`Diferencias_Gesdatta_${hoyISO()}.pdf`);
+};
 function gdRender(fMin,fMax,cfg){
-  cfg=cfg||{campos:GD_CAMPOS,lbl:GD_LBL,nombres:SUC_NAMES,imp:true,extra:''};
+  cfg=cfg||{campos:GD_CAMPOS,lbl:GD_LBL,nombres:SUC_NAMES,imp:true,extra:'',titulo:'Franquicias - remitos de venta (Excel de Gesdatta)'};
   const cnt=e=>GD_ROWS.filter(r=>r.estado===e).length;
   document.getElementById('gd-resumen').innerHTML=`<div class="gd-sum">${cfg.extra}
     <div class="gd-chip">Período<b style="font-size:14px">${fMin} → ${fMax}</b></div>
@@ -2737,6 +2832,7 @@ function gdRender(fMin,fMax,cfg){
   document.getElementById('gd-tabla').innerHTML=`<table class="gd-tbl"><thead><tr><th>Fecha</th><th>Sucursal</th>${cfg.campos.map(c=>`<th>${cfg.lbl[c]}</th>`).join("")}<th>Estado</th><th></th></tr></thead><tbody>${
     GD_ROWS.map((r,i)=>`<tr><td>${r.fecha.slice(8)}/${r.fecha.slice(5,7)}</td><td>${cfg.nombres[r.sucursal]||r.sucursal}</td>${cfg.campos.map(c=>`<td>${cel(r,c)}</td>`).join("")}<td><span class="gd-st ${ST[r.estado][0]}">${ST[r.estado][1]}</span></td><td>${(cfg.imp&&(r.estado==='nuevo'||r.estado==='dif'))?`<input type="checkbox" onchange="gdSel(${i},this.checked)">`:""}</td></tr>`).join("")
   }</tbody></table>`;
+  gdInforme(fMin,fMax,cfg);
   gdBtn();
 }
 window.gdSel=function(i,v){GD_ROWS[i].sel=v;gdBtn()};
