@@ -2565,6 +2565,9 @@ const GD_ART={'medallon de carne 90grs (und)':'med110','bolita de carne 90gr (un
 const GD_CAMPOS=['proc_kg','med110','bol110','proc_alita','proc_pechuga','alitas','filet','popCorns','tiras'];
 const GD_LBL={proc_kg:'Carne kg',med110:'Medallón',bol110:'Bolita',proc_alita:'Alita kg',proc_pechuga:'Filet kg',alitas:'Alitas u',filet:'Filet u',popCorns:'PopC u',tiras:'Tiras u'};
 let GD_ROWS=[];
+// Los kg de pollo (alita y filet) no vienen en el reporte de remitos por día: se facturan por semana.
+// Si Gesdatta no trae kg para ese día, no se compara (si no, todo da "diferencia").
+const gdDifiere=(c,cdp,gd)=>((c==='proc_alita'||c==='proc_pechuga')&&!gd)?false:Math.abs(cdp-gd)>0.05;
 const gdNorm=s=>String(s==null?"":s).normalize('NFD').replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim();
 const gdNum=v=>{const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n};
 function gdFecha(v){
@@ -2701,7 +2704,7 @@ window.gdArchivo=async function(file){
     const ex=DB.find(r=>r.fecha===g.fecha&&r.sucursal===g.sucursal);
     let estado='nuevo',difs=[];
     if(ex){
-      difs=GD_CAMPOS.filter(c=>Math.abs((ex[c]||0)-v[c])>0.05).map(c=>({c,cdp:ex[c]||0,gd:v[c]}));
+      difs=GD_CAMPOS.filter(c=>gdDifiere(c,ex[c]||0,v[c])).map(c=>({c,cdp:ex[c]||0,gd:v[c]}));
       estado=difs.length?'dif':'igual';
     }
     return {fecha:g.fecha,sucursal:g.sucursal,v,ex,estado,difs,sel:false};
@@ -2726,7 +2729,9 @@ function gdRender(fMin,fMax,cfg){
     const g=r.v?r.v[c]:null, x=r.ex?(r.ex[c]||0):null;
     if(r.estado==='igual'||r.estado==='nuevo') return g?fm(g):vac;
     if(r.estado==='soloCdp') return x?fm(x):vac;
-    return Math.abs(g-x)>0.05?`<span style="color:#FF9F1C">${fm(x)} → ${fm(g)}</span>`:(g?fm(g):vac);
+    if(gdDifiere(c,x,g)) return `<span style="color:#FF9F1C">${fm(x)} → ${fm(g)}</span>`;
+    if(!g&&x) return `<span style="color:var(--text3)" title="Gesdatta no trae kg en este reporte">${fm(x)}</span>`;
+    return g?fm(g):vac;
   };
   const ST={igual:['igual','Igual'],dif:['dif','Diferencia'],nuevo:['nuevo','Solo Gesdatta'],soloCdp:['dif','Solo en CDP']};
   document.getElementById('gd-tabla').innerHTML=`<table class="gd-tbl"><thead><tr><th>Fecha</th><th>Sucursal</th>${cfg.campos.map(c=>`<th>${cfg.lbl[c]}</th>`).join("")}<th>Estado</th><th></th></tr></thead><tbody>${
