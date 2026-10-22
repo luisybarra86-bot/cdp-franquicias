@@ -1490,6 +1490,31 @@ if('serviceWorker' in navigator){
 
 <!-- COBRO -->
 <div id="tab-cobro" class="panel">
+  <div class="card" style="margin-bottom:18px" id="cp-card">
+    <div class="card-head">
+      <span class="card-title">🧾 Cobro de pollo por entrega</span>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <select id="cp-semana" class="search-input" style="min-width:220px" onchange="cpRender()"></select>
+        <button class="btn btn-excel" onclick="cpExcel()">↓ Excel</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="cp-info" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+      <details style="margin-bottom:14px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--accent);font-weight:600">Cambiar precios</summary>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:10px">
+          <div class="form-group" style="margin:0;min-width:130px"><label>Alita ($ / kg)</label><input type="number" id="cp-pa" min="0" step="0.01"></div>
+          <div class="form-group" style="margin:0;min-width:130px"><label>Filet ($ / kg)</label><input type="number" id="cp-pf" min="0" step="0.01"></div>
+          <div class="form-group" style="margin:0;min-width:150px"><label>Mano de obra ($ / kg)</label><input type="number" id="cp-pm" min="0" step="0.01"></div>
+          <div class="form-group" style="margin:0;min-width:150px"><label>Rige desde (un lunes)</label><input type="date" id="cp-desde"></div>
+          <button class="btn" onclick="cpGuardarPrecios()">Guardar precios</button>
+        </div>
+        <div id="cp-hist" style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6"></div>
+      </details>
+      <div id="cp-tabla" class="tbl-wrap" style="overflow-x:auto"></div>
+    </div>
+  </div>
+
   <div class="card" style="margin-bottom:18px">
     <div class="card-head">
       <span class="card-title">💳 Cobro — Pollo procesado por kg</span>
@@ -4642,6 +4667,133 @@ window.exportLenoExcel=function(desdeId,hastaId){
   toast('✅ Excel descargado');
 }
 
+// ── COBRO DE POLLO POR ENTREGA ──
+// Precios por kg (alita, filet, mano de obra) con fecha de vigencia, guardados en config/cobro_pollo.
+// Cada semana usa el precio vigente en su lunes; las semanas viejas conservan el precio que tenían.
+const CP_DOC=doc(db,'config','cobro_pollo');
+let CP_PRECIOS=[];
+onSnapshot(CP_DOC,snap=>{
+  CP_PRECIOS=(snap.exists()&&Array.isArray(snap.data().historial))?snap.data().historial:[];
+  cpRender();
+});
+function cpPrecio(lunes){
+  return CP_PRECIOS.filter(x=>x.desde<=lunes).sort((a,b)=>b.desde.localeCompare(a.desde))[0]||null;
+}
+function cpFinSemana(lunes){
+  const d=new Date(lunes+'T00:00:00'); d.setDate(d.getDate()+6);
+  return d.toLocaleDateString('en-CA');
+}
+function cpCalc(lunes){
+  const hasta=cpFinSemana(lunes), pr=cpPrecio(lunes);
+  const rows=dbVisible().filter(r=>r.fecha>=lunes&&r.fecha<=hasta);
+  const pa=pr?pr.alita:0, pf=pr?pr.filet:0, pm=pr?pr.mo:0;
+  const mk=(a,f)=>{const k=a+f; return {a,f,k,ia:a*pa,if_:f*pf,mo:k*pm,t:a*pa+f*pf+k*pm};};
+  const suc=SUCS.map(s=>{
+    const porDia={};
+    rows.filter(r=>r.sucursal===s).forEach(r=>{
+      const d=porDia[r.fecha]||(porDia[r.fecha]={fecha:r.fecha,a:0,f:0});
+      d.a+=r.proc_alita||0; d.f+=r.proc_pechuga||0;
+    });
+    const dias=Object.values(porDia).filter(d=>d.a>0||d.f>0).sort((x,y)=>x.fecha.localeCompare(y.fecha)).map(d=>({fecha:d.fecha,...mk(d.a,d.f)}));
+    const A=dias.reduce((x,d)=>x+d.a,0), F=dias.reduce((x,d)=>x+d.f,0);
+    return {s,dias,...mk(A,F)};
+  });
+  const A=suc.reduce((x,o)=>x+o.a,0), F=suc.reduce((x,o)=>x+o.f,0);
+  return {lunes,hasta,pr,suc,tot:mk(A,F)};
+}
+const cpK=n=>n.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const cpM=n=>'$ '+(Math.round(n*100)/100).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cpDM=f=>`${f.slice(8)}/${f.slice(5,7)}`;
+window.cpRender=function(){
+  const sel=document.getElementById('cp-semana');
+  if(!sel) return;
+  const semanas=[...new Set(dbVisible().map(r=>weekKey(r.fecha)).filter(Boolean))].sort().reverse();
+  const hoy=hoyISO();
+  const actual=sel.value;
+  const lbl=w=>`Semana ${cpDM(w)} → ${cpDM(cpFinSemana(w))}${cpFinSemana(w)>=hoy?' (en curso)':''}`;
+  const nuevasOpt=semanas.map(w=>`<option value="${w}">${lbl(w)}</option>`).join('');
+  if(sel.dataset.opts!==nuevasOpt){
+    sel.innerHTML=nuevasOpt; sel.dataset.opts=nuevasOpt;
+    const cerrada=semanas.find(w=>cpFinSemana(w)<hoy);
+    sel.value=semanas.includes(actual)?actual:(cerrada||semanas[0]||'');
+  }
+  const lunes=sel.value, info=document.getElementById('cp-info'), tabla=document.getElementById('cp-tabla');
+  const hist=document.getElementById('cp-hist');
+  if(hist) hist.innerHTML=CP_PRECIOS.length?'Historial: '+[...CP_PRECIOS].sort((a,b)=>b.desde.localeCompare(a.desde)).map(x=>`desde ${cpDM(x.desde)}/${x.desde.slice(0,4)}: alita ${cpM(x.alita)} · filet ${cpM(x.filet)} · mano de obra ${cpM(x.mo)}`).join(' &nbsp;|&nbsp; '):'Todavía no hay precios guardados.';
+  const ult=[...CP_PRECIOS].sort((a,b)=>b.desde.localeCompare(a.desde))[0];
+  ['cp-pa','cp-pf','cp-pm'].forEach((id,i)=>{const e=document.getElementById(id); if(e&&!e.value&&ult) e.value=[ult.alita,ult.filet,ult.mo][i];});
+  if(!lunes){info.textContent=''; tabla.innerHTML='<div class="empty"><p>Todavía no hay semanas cargadas.</p></div>'; return;}
+  const c=cpCalc(lunes);
+  if(!c.pr){
+    info.innerHTML='<span style="color:#ef4444">No hay precios vigentes para esta semana. Abrí "Cambiar precios" y cargá los precios con una fecha de vigencia anterior o igual al lunes de esta semana.</span>';
+    tabla.innerHTML=''; return;
+  }
+  info.innerHTML=`Precios usados: alita ${cpM(c.pr.alita)} · filet ${cpM(c.pr.filet)} · mano de obra ${cpM(c.pr.mo)} por kg (rigen desde ${cpDM(c.pr.desde)}/${c.pr.desde.slice(0,4)}). La mano de obra se calcula sobre los kg de alita + filet.`;
+  const fila=(a,b,o,extra='')=>`<tr${extra}><td>${a}</td><td>${o.a?cpK(o.a):'–'}</td><td>${o.a?cpM(o.ia):'–'}</td><td>${o.f?cpK(o.f):'–'}</td><td>${o.f?cpM(o.if_):'–'}</td><td>${cpK(o.k)}</td><td>${cpM(o.mo)}</td><td>${cpM(o.t)}</td></tr>`;
+  let h=`<table class="gd-tbl"><thead><tr><th>Fecha de entrega</th><th>Alita kg</th><th>Alita $</th><th>Filet kg (Pechuga Proc.)</th><th>Filet $</th><th>Kg total</th><th>Mano de obra $</th><th>Total del día</th></tr></thead><tbody>`;
+  c.suc.forEach(o=>{
+    h+=`<tr><td colspan="8" style="text-align:left;font-weight:700;background:var(--surface2)">${SUC_NAMES[o.s]}</td></tr>`;
+    if(!o.dias.length) h+=`<tr><td colspan="8" style="text-align:left;color:var(--text3)">Sin entregas de pollo esta semana</td></tr>`;
+    o.dias.forEach(d=>{h+=fila(cpDM(d.fecha),'',d);});
+    h+=fila('Subtotal '+SUC_NAMES[o.s],'',o,' style="font-weight:700"');
+  });
+  h+=fila('Total de la semana','',c.tot,' style="font-weight:700;background:rgba(255,159,28,.1)"')+'</tbody></table>';
+  tabla.innerHTML=h;
+};
+window.cpGuardarPrecios=async function(){
+  const alita=parseFloat(document.getElementById('cp-pa').value), filet=parseFloat(document.getElementById('cp-pf').value), mo=parseFloat(document.getElementById('cp-pm').value);
+  const desde=document.getElementById('cp-desde').value;
+  if(!(alita>0&&filet>0&&mo>0)){toast('❌ Completá los tres precios','error');return}
+  if(!desde){toast('❌ Falta la fecha desde la que rigen','error');markError('cp-desde');return}
+  const nuevo=[...CP_PRECIOS.filter(x=>x.desde!==desde),{desde,alita,filet,mo}].sort((a,b)=>a.desde.localeCompare(b.desde));
+  try{
+    await setDoc(CP_DOC,{historial:nuevo,updatedAt:new Date().toISOString()});
+    toast('✅ Precios guardados');
+    document.getElementById('cp-desde').value='';
+  }catch(e){toast('❌ Error: '+e.message,'error')}
+};
+window.cpExcel=function(){
+  const lunes=document.getElementById('cp-semana')?.value;
+  if(!lunes){toast('❌ No hay semana elegida','error');return}
+  const c=cpCalc(lunes);
+  if(!c.pr){toast('❌ No hay precios vigentes para esa semana','error');return}
+  const titulo=`Cobro de pollo - Semana ${c.lunes} al ${c.hasta}`;
+  const precios=['Precios por kg:','Alita',c.pr.alita,'Filet',c.pr.filet,'Mano de obra',c.pr.mo,'Rigen desde '+c.pr.desde];
+  const cab=['Fecha de entrega','Alita kg','Alita $','Filet kg (Pechuga Proc.)','Filet $','Kg total','Mano de obra $','Total a facturar'];
+  const rd=x=>Math.round(x*100)/100;
+  const num=o=>[o.a,o.ia,o.f,o.if_,o.k,o.mo,o.t].map(rd);
+  // Hoja detalle
+  const det=[[titulo],precios,[],cab];
+  c.suc.forEach(o=>{
+    det.push([SUC_NAMES[o.s]]);
+    if(!o.dias.length) det.push(['Sin entregas de pollo esta semana']);
+    o.dias.forEach(d=>det.push([d.fecha,...num(d)]));
+    det.push(['Subtotal '+SUC_NAMES[o.s],...num(o)]);
+    det.push([]);
+  });
+  det.push(['Total de la semana',...num(c.tot)]);
+  // Hoja resumen
+  const res=[[titulo],precios,[],['Franquicia',...cab.slice(1)]];
+  c.suc.forEach(o=>res.push([SUC_NAMES[o.s],...num(o)]));
+  res.push(['Total de la semana',...num(c.tot)]);
+  const fmt=(ws,desde)=>{
+    const r=XLSX.utils.decode_range(ws['!ref']);
+    for(let R=desde;R<=r.e.r;R++){
+      [[1,'0.0'],[2,'"$" #,##0.00'],[3,'0.0'],[4,'"$" #,##0.00'],[5,'0.0'],[6,'"$" #,##0.00'],[7,'"$" #,##0.00']].forEach(([C,z])=>{
+        const cell=ws[XLSX.utils.encode_cell({r:R,c:C})]; if(cell&&typeof cell.v==='number') cell.z=z;
+      });
+    }
+    ws['!cols']=[{wch:30},{wch:10},{wch:14},{wch:22},{wch:14},{wch:10},{wch:16},{wch:18}];
+  };
+  const wsR=XLSX.utils.aoa_to_sheet(res), wsD=XLSX.utils.aoa_to_sheet(det);
+  fmt(wsR,4); fmt(wsD,4);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,wsR,('Resumen '+c.lunes).slice(0,31));
+  XLSX.utils.book_append_sheet(wb,wsD,('Detalle '+c.lunes).slice(0,31));
+  XLSX.writeFile(wb,`Cobro_Pollo_${c.lunes}.xlsx`);
+  toast('✅ Excel descargado');
+};
+
 // ── COBRO ──
 window.guardarPreciosCobro=function(){
   const a=document.getElementById('co-precio-alita')?.value||'';
@@ -4655,6 +4807,7 @@ window.restaurarPreciosCobro=function(){
   if(fe&&!fe.value) fe.value=localStorage.getItem('cdp-cobro-precio-filet')||'';
 };
 window.renderCobro=function(){
+  cpRender();
   restaurarPreciosCobro();
   const pAlita=parseFloat(document.getElementById('co-precio-alita')?.value)||0;
   const pFilet=parseFloat(document.getElementById('co-precio-filet')?.value)||0;
