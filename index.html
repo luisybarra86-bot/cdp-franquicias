@@ -2034,37 +2034,6 @@ if('serviceWorker' in navigator){
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- PIN MODAL -->
-<div class="pin-overlay" id="pin-modal">
-  <div class="pin-box">
-    <div class="pin-icon">🔐</div>
-    <div class="pin-title">Acceso Restringido</div>
-    <div class="pin-sub">Ingresá el PIN para continuar</div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="pd0"></div>
-      <div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div>
-      <div class="pin-dot" id="pd3"></div>
-    </div>
-    <div class="pin-grid">
-      <button class="pin-key" onclick="pinKey('1')">1</button>
-      <button class="pin-key" onclick="pinKey('2')">2</button>
-      <button class="pin-key" onclick="pinKey('3')">3</button>
-      <button class="pin-key" onclick="pinKey('4')">4</button>
-      <button class="pin-key" onclick="pinKey('5')">5</button>
-      <button class="pin-key" onclick="pinKey('6')">6</button>
-      <button class="pin-key" onclick="pinKey('7')">7</button>
-      <button class="pin-key" onclick="pinKey('8')">8</button>
-      <button class="pin-key" onclick="pinKey('9')">9</button>
-      <div></div>
-      <button class="pin-key" onclick="pinKey('0')">0</button>
-      <button class="pin-key del" onclick="pinKey('BORRAR')">⌫</button>
-    </div>
-    <div class="pin-error" id="pin-error"></div>
-    <button class="pin-cancel" onclick="pinCancel()">Cancelar</button>
-  </div>
-</div>
-
 <!-- LOADING OVERLAY -->
 <div id="app-loading">
   <div class="loading-wordmark">CDP <span>Franquicias</span></div>
@@ -2340,24 +2309,10 @@ window.checkAccess=function(){
   }
 };
 
-// ── PIN ──
-const PIN_CODE='2799';
-let pinBuffer='', pinTargetBtn=null, pinTargetTab='', pinUnlocked=false;
-
-document.addEventListener('keydown',function(e){
-  const modal=document.getElementById('pin-modal');
-  if(modal&&modal.style.display==='flex'){
-    if(e.key>='0'&&e.key<='9'){e.preventDefault();pinKey(e.key);}
-    else if(e.key==='Backspace'){e.preventDefault();pinKey('BORRAR');}
-    else if(e.key==='Escape'){e.preventDefault();pinCancel();}
-  }
-});
-
 // ── MODULO (NIVEL 1) — recuerda la última pestaña de Franquicias para restaurarla al volver ──
 let _lastFranqTab='cargar', _lastFranqBtn=null;
 
 window.goTab=function(n,btn){
-  if((n==='manoobra'||n==='cobro')&&!pinUnlocked){pinTargetBtn=btn;pinTargetTab=n;openPin();return;}
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
@@ -2400,44 +2355,6 @@ window.setModulo=function(mod,btn){
     const tipoCarneBtn=document.getElementById('merma-tipo-carne');
     if(tipoCarneBtn) setMermaTipo('carne',tipoCarneBtn);
     goTab('compras',null);
-  }
-}
-
-function openPin(){
-  pinBuffer='';
-  document.getElementById('pin-error').textContent='';
-  updatePinDots();
-  document.getElementById('pin-modal').style.display='flex';
-}
-window.pinCancel=function(){
-  document.getElementById('pin-modal').style.display='none';
-  pinBuffer='';pinTargetBtn=null;
-}
-window.pinKey=function(k){
-  if(k==='BORRAR'){pinBuffer=pinBuffer.slice(0,-1);}
-  else if(pinBuffer.length<4){pinBuffer+=k;}
-  updatePinDots();
-  document.getElementById('pin-error').textContent='';
-  if(pinBuffer.length===4){
-    if(pinBuffer===PIN_CODE){
-      pinUnlocked=true;
-      document.getElementById('pin-modal').style.display='none';
-      if(pinTargetBtn) goTab(pinTargetTab||'manoobra',pinTargetBtn);
-      pinBuffer='';
-    } else {
-      document.getElementById('pin-error').textContent='PIN incorrecto. Intentá de nuevo.';
-      pinBuffer='';
-      updatePinDots();
-      const box=document.querySelector('.pin-box');
-      box.style.animation='shake .4s ease';
-      setTimeout(()=>box.style.animation='',400);
-    }
-  }
-}
-function updatePinDots(){
-  for(let i=0;i<4;i++){
-    const d=document.getElementById('pd'+i);
-    d.classList.toggle('filled',i<pinBuffer.length);
   }
 }
 
